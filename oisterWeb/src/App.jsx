@@ -4,9 +4,11 @@ import Header from "./header/Header.jsx";
 // import Footer from "./footer/Footer.jsx";
 
 import HomePage from "./pages/home/Home.jsx";
+import ContactSection from "./pages/contact/Contact.jsx";
 import NotFoundPage from "./pages/404.jsx";
 
 import "./App.css";
+
 
 function App() {
   return (
@@ -25,7 +27,7 @@ function App() {
 
           <Route path="/blog" element={<div>AÑADIR ENTRADAS DEL BLOG</div>} />
 
-          <Route path="/contact" element={<div>AÑADIR FORMULARIO DE CONTACTO</div>} />
+          <Route path="/contact" element={<ContactSection />} />
 
           <Route path="*" element={<NotFoundPage />} />
 
