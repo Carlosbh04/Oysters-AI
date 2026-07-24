@@ -1,0 +1,10 @@
+.home {
+  min-height: 100vh;
+
+  /* Deja espacio para el Header */
+  padding-top: 120px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
