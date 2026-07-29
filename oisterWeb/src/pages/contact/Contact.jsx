@@ -11,6 +11,8 @@ import {
   FaCommentDots,
 } from "react-icons/fa";
 
+import { PiSparkleFill } from "react-icons/pi";
+
 import { sendContact } from "../../services/contactService.js";
 import PageSection from "../../componentes/layout/PageSection.jsx";
 
@@ -257,6 +259,16 @@ function ContactSection({ introDone = true }) {
             <FaPhone />
             <span>+34 600 000 000</span>
           </a>
+
+          <div className="contact-divider">
+            <span className="divider-line"></span>
+
+            <div className="divider-icon">
+              <PiSparkleFill />
+            </div>
+
+            <span className="divider-line"></span>
+          </div>
 
           <div className="social-section">
             <p className="social-title">Síguenos</p>

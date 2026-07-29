@@ -10,7 +10,7 @@ const COLORS = {
 };
 
 const DURATION = 3800; // duración total de la animación (ms)
-const TEXT = "Oysters·IA";
+const TEXT = "Oysters·AI";
 
 /* Muestrea el texto en un canvas temporal y devuelve las
    coordenadas de los píxeles encendidos → targets de partículas */
