@@ -1,0 +1,38 @@
+.logo-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: none;
+
+  z-index: 5;
+}
+
+.logo-overlay__text {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(40px, 8vw, 110px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+
+  background: linear-gradient(135deg, #f7b8eb, #e7b5f5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-overlay__dot {
+  display: inline-block;
+
+  width: 0.12em;
+  height: 0.12em;
+
+  border-radius: 50%;
+
+  background: #f7b8eb;
+
+  margin: 0 0.05em;
+  vertical-align: 0.15em;
+}

@@ -1,10 +1,1238 @@
 .home {
-  min-height: 100vh;
+  width: 100%;
+}
 
-  /* Deja espacio para el Header */
-  padding-top: 120px;
+/* ============================================================
+   HERO — versión pro (escena 3D SOLO desktop)
+   · La ostra (.hero__right) solo existe a >1100px.
+   · Tokens locales, glow unificado, botones con borde-gradiente
+   · Entrada orquestada condicionada a .hero--enter (la pone
+     App.jsx cuando termina el intro de partículas)
+   ============================================================ */
 
+.hero {
+  /* ---- tokens locales del hero ---- */
+  --h-violet: #8757f5;
+  --h-violet-deep: #6d49e0;
+  --h-lilac: #c9a8ff;
+  --h-pink: #ffbef5;
+  --h-ink: var(--color-text, #17122b);
+  --h-ink-soft: var(--color-text-light, #5c5673);
+
+  --h-glass: rgba(255, 255, 255, 0.48);
+  --h-glass-border: rgba(255, 255, 255, 0.55);
+  --h-hairline: rgba(23, 18, 43, 0.1);
+
+  --h-shadow-btn:
+    0 1px 2px rgba(23, 18, 43, 0.1), 0 8px 16px -4px rgba(109, 73, 224, 0.22),
+    0 24px 48px -12px rgba(140, 95, 245, 0.3);
+
+  --h-shadow-btn-hover:
+    0 1px 2px rgba(23, 18, 43, 0.12), 0 12px 24px -6px rgba(109, 73, 224, 0.28),
+    0 32px 64px -16px rgba(140, 95, 245, 0.38);
+
+  --h-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Altura del header */
+  --nav-height: var(--header-height);
+
+  /* Tipografía */
+  --t-title-fs: clamp(2.3rem, 1.8vw + 1.2rem, 3.4rem);
+  --t-title-lh: 1.08;
+  --t-title-ls: -0.024em;
+
+  --t-desc-fs: clamp(0.9rem, 0.82rem + 0.25vw, 1rem);
+  --t-desc-lh: 1.55;
+
+  --t-badge-fs: 0.75rem;
+  --t-btn-fs: 0.92rem;
+
+  --t-stat-fs: clamp(1.35rem, 1rem + 0.8vw, 1.7rem);
+  --t-stat-label-fs: 0.75rem;
+
+  width: 100%;
+  height: 100dvh;
+
+  display: flex;
+  align-items: center;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+/* ══════════════ NAVBAR: MODIFICAR AQUÍ (2/3) ══════════════
+   Escala de z-index de esta sección — tu navbar debe ir POR
+   ENCIMA de todo esto:
+     -2/-1 → glows y sombras (dentro de sus stacking contexts)
+      0/-1 → atmósfera tablet/móvil (aurora, orbe, partículas)
+      2    → .hero__container (contenido)
+      3    → grano de película (.hero::after)
+     10+   → TU NAVBAR (position: fixed; z-index: 10 o más)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ---- grano de película ----
+   Rompe el banding de los gradientes blureados y quita el
+   acabado "plástico". Al 5% cubre también el texto: eso es
+   lo correcto, el grano real no respeta capas. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--h-noise);
+  background-size: 240px 240px;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Fallback: si el navegador no soporta blend modes (raro ya),
+   bajamos la opacidad para que no se vea como suciedad gris */
+@supports not (mix-blend-mode: overlay) {
+  .hero::after {
+    opacity: 0.025;
+  }
+}
+
+/* FIX: el bloqueo de scroll del body es un comportamiento de
+   DESKTOP (hero = pantalla exacta, escena 3D). En tablet/móvil
+   el hero puede crecer más que el viewport (accesibilidad,
+   zoom de texto, landscape) y la página DEBE poder scrollear. */
+@media (min-width: 1101px) {
+  body:has(.hero) {
+    overflow: hidden;
+  }
+}
+
+.hero__container {
+  width: min(1440px, 92%);
+  margin: 0 auto;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 44% 56%;
+  align-items: center;
+  gap: clamp(1.5rem, 3vw, 3rem);
+  position: relative;
+  z-index: 2;
+  margin-top: var(--nav-height);
+}
+
+/* ============================================================
+   COLUMNA IZQUIERDA
+   ============================================================ */
+
+.hero__left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ---- badge: cristal más fino, con highlight interior ---- */
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: var(--h-glass);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--h-glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 4px 12px -2px rgba(109, 73, 224, 0.1);
+  color: var(--h-violet-deep);
+  font-size: var(--t-badge-fs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.hero__badge span {
+  color: var(--h-violet);
+  font-size: 0.9em;
+  transform: translateY(-1px);
+}
+
+/* ---- título ---- */
+.hero__title {
+  font-size: var(--t-title-fs);
+  font-weight: 700;
+  line-height: var(--t-title-lh);
+  letter-spacing: var(--t-title-ls);
+  color: var(--h-ink);
+  text-wrap: balance;
+}
+
+/* el gradiente del span está VIVO: se desplaza lentamente dentro
+   de las letras (14s). Es el efecto sorpresa del titular — casi
+   subliminal, pero la gente lo mira dos veces sin saber por qué */
+.hero__title span {
+  background: var(
+    --gradient-title,
+    linear-gradient(
+      110deg,
+      var(--h-violet-deep) 0%,
+      #b76df0 25%,
+      var(--h-pink) 50%,
+      #b76df0 75%,
+      var(--h-violet-deep) 100%
+    )
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent; /* fallback si background-clip falla */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero__title span {
+    animation: heroTitleShimmer 14s ease-in-out infinite;
+  }
+}
+
+@keyframes heroTitleShimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ---- descripción ---- */
+.hero__description {
+  margin-top: 0.9rem;
+  max-width: 52ch; /* ch: la medida óptima de lectura,
+                                independiente del tamaño de fuente */
+  font-size: var(--t-desc-fs);
+  line-height: var(--t-desc-lh);
+  color: var(--h-ink-soft);
+  text-wrap: pretty;
+}
+
+/* ============================================================
+   BOTONES — el detalle que más "pro" se nota
+   ============================================================ */
+
+.hero__buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.9rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--t-btn-fs);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+  will-change: transform;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--h-violet);
+  outline-offset: 3px;
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.12s;
+}
+
+/* --- primario: gradiente + highlight superior + sombra en capas --- */
+.btn--primary {
+  color: #fff;
+  background: linear-gradient(
+    160deg,
+    #a879ff 0%,
+    var(--h-violet) 45%,
+    var(--h-violet-deep) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    var(--h-shadow-btn);
+}
+
+.btn--primary:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    var(--h-shadow-btn-hover);
+}
+
+/* --- secundario: cristal con borde-gradiente (truco de máscara) --- */
+.btn--secondary {
+  color: var(--h-ink);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 14px -4px rgba(109, 73, 224, 0.14);
+}
+
+.btn--secondary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* grosor del borde */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(201, 168, 255, 0.55),
+    rgba(255, 255, 255, 0.35)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.btn--secondary:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+
+.hero__stats {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(1.25rem, 2.5vw, 2.25rem);
+  margin-top: 2rem;
+  padding-top: 1.3rem;
+
+  border-top: 1px solid var(--h-hairline);
+}
+
+.hero__stat {
+  position: relative;
+}
+
+/* separadores hairline entre stats (no en el primero) */
+.hero__stat + .hero__stat {
+  padding-left: clamp(1.25rem, 2.5vw, 2.25rem);
+  border-left: 1px solid var(--h-hairline);
+}
+
+.hero__stat h3 {
+  font-size: var(--t-stat-fs);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; /* cifras alineadas, look editorial */
+  color: var(--h-ink);
+  line-height: 1.1;
+}
+
+.hero__stat p {
+  margin-top: 0.3rem;
+  font-size: var(--t-stat-label-fs);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--h-ink-soft);
+}
+
+/* ============================================================
+   COLUMNA DERECHA — SOLO DESKTOP (>1100px)
+   ============================================================ */
+
+.hero__right {
+  --h-scene-x: clamp(0px, 6vw - 40px, 110px);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: visible;
+  isolation: isolate;
+  /* antes: translateX(120px) fijo → desbordaba en 13".
+     El offset vive en una variable para que la animación
+     de entrada no se pise con nada. */
+  transform: translateX(var(--h-scene-x));
+}
+
+/* halo grande: respira
+   SIN filter:blur — el desenfoque vive en el propio gradiente
+   (blur de 95px sobre 760px animados competía con el WebGL
+   por la GPU: era gran parte del "no va fluido") */
+.hero__right::before {
+  content: "";
+  position: absolute;
+  width: min(820px, 88vh);
+  height: min(820px, 88vh);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 220, 245, 0.28) 16%,
+    rgba(201, 168, 255, 0.22) 34%,
+    rgba(155, 110, 255, 0.13) 50%,
+    rgba(135, 87, 245, 0.07) 62%,
+    rgba(135, 87, 245, 0.03) 72%,
+    transparent 84%
+  );
+  animation: heroGlow 9s ease-in-out infinite;
+  will-change: transform, opacity;
+  z-index: -2;
+}
+
+/* núcleo: luz de contacto tras el asset — sin filter tampoco */
+.hero__right::after {
+  content: "";
+  position: absolute;
+  width: min(520px, 60vh);
+  height: min(520px, 60vh);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 210, 245, 0.18) 30%,
+    rgba(255, 190, 245, 0.08) 52%,
+    transparent 74%
+  );
+  z-index: -1;
+}
+
+.hero__image {
+  position: relative;
+  width: 100%;
+  height: min(85vh, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero__image img,
+.hero__image video,
+.hero__image > * {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* ---- destellos de estrella al aparecer la ostra ----
+   Oyster.jsx añade .is-ready a .hero__right en el instante exacto
+   en que el GLB termina de cargar. Dos estrellas de 4 puntas
+   (clip-path) centellean sobre la ostra — el "✦" clásico:
+   ::before → destello grande, sobre la perla
+   ::after  → réplica pequeña arriba a la derecha, 0.3s después */
+.hero__image::before,
+.hero__image::after {
+  content: "";
+  position: absolute;
+  background: linear-gradient(180deg, #ffffff, #ffe9fb 60%, #e3ccff);
+  clip-path: polygon(
+    50% 0%,
+    58% 42%,
+    100% 50%,
+    58% 58%,
+    50% 100%,
+    42% 58%,
+    0% 50%,
+    42% 42%
+  );
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 26px rgba(214, 170, 255, 0.6));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* destello principal: sobre la zona de la perla */
+.hero__image::before {
+  width: min(130px, 16vh);
+  height: min(130px, 16vh);
+  top: 54%;
+  left: 46%;
+}
+
+/* réplica pequeña: borde superior derecho de la concha */
+.hero__image::after {
+  width: min(64px, 8vh);
+  height: min(64px, 8vh);
+  top: 24%;
+  left: 66%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* el destello exige DOS condiciones: GLB cargado (.is-ready,
+     que pone Oyster.jsx) Y el intro terminado (.hero--enter).
+     Sin la segunda, el flash se dispararía a oscuras debajo
+     del intro y se desperdiciaría */
+  .hero--enter .hero__right.is-ready .hero__image::before {
+    animation: heroGlint 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) 0.55s forwards;
+  }
+
+  .hero--enter .hero__right.is-ready .hero__image::after {
+    animation: heroGlint 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.85s forwards;
+  }
+}
+
+/* el "ping": nace en punta, gira 45° mientras abre y se apaga.
+   El giro es lo que lo hace leerse como destello de luz real
+   y no como un icono que aparece */
+@keyframes heroGlint {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(25deg);
+  }
+  60% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.85) rotate(35deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(45deg);
+  }
+}
+
+/* suelo y sombra de contacto */
+.hero__floor {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(540px, 70%);
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(255, 255, 255, 0.35),
+    rgba(212, 171, 255, 0.22),
+    rgba(112, 83, 214, 0.08),
+    transparent 78%
+  );
+  filter: blur(26px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero__shadow {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(430px, 58%);
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(8, 8, 18, 0.38);
+  filter: blur(24px);
+  z-index: -2;
+}
+
+/* ============================================================
+   ENTRADA ORQUESTADA — condicionada al fin del intro
+   App.jsx pone .hero--enter cuando el intro de partículas
+   termina; hasta entonces el hero espera invisible.
+   · Texto: sube + se desenfoca a nítido (blur-rise)
+   · Badge: pop con micro-rebote
+   · Botones: rise + el primario "enciende" su sombra al final
+   · Stats: los números entran los últimos, como cierre
+   · Escena: solo aplica en desktop (a ≤1100px no existe)
+   ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* estado previo: mientras el intro tapa la pantalla, el hero
+     espera invisible; .hero--enter dispara la coreografía */
+  .hero:not(.hero--enter) .hero__title,
+  .hero:not(.hero--enter) .hero__description,
+  .hero:not(.hero--enter) .hero__badge,
+  .hero:not(.hero--enter) .hero__buttons,
+  .hero:not(.hero--enter) .hero__stats,
+  .hero:not(.hero--enter) .hero__right {
+    opacity: 0;
+  }
+
+  .hero--enter .hero__title,
+  .hero--enter .hero__description {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+    animation: heroBlurRise 0.85s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  }
+
+  .hero--enter .hero__badge {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+    animation: heroPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: 0.05s;
+  }
+
+  .hero--enter .hero__buttons,
+  .hero--enter .hero__stats {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: heroRise 0.7s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  }
+
+  /* stagger interno de las stats: cada cifra entra 80ms después */
+  .hero--enter .hero__stat {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: heroRise 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  }
+
+  .hero--enter .hero__title {
+    animation-delay: 0.15s;
+  }
+  .hero--enter .hero__description {
+    animation-delay: 0.3s;
+  }
+  .hero--enter .hero__buttons {
+    animation-delay: 0.45s;
+  }
+  .hero--enter .hero__stats {
+    animation-delay: 0.55s;
+  }
+  .hero--enter .hero__stat:nth-child(1) {
+    animation-delay: 0.62s;
+  }
+  .hero--enter .hero__stat:nth-child(2) {
+    animation-delay: 0.7s;
+  }
+  .hero--enter .hero__stat:nth-child(3) {
+    animation-delay: 0.78s;
+  }
+
+  /* el primario "enciende" su sombra violeta al aterrizar */
+  .hero--enter .btn--primary {
+    animation: heroBtnGlow 1s ease 0.45s backwards;
+  }
+
+  /* la escena solo hace FADE, y rápido: la escala (el pop)
+     es trabajo exclusivo del spring de la ostra. Si el CSS
+     también escalara, el pop quedaría enterrado en el fade */
+  .hero--enter .hero__right {
+    opacity: 0;
+    transform: translateX(var(--h-scene-x));
+    animation: heroSceneIn 0.35s ease-out 0.25s forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__right::before {
+    animation: none;
+  }
+}
+
+@keyframes heroRise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroBlurRise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes heroPop {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroBtnGlow {
+  from {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 0 0 rgba(23, 18, 43, 0),
+      0 0 0 rgba(109, 73, 224, 0),
+      0 0 0 rgba(140, 95, 245, 0);
+  }
+}
+
+@keyframes heroSceneIn {
+  to {
+    opacity: 1;
+    transform: translateX(var(--h-scene-x));
+  }
+}
+
+@keyframes heroFade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes heroGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   PANTALLA GRANDE (≥1600px) — modo impacto
+   ============================================================ */
+
+@media (min-width: 1600px) {
+  .hero {
+    --t-title-fs: 3.2rem;
+    --t-title-lh: 1.08;
+    --t-title-ls: -0.022em;
+
+    --t-desc-fs: 1rem;
+  }
+}
+
+/* ============================================================
+   TABLET Y MÓVIL (≤1100px) — SIN ESCENA 3D
+   La ostra desaparece por completo. El hero pasa a texto
+   centrado con atmósfera: aurora + orbe + partículas.
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  /* fuera la columna derecha entera */
+  .hero__right {
+    display: none;
+  }
+
+  .hero {
+    height: auto;
+    min-height: 100dvh;
+
+    /* arriba: header + aire · abajo: aire de cierre */
+    padding: calc(var(--nav-height) + 0.5rem) 0 clamp(2rem, 5vh, 3.5rem);
+
+    /* tipografía intermedia: sin escena, el título centrado
+       puede respirar, pero aún no pide el aire del móvil */
+    --t-title-fs: clamp(2.2rem, 4.2vw, 3.1rem);
+    --t-title-lh: 1.15;
+    --t-title-ls: -0.018em;
+
+    --t-desc-fs: 0.95rem;
+
+    --t-stat-fs: clamp(1.4rem, 2.2vw, 1.7rem);
+    --t-stat-label-fs: 0.75rem;
+  }
+
+  .hero__container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr; /* una sola celda: el contenido se centra solo */
+    text-align: center;
+
+    /* el hueco del header ya lo pone el padding del hero */
+    margin-top: 0;
+    height: auto;
+  }
+
+  /* centrado REAL de la columna: sin esto el texto se centra
+     pero badge, botones y stats se quedan pegados a la izquierda */
+  .hero__left {
+    align-items: center;
+  }
+
+  .hero__title,
+  .hero__description {
+    margin-inline: auto;
+  }
+
+  .hero__stats {
+    justify-content: center;
+  }
+
+  .hero__buttons {
+    justify-content: center;
+  }
+
+  /* ---- atmósfera: aurora de dos capas ----
+     .hero::before            = base fija (lila arriba, rosa abajo)
+     .hero__container::before = orbe que deriva lentamente
+     (el orbe vive en el container porque .hero::after está
+     ocupado por el grano de película) */
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse 95% 55% at 50% 6%,
+        rgba(201, 168, 255, 0.26),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 75% 45% at 50% 102%,
+        rgba(255, 190, 245, 0.18),
+        transparent 75%
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero__container::before {
+    content: "";
+    position: absolute;
+    top: -12%;
+    left: 50%;
+    width: min(420px, 110vw);
+    height: min(420px, 110vw);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(214, 170, 255, 0.28) 35%,
+      rgba(135, 87, 245, 0.12) 60%,
+      transparent 76%
+    );
+    filter: blur(46px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* ---- partículas: motas de luz bokeh ----
+     Dos capas en los pseudos de .hero__left (los únicos libres),
+     posicionadas contra el container. Cada "partícula" es una
+     sombra de un punto invisible — cero elementos extra, cero JS.
+     El patrón se define dos veces (0–100vh y 100–200vh) para que
+     la deriva ascendente cierre el loop sin salto.
+     Capa cercana: puntos grandes, brillantes, rápidos (48s).
+     Capa lejana: puntos pequeños, tenues, lentos (75s) → parallax. */
+  .hero__left::before,
+  .hero__left::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* capa cercana */
+  .hero__left::before {
+    box-shadow:
+      12vw 16vh 3px 1px rgba(255, 255, 255, 0.4),
+      78vw 10vh 4px 2px rgba(214, 170, 255, 0.32),
+      88vw 42vh 3px 1px rgba(255, 255, 255, 0.3),
+      22vw 60vh 4px 2px rgba(201, 168, 255, 0.3),
+      64vw 74vh 3px 1px rgba(255, 220, 245, 0.34),
+      8vw 88vh 4px 2px rgba(255, 255, 255, 0.26),
+      46vw 30vh 3px 1px rgba(255, 190, 245, 0.28),
+      /* réplica +100vh para loop continuo */ 12vw 116vh 3px 1px
+        rgba(255, 255, 255, 0.4),
+      78vw 110vh 4px 2px rgba(214, 170, 255, 0.32),
+      88vw 142vh 3px 1px rgba(255, 255, 255, 0.3),
+      22vw 160vh 4px 2px rgba(201, 168, 255, 0.3),
+      64vw 174vh 3px 1px rgba(255, 220, 245, 0.34),
+      8vw 188vh 4px 2px rgba(255, 255, 255, 0.26),
+      46vw 130vh 3px 1px rgba(255, 190, 245, 0.28);
+  }
+
+  /* capa lejana: más pequeña, más tenue, con blur sutil */
+  .hero__left::after {
+    width: 3px;
+    height: 3px;
+    filter: blur(0.5px);
+    box-shadow:
+      30vw 8vh 2px 0 rgba(255, 255, 255, 0.28),
+      55vw 20vh 2px 1px rgba(214, 170, 255, 0.22),
+      92vw 26vh 2px 0 rgba(255, 255, 255, 0.2),
+      15vw 38vh 2px 1px rgba(201, 168, 255, 0.22),
+      70vw 50vh 2px 0 rgba(255, 255, 255, 0.18),
+      38vw 68vh 2px 1px rgba(255, 220, 245, 0.2),
+      84vw 80vh 2px 0 rgba(214, 170, 255, 0.18),
+      5vw 70vh 2px 0 rgba(255, 255, 255, 0.16),
+      58vw 92vh 2px 1px rgba(255, 255, 255, 0.2),
+      /* réplica +100vh */ 30vw 108vh 2px 0 rgba(255, 255, 255, 0.28),
+      55vw 120vh 2px 1px rgba(214, 170, 255, 0.22),
+      92vw 126vh 2px 0 rgba(255, 255, 255, 0.2),
+      15vw 138vh 2px 1px rgba(201, 168, 255, 0.22),
+      70vw 150vh 2px 0 rgba(255, 255, 255, 0.18),
+      38vw 168vh 2px 1px rgba(255, 220, 245, 0.2),
+      84vw 180vh 2px 0 rgba(214, 170, 255, 0.18),
+      5vw 170vh 2px 0 rgba(255, 255, 255, 0.16),
+      58vw 192vh 2px 1px rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* ---- coreografía ≤1100px: la atmósfera abre el telón ----
+   la aurora hace bloom primero y el orbe deriva en loop;
+   el texto entra sobre ella — todo espera a .hero--enter */
+@media (max-width: 1100px) and (prefers-reduced-motion: no-preference) {
+  /* la atmósfera también espera al intro */
+  .hero:not(.hero--enter)::before,
+  .hero:not(.hero--enter) .hero__container::before,
+  .hero:not(.hero--enter) .hero__left::before,
+  .hero:not(.hero--enter) .hero__left::after {
+    opacity: 0;
+    animation: none;
+  }
+
+  .hero--enter::before {
+    opacity: 0;
+    animation: heroAtmosIn 1.4s ease-out forwards;
+  }
+
+  .hero--enter .hero__container::before {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.85);
+    animation:
+      heroOrbIn 1.6s cubic-bezier(0.22, 0.8, 0.36, 1) 0.1s forwards,
+      heroOrbDrift 14s ease-in-out 1.7s infinite;
+  }
+
+  .hero--enter .hero__left::before {
+    opacity: 0;
+    animation:
+      heroAtmosIn 2s ease 0.6s forwards,
+      heroDust 48s linear 1s infinite;
+  }
+
+  .hero--enter .hero__left::after {
+    opacity: 0;
+    animation:
+      heroAtmosIn 2.4s ease 0.9s forwards,
+      heroDust 75s linear 1s infinite;
+  }
+}
+
+@keyframes heroAtmosIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes heroOrbIn {
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes heroOrbDrift {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  33% {
+    transform: translateX(-58%) scale(1.06);
+  }
+  66% {
+    transform: translateX(-44%) scale(0.97);
+  }
+}
+
+/* deriva ascendente: al llegar a -100vh el patrón replicado
+   coincide con el inicial → el loop cierra sin salto */
+@keyframes heroDust {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100vh);
+  }
+}
+
+/* ============================================================
+   MÓVIL (≤768px) — composición editorial, alineada a la
+   IZQUIERDA: badge, título, descripción y botones en columna
+   izquierda; el titular respira a lo ancho en 4–5 líneas.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 100svh;
+    height: auto;
+
+    display: flex;
+    flex-direction: column;
+
+    /* header + aire arriba · aire de cierre abajo */
+    padding: calc(var(--nav-height) + 0.75rem) 0 1.5rem;
+
+    /* al ir a la izquierda y a todo el ancho, el título puede
+       ser más grande que antes sin comerse la pantalla */
+    --t-title-fs: clamp(1.7rem, 6.4vw, 2.1rem);
+    --t-title-lh: 1.16;
+    --t-title-ls: -0.02em;
+
+    --t-desc-fs: 0.9rem;
+    --t-desc-lh: 1.55;
+
+    --t-badge-fs: 0.68rem;
+
+    --t-btn-fs: 0.9rem;
+
+    --t-stat-fs: 1.15rem;
+    --t-stat-label-fs: 0.62rem;
+    
+  }
+
+  .hero__container {
+    width: min(600px, 90%);
+    height: auto;
+
+     flex:  1;
+    margin-top: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+
+    gap: 1rem;
+
+    /* IZQUIERDA: anula el text-align:center del bloque ≤1100px */
+    text-align: left;
+  }
+
+  .hero__left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* badge y todo lo demás a la izquierda */
+    gap: clamp(0.85rem, 2.2vh, 1.4rem);
+  }
+
+  .hero__badge {
+    margin: 0;
+    padding: 0.4rem 0.95rem;
+  }
+
+  .hero__title {
+    /* sin corsé de 16ch: rompe donde le toca, a todo el ancho */
+    max-width: 100%;
+    margin: 0; /* anula el margin-inline:auto de ≤1100px */
+  }
+
+  .hero__description {
+    max-width: 44ch;
+    margin: 0; /* idem: a la izquierda */
+  }
+
+  .hero__buttons {
+    width: 100%;
+    max-width: 340px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    gap: 0.6rem;
+
+    margin-top: 0.4rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.85rem 1.4rem;
+  }
+
+  /* stats: tira de cristal a todo el ancho */
+  .hero__stats {
+    width: 100%;
+    max-width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+
+    gap: 0.3rem;
+
+    margin-top: auto;
+
+    padding: 0.65rem 0.75rem;
+
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.42);
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    border: 1px solid rgba(255, 255, 255, 0.55);
+
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 10px 25px -10px rgba(109, 73, 224, 0.22);
+  }
+
+  .hero__stat {
+    flex: 1;
+    min-width: 0;
+    text-align: center; /* dentro de la tira, las cifras sí centradas */
+  }
+
+  .hero__stat + .hero__stat {
+    padding-left: 0.4rem;
+    border-left: 1px solid rgba(23, 18, 43, 0.08);
+  }
+
+  .hero__stat h3 {
+    background: linear-gradient(160deg, var(--h-ink), var(--h-violet-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* la tira de cristal entra con un pop suave, no con rise plano */
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .hero--enter .hero__stats {
+    transform: translateY(16px) scale(0.97);
+    animation-name: heroPanelIn;
+  }
+}
+
+@keyframes heroPanelIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   MÓVIL PEQUEÑO (≤380px) — mismo layout izquierda, todo
+   un punto más compacto para SE/mini
+   ============================================================ */
+
+@media (max-width: 380px) {
+  .hero {
+    --t-title-fs: clamp(1.5rem, 7.2vw, 1.7rem);
+    --t-title-lh: 1.18;
+    --t-title-ls: -0.01em;
+    --t-desc-fs: 0.85rem;
+    --t-badge-fs: 0.64rem;
+    --t-btn-fs: 0.86rem;
+    --t-stat-fs: 1.02rem;
+    --t-stat-label-fs: 0.58rem;
+  }
+
+  .hero__badge {
+    padding: 0.4rem 0.9rem;
+  }
+
+  .hero__buttons {
+    max-width: 100%;
+  }
+
+  .hero__stats {
+    padding: 0.6rem 0.65rem;
+    margin-top: 0.9rem;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE BAJO (móvil girado / notebooks muy cortos):
+   100dvh ≈ 400px no da para columna centrada con aire →
+   texto alineado a la izquierda y todo comprimido en vertical.
+   ============================================================ */
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .hero__right {
+    display: none;
+  }
+
+  .hero {
+    /* FIX: el header sigue ahí — sin este padding el título
+       quedaba debajo de la píldora en móvil girado */
+    height: auto;
+    min-height: 100dvh;
+    padding: calc(var(--nav-height) + 0.25rem) 0 1rem;
+  }
+
+  .hero__container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    margin-top: 0;
+    height: auto;
+  }
+
+  .hero__left {
+    justify-content: center;
+    height: 100%;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .hero__badge {
+    margin-bottom: 0.6rem;
+  }
+
+  .hero {
+    --t-title-fs: clamp(1.4rem, 4.5vh + 1vw, 2rem);
+    --t-title-lh: 1.15;
+    --t-title-ls: -0.015em;
+    --t-desc-fs: 0.85rem;
+    --t-desc-lh: 1.5;
+    --t-btn-fs: 0.875rem;
+    --t-stat-fs: 1.1rem;
+    --t-stat-label-fs: 0.64rem;
+  }
+
+  .hero__title,
+  .hero__description {
+    margin-inline: 0; /* en landscape el texto vuelve a la izquierda */
+  }
+
+  .hero__description {
+    margin-top: 0.6rem;
+  }
+
+  .hero__buttons {
+    flex-direction: row; /* en horizontal los botones caben en fila */
+    width: auto;
+    margin-top: 1rem;
+    justify-content: flex-start;
+  }
+
+  .btn {
+    width: auto;
+    padding: 0.6rem 1.4rem;
+  }
+
+  .hero__stats {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  .hero__stat p {
+    margin-top: 0.1rem;
+  }
 }

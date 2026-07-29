@@ -1,0 +1,133 @@
+/* ===== Base ===== */
+
+.mobile-accordion {
+  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+}
+
+/* ===== Header ===== */
+
+.mobile-accordion__header {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 20px 0;
+
+  background: transparent;
+  border: none;
+
+  cursor: pointer;
+
+  font: inherit;
+
+  color: var(--color-dark);
+  font-size: 1.08rem;
+  font-weight: 600;
+
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.mobile-accordion__header:hover {
+  color: #c97bdd;
+}
+
+/* ===== Contenido ===== */
+
+.mobile-accordion__content {
+  display: grid;
+  grid-template-rows: 0fr;
+
+  transition: grid-template-rows 0.35s ease;
+}
+
+.mobile-accordion__content.active {
+  grid-template-rows: 1fr;
+}
+
+.mobile-accordion__body {
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+/* ===== Iconos ===== */
+
+.mobile-accordion__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 0.9rem;
+  color: #c97bdd;
+
+  transition:
+    transform 0.35s ease,
+    color 0.3s ease;
+}
+
+.mobile-accordion__icon.active {
+  transform: rotate(180deg);
+  color: #b96bd5;
+}
+
+.mobile-accordion__icon img {
+  width: 18px;
+  height: 18px;
+  background: transparent !important;
+  transition: transform 0.35s ease;
+  box-shadow: none !important;
+}
+
+.mobile-accordion__icon img.active {
+  transform: rotate(180deg);
+}
+
+/* ===== Links ===== */
+
+.mobile-accordion__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 0;
+
+  color: rgba(21, 22, 28, 0.72);
+
+  text-decoration: none;
+
+  font-size: 0.95rem;
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.mobile-accordion__link:hover {
+  color: #c97bdd;
+  transform: translateX(2px);
+}
+
+.mobile-accordion__link span:last-child {
+  opacity: 0.6;
+
+  transition: opacity 0.25s ease;
+}
+
+.mobile-accordion__link:hover span:last-child {
+  opacity: 1;
+}
+
+.mobile-accordion.active {
+  border-bottom: none;
+}
+
+.mobile-accordion__header {
+  -webkit-tap-highlight-color: transparent;
+}
