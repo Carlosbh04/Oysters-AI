@@ -1,0 +1,26 @@
+.intro-animation {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  overflow: hidden;
+
+  background: #15161c;
+
+  transition: opacity 0.8s ease;
+}
+
+/* salida: todo el intro (canvas + logo) se funde a la vez
+   antes de que onFinish desmonte el componente */
+.intro-animation.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-animation canvas {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}

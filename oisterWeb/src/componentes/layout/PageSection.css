@@ -1,0 +1,41 @@
+/* ============================================================
+   PAGE SECTION — layout base de todas las páginas
+   Una página nueva solo necesita envolverse en <PageSection>
+   y ya tiene: alto de viewport, hueco del header, ancho
+   contenido y aire responsivo. Cero CSS de layout por página.
+   ============================================================ */
+
+.page-section {
+  width: 100%;
+
+  /* svh: estable en móvil aunque la barra del navegador
+     aparezca/desaparezca (mismo criterio que el hero) */
+  min-height: 100svh;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  /* hueco del header (la píldora es absolute, no empuja)
+     + aire arriba · aire de cierre abajo, elástico */
+  padding: calc(var(--header-height) + clamp(1rem, 3vh, 2.5rem))
+           0
+           clamp(2rem, 5vh, 3.5rem);
+}
+
+.page-section__inner {
+  /* usa el mismo token de ancho que el resto del sitio */
+  width: min(var(--container), 90%);
+  margin-inline: auto;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* centrado vertical del contenido (modo por defecto) */
+.page-section--center .page-section__inner {
+  justify-content: center;
+}

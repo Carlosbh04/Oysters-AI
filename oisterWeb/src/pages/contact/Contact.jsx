@@ -1,166 +1,299 @@
 import { useState } from "react";
 import "./Contact.css";
 import {
-    FaInstagram,
-    FaLinkedin,
-    FaYoutube,
-    FaEnvelope,
-    FaPhone,
+  FaInstagram,
+  FaLinkedin,
+  FaYoutube,
+  FaEnvelope,
+  FaPhone,
+  FaUser,
+  FaUserFriends,
+  FaCommentDots,
 } from "react-icons/fa";
 
 import { sendContact } from "../../services/contactService.js";
+import PageSection from "../../componentes/layout/PageSection.jsx";
 
-function ContactSection() {
+function ContactSection({ introDone = true }) {
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellidos: "",
+    telefono: "",
+    email: "",
+    comentarios: "",
+  });
 
-    const [formData, setFormData] = useState({
-        nombre: "",
-        apellidos: "",
-        telefono: "",
-        email: "",
-        comentarios: ""
+  const [focused, setFocused] = useState({
+    nombre: false,
+    apellidos: false,
+    telefono: false,
+    email: false,
+    comentarios: false,
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     });
+  };
 
-    const handleChange = (e) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const data = await sendContact(formData);
+
+      if (data.success) {
+        alert("Mensaje enviado correctamente.");
         setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
+          nombre: "",
+          apellidos: "",
+          telefono: "",
+          email: "",
+          comentarios: "",
         });
-    };
+      } else {
+        alert("Ha ocurrido un error.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("No se ha podido conectar con el servidor.");
+    }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  return (
+    <PageSection className="contact-page">
+      <div className={`contact ${introDone ? "contact--enter" : ""}`}>
+        {/* CABECERA: eyebrow + titular + intro */}
+        <div className="contact-header">
+          <p className="contact-eyebrow">Contacto</p>
 
-        try {
-            const data = await sendContact(formData);  
+          <h2>Hablemos</h2>
 
-            if (data.success) {
-                alert("Mensaje enviado correctamente.");
-                setFormData({
-                    nombre: "",
-                    apellidos: "",
-                    telefono: "",
-                    email: "",
-                    comentarios: ""
-                });
-            } else {
-                alert("Ha ocurrido un error.");
-            }
+          <p className="contact-text">
+            ¡Acompáñanos y descubramos juntos el potencial de la inteligencia
+            artificial!
+          </p>
 
-        } catch (error) {
-            console.error(error);
-            alert("No se ha podido conectar con el servidor.");
-        }
-    };
+          <p className="contact-text">
+            Por favor, proporciónanos información sobre cómo podemos ayudarte y
+            nos pondremos en contacto contigo en breve.
+          </p>
+        </div>
 
-    return (
-        <section className="contact">
+        {/* FORMULARIO */}
+        <form className="contact-form" onSubmit={handleSubmit}>
+          <div
+            className={`input-group ${
+              focused.nombre || formData.nombre ? "active" : ""
+            }`}
+          >
+            <span className="input-group__icon">
+              <FaUser />
+            </span>
 
-            <div className="contact-info">
+            <input
+              id="nombre"
+              type="text"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              onFocus={() => setFocused((prev) => ({ ...prev, nombre: true }))}
+              onBlur={() => setFocused((prev) => ({ ...prev, nombre: false }))}
+              autoComplete="given-name"
+              required
+            />
 
-                <h2>Contacto</h2>
+            <label htmlFor="nombre">
+              Nombre <span>*</span>
+            </label>
+          </div>
 
-                <p className="contact-text">
-                    ¡Acompáñanos y descubramos juntos el potencial de la inteligencia artificial!
-                </p>
+          <div
+            className={`input-group ${
+              focused.apellidos || formData.apellidos ? "active" : ""
+            }`}
+          >
+            <span className="input-group__icon">
+              <FaUserFriends />
+            </span>
 
-                <p className="contact-text">
-                    Por favor, proporciónanos información sobre cómo podemos ayudarte y
-                    nos pondremos en contacto contigo en breve.
-                </p>
+            <input
+              id="apellidos"
+              type="text"
+              name="apellidos"
+              value={formData.apellidos}
+              onChange={handleChange}
+              onFocus={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  apellidos: true,
+                }))
+              }
+              onBlur={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  apellidos: false,
+                }))
+              }
+              autoComplete="family-name"
+              required
+            />
 
-                <div className="contact-item">
-                    <FaEnvelope />
-                    <span>correo@empresa.com</span>
-                </div>
+            <label htmlFor="apellidos">
+              Apellidos <span>*</span>
+            </label>
+          </div>
 
-                <div className="contact-item">
-                    <FaPhone />
-                    <span>+34 600 000 000</span>
-                </div>
+          <div
+            className={`input-group ${
+              focused.telefono || formData.telefono ? "active" : ""
+            }`}
+          >
+            <span className="input-group__icon">
+              <FaPhone />
+            </span>
 
-                <div className="social-buttons">
+            <input
+              id="telefono"
+              type="tel"
+              name="telefono"
+              value={formData.telefono}
+              onChange={handleChange}
+              onFocus={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  telefono: true,
+                }))
+              }
+              onBlur={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  telefono: false,
+                }))
+              }
+              autoComplete="tel"
+              required
+            />
 
-                    <a href="https://instagram.com" target="_blank" rel="noreferrer">
-                        <FaInstagram />
-                    </a>
+            <label htmlFor="telefono">
+              Teléfono <span>*</span>
+            </label>
+          </div>
 
-                    <a href="https://linkedin.com" target="_blank" rel="noreferrer">
-                        <FaLinkedin />
-                    </a>
+          <div
+            className={`input-group ${
+              focused.email || formData.email ? "active" : ""
+            }`}
+          >
+            <span className="input-group__icon">
+              <FaEnvelope />
+            </span>
 
-                    <a href="https://youtube.com" target="_blank" rel="noreferrer">
-                        <FaYoutube />
-                    </a>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onFocus={() => setFocused((prev) => ({ ...prev, email: true }))}
+              onBlur={() => setFocused((prev) => ({ ...prev, email: false }))}
+              autoComplete="email"
+              required
+            />
 
-                </div>
+            <label htmlFor="email">
+              Correo electrónico <span>*</span>
+            </label>
+          </div>
 
+          <div
+            className={`input-group ${
+              focused.comentarios || formData.comentarios ? "active" : ""
+            }`}
+          >
+            <span className="input-group__icon">
+              <FaCommentDots />
+            </span>
+
+            <textarea
+              id="comentarios"
+              name="comentarios"
+              value={formData.comentarios}
+              onChange={handleChange}
+              onFocus={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  comentarios: true,
+                }))
+              }
+              onBlur={() =>
+                setFocused((prev) => ({
+                  ...prev,
+                  comentarios: false,
+                }))
+              }
+              rows={6}
+              required
+            />
+
+            <label htmlFor="comentarios">
+              Cuéntanos tu proyecto <span>*</span>
+            </label>
+          </div>
+
+          <button type="submit">Enviar</button>
+        </form>
+
+        {/* PIE: datos de contacto + síguenos */}
+        <div className="contact-info">
+          <a href="mailto:correo@empresa.com" className="contact-item">
+            <FaEnvelope />
+            <span>correo@empresa.com</span>
+          </a>
+
+          <a href="tel:+34600000000" className="contact-item">
+            <FaPhone />
+            <span>+34 600 000 000</span>
+          </a>
+
+          <div className="social-section">
+            <p className="social-title">Síguenos</p>
+
+            <div className="social-buttons">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+              >
+                <FaInstagram />
+              </a>
+
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+              >
+                <FaLinkedin />
+              </a>
+
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="YouTube"
+              >
+                <FaYoutube />
+              </a>
             </div>
-
-            <form className="contact-form" onSubmit={handleSubmit}>
-
-                <div className="input-group">
-                    <label>Nombre *</label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        value={formData.nombre}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="input-group">
-                    <label>Apellidos *</label>
-                    <input
-                        type="text"
-                        name="apellidos"
-                        value={formData.apellidos}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="input-group">
-                    <label>Teléfono *</label>
-                    <input
-                        type="tel"
-                        name="telefono"
-                        value={formData.telefono}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="input-group">
-                    <label>Email *</label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="input-group">
-                    <label>Comentarios *</label>
-                    <textarea
-                        rows="6"
-                        name="comentarios"
-                        value={formData.comentarios}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <button type="submit">
-                    Enviar
-                </button>
-
-            </form>
-
-        </section>
-    );
+          </div>
+        </div>
+      </div>
+    </PageSection>
+  );
 }
 
 export default ContactSection;

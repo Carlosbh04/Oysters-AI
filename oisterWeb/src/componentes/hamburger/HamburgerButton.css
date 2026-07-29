@@ -1,0 +1,60 @@
+.hamburger{
+    width:48px;
+    height:48px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+
+    padding:0;
+
+    align-items:center;
+    justify-content:center;
+
+    position:relative;
+
+    z-index:1200;
+}
+
+.hamburger span{
+    position:absolute;
+
+    width:24px;
+    height:2px;
+
+    border-radius:50px;
+
+    background:#15161C;
+
+    transition:
+        transform .35s ease,
+        opacity .25s ease,
+        background .25s ease;
+}
+
+ /* Estado inicial*/
+
+.hamburger span:nth-child(1){
+    transform:translateY(-7px);
+}
+
+.hamburger span:nth-child(2){
+    transform:translateY(0);
+}
+
+.hamburger span:nth-child(3){
+    transform:translateY(7px);
+}
+
+/* Estado activo */
+
+.hamburger.active span:nth-child(1){
+    transform:translateY(0) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2){
+    opacity:0;
+}
+
+.hamburger.active span:nth-child(3){
+    transform:translateY(0) rotate(-45deg);
+}

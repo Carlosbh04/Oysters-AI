@@ -1,0 +1,304 @@
+.mobile-menu__overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition: var(--transition);
+
+  z-index: 999;
+}
+
+.mobile-menu__overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: var(--header-height);
+  box-sizing: border-box;
+
+  padding: 0 32px;
+
+  /* baja el bloque del logo para emparejarlo con la X,
+     que cuelga del padding del header de la página
+     (24px del .header + 18px del container ≈ 42px,
+     menos lo que ya centra la altura → ajusta a ojo) */
+  padding-top: 28px;
+
+  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+
+  flex-shrink: 0;
+}
+
+.mobile-menu {
+  position: fixed;
+  inset: 0 0 0 auto;
+
+  width: min(420px, 100%);
+
+  /* dvh: altura real del viewport móvil (cuenta la barra
+     del navegador) — evita que "Hablemos" quede cortado */
+  height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(247, 184, 235, 0.65) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(239, 195, 248, 0.55) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, #fdf2fb 0%, #f8ecff 55%, #ffffff 100%);
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+
+  transform: translateX(100%);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* clip: recorta como hidden pero prohíbe también el scroll
+     programático — el drawer no puede desplazarse jamás.
+     hidden de respaldo para navegadores viejos sin clip */
+  overflow: hidden;
+  overflow: clip;
+
+  z-index: 1000;
+}
+
+.mobile-menu.active {
+  transform: translateX(0);
+}
+
+.mobile-menu__nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px 32px;
+
+  /* LA ZONA QUE SCROLLEA.
+     min-height: 0 → deja que el nav se encoja y active
+     su overflow-y cuando un acordeón crece */
+  min-height: 0;
+  overflow-y: auto;
+
+  /* el scroll no "escapa" al body al llegar al final */
+  overscroll-behavior: contain;
+
+  /* FIX scroll rápido (1/2): el scroll anchoring del navegador
+     recoloca la posición cuando la altura del contenido cambia
+     (acordeones plegándose) en pleno scroll con inercia —
+     ese salto es el que "perdía" Nosotros. Desactivado. */
+  overflow-anchor: none;
+
+  /* FIX scroll rápido (2/2): fuera -webkit-overflow-scrolling:
+     touch. Obsoleta desde iOS 13 y conocida por dejar el scroll
+     atascado fuera de límites con flicks rápidos + cambios de
+     altura. Los navegadores modernos ya dan momentum nativo. */
+
+  /* scroll sin barra visible */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-menu__nav::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-menu__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  text-decoration: none;
+  color: var(--color-dark);
+  font-size: 1.15rem;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+  transition:
+    padding 0.35s ease,
+    color 0.35s ease;
+
+  /* cada fila mantiene su altura: no se aplastan */
+  flex-shrink: 0;
+}
+
+.mobile-menu__nav > * {
+  opacity: 0;
+  transform: translateX(24px);
+  animation: none;
+}
+
+.mobile-menu__nav a:hover {
+  padding-left: 12px;
+
+  color: var(--color-primary-dark, var(--color-dark));
+}
+.mobile-menu__cta {
+  margin-top: 24px;
+
+  text-align: center;
+
+  padding: 16px;
+
+  border-radius: 999px;
+
+  background: var(--gradient-primary);
+}
+
+.mobile-menu__footer{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+
+    padding:32px;
+
+    border-top:1px solid rgba(21,22,28,.08);
+
+    /* zona fija abajo — "Hablemos" siempre visible */
+    flex-shrink:0;
+
+    /* respeta el home indicator / notch inferior de iOS */
+    padding-bottom:max(32px, calc(20px + env(safe-area-inset-bottom)));
+}
+
+.mobile-menu__logo {
+  text-decoration: none;
+
+  color: var(--color-dark);
+
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.mobile-menu__arrow {
+  font-size: 1rem;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease;
+}
+
+.mobile-menu__nav a:hover .mobile-menu__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(1){
+    animation: menuItemReveal .45s ease forwards .15s;
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(2){
+    animation: menuItemReveal .45s ease forwards .22s;
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(3){
+    animation: menuItemReveal .45s ease forwards .29s;
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(4){
+    animation: menuItemReveal .45s ease forwards .36s;
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(5){
+    animation: menuItemReveal .45s ease forwards .43s;
+}
+
+.mobile-menu.active .mobile-menu__nav > :nth-child(6){
+    animation: menuItemReveal .45s ease forwards .50s;
+}
+
+.mobile-menu__language{
+
+    width:fit-content;
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.45);
+
+    backdrop-filter:blur(10px);
+
+    color:var(--color-dark);
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.35s ease;
+}
+
+.mobile-menu__language:hover{
+
+    transform:translateY(-2px);
+
+    background:rgba(255,255,255,.75);
+
+}
+
+.mobile-menu__cta{
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    width:100%;
+
+    padding:18px 24px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    color:var(--color-dark);
+
+    font-weight:700;
+
+    background:var(--gradient-primary);
+
+    box-shadow:
+        0 12px 35px rgba(247,184,235,.35);
+
+    transition:.35s ease;
+}
+
+
+.mobile-menu__cta:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 20px 45px rgba(247,184,235,.45);
+
+}
+
+@keyframes menuItemReveal{
+
+    from{
+        opacity:0;
+        transform:translateX(24px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+
+}

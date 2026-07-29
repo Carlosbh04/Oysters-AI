@@ -1,0 +1,520 @@
+/* ======= Header ======= */
+
+.header {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+
+  z-index: 1000;
+
+  height: var(--header-height);
+
+  padding: 24px 0;
+
+  box-sizing: border-box;
+
+  background: transparent;
+}
+
+/* ======= Contenedor =======*/
+
+.header__container {
+  width: min(88%, var(--container));
+
+  margin: 0 auto;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 18px 32px;
+
+  background: var(--gradient-primary);
+
+  border-radius: 24px;
+
+  /* separación del fondo: filo de luz + sombra con color */
+  border: 1px solid rgba(255, 255, 255, 0.65);
+
+  box-shadow:
+    0 12px 40px rgba(169, 106, 247, 0.22),
+    0 2px 8px rgba(217, 107, 197, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* ======= Entrada: la píldora baja desde arriba =======
+   Espera al fin del intro (.header--enter la pone App vía
+   Header.jsx). Cae con el mismo lenguaje que el hero:
+   rise + blur sutil, ligeramente ANTES que el badge del hero
+   (el techo primero, luego el contenido). La animación va en
+   .header__container y no en .header porque .header es el
+   ancla de posicionamiento — animarlo con transform crearía
+   un stacking context y descolocaría el drawer. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .header:not(.header--enter) .header__container {
+    opacity: 0;
+  }
+
+  .header--enter .header__container {
+    opacity: 0;
+    transform: translateY(-18px);
+    filter: blur(6px);
+    animation: headerDropIn 0.7s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  }
+}
+
+@keyframes headerDropIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ======= Logo =======*/
+
+.header__logo {
+  text-decoration: none;
+
+  font-size: 1.8rem;
+  font-weight: 700;
+
+  color: var(--color-white);
+}
+
+/* ======= Navegación =======*/
+
+.header__nav {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header__menu {
+  display: flex;
+  align-items: center;
+
+  gap: 2rem;
+
+  list-style: none;
+}
+
+/**======= Links =======*/
+
+.header__link {
+  position: relative;
+
+  background: transparent;
+  border: none;
+
+  color: var(--color-dark);
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  text-decoration: none;
+  transition:
+    color 0.3s ease,
+    font-weight 0.3s ease;
+}
+
+.header__link::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -10px;
+
+  transform: translateX(-50%);
+
+  width: 0;
+
+  height: 2px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #f8f2ff,
+    #e8c7ff,
+    #f8f2ff,
+    transparent
+  );
+
+  filter: blur(0.6px);
+
+  transition: width 0.35s ease;
+}
+
+.header__link:hover::after {
+  width: 110%;
+}
+
+.header__link:hover {
+  color: #7a3fb3;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(157, 78, 221, 0.18);
+}
+
+.header__sparkles {
+  position: absolute;
+
+  left: 50%;
+  bottom: -12px;
+
+  transform: translateX(-50%);
+
+  width: 42px;
+  height: 18px;
+
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+
+  width: 2px;
+  height: 2px;
+
+  opacity: 0;
+
+  transform: translateY(6px) scale(0.4);
+
+  animation: none;
+}
+
+.spark::before,
+.spark::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  background: #fffdfe;
+
+  border-radius: 999px;
+
+  box-shadow:
+    0 0 8px rgba(255, 255, 255, 0.7),
+    0 0 14px rgba(231, 181, 245, 0.35);
+
+  transform: translate(-50%, -50%);
+}
+
+.spark::before {
+  width: 2px;
+  height: 6px;
+}
+
+.spark::after {
+  width: 6px;
+  height: 2px;
+}
+
+.sparkle-1 {
+  left: 4px;
+}
+
+.sparkle-2 {
+  left: 18px;
+}
+
+.sparkle-3 {
+  left: 32px;
+}
+
+.header__link:hover .spark {
+  animation: sparkle 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.header__link:hover .sparkle-2 {
+  animation-delay: 0.12s;
+}
+
+.header__link:hover .sparkle-3 {
+  animation-delay: 0.24s;
+}
+
+/* ======= Link activo ======= */
+
+.header__link--active {
+  color: #7a3fb3;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(157, 78, 221, 0.18);
+}
+
+.header__link--active::after {
+  width: 110%;
+}
+
+.header__link--active .spark {
+  animation: sparkle 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.header__link--active .sparkle-2 {
+  animation-delay: 0.12s;
+}
+
+.header__link--active .sparkle-3 {
+  animation-delay: 0.24s;
+}
+
+/* ========= Acciones ==========*/
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Idioma */
+
+.header__language {
+  background: transparent;
+  border: none;
+
+  color: var(--color-dark);
+
+  cursor: pointer;
+}
+
+/* CTA */
+
+.header__cta {
+  padding: 0.85rem 1.6rem;
+
+  border-radius: 999px;
+
+  background: linear-gradient(135deg, #f49be4 0%, #ec8ef0 45%, #d97bf3 100%);
+
+  color: var(--color-dark);
+
+  text-decoration: none;
+
+  font-weight: 600;
+
+  transition:
+    transform var(--transition),
+    filter var(--transition),
+    box-shadow var(--transition);
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+.header__cta::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -120%;
+
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+
+  transition: left 0.6s ease;
+}
+
+.header__cta:hover::before {
+  left: 160%;
+}
+
+.header__cta:hover {
+  transform: translateY(-2px);
+
+  filter: brightness(1.08);
+
+  box-shadow:
+    0 8px 20px rgba(217, 123, 243, 0.18),
+    0 0 18px rgba(247, 184, 235, 0.12);
+}
+
+@keyframes sparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) translateX(0) scale(0.2) rotate(0deg);
+  }
+
+  20% {
+    opacity: 0.5;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+
+    transform: translateY(-16px) translateX(0) scale(1) rotate(180deg);
+  }
+}
+
+/*==========================
+  RESPONSIVE
+==========================*/
+
+/* fuera del media query: en desktop no hay hamburguesa.
+   El estilado del botón (líneas, X, z-index) vive en
+   HamburgerButton.css — aquí solo se muestra/oculta */
+.hamburger {
+  display: none !important;
+}
+
+/* ==========================
+   Desktop compacto
+========================== */
+
+@media (max-width: 1300px) {
+  .header__container {
+    width: min(94%, var(--container));
+  }
+
+  .header__menu {
+    gap: 1.5rem;
+  }
+
+  .header__link {
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
+  .header__logo {
+    font-size: 1.75rem;
+  }
+
+  .header__actions {
+    gap: 0.8rem;
+  }
+
+  .header__cta {
+    padding: 0.8rem 1.45rem;
+    font-size: 0.9rem;
+  }
+
+  .header__language {
+    font-size: 0.9rem;
+  }
+}
+
+/* ==========================
+   Laptop / Tablet / Móvil (≤1100px)
+   Nav y acciones desktop se ocultan; el menú es el
+   drawer lateral (MobileMenu) y el botón es
+   HamburgerButton (su CSS vive en su componente).
+========================== */
+
+@media (max-width: 1100px) {
+  .header__nav {
+    display: none;
+  }
+
+  .header__actions {
+    display: none;
+  }
+
+  /* mostrar el botón (su aspecto lo define HamburgerButton.css) */
+  .hamburger {
+    display: flex !important;
+  }
+
+  .hamburger:focus-visible {
+    outline: 2px solid #7a3fb3;
+    outline-offset: 3px;
+    border-radius: 10px;
+  }
+
+  .header__container {
+    width: min(92%, var(--container));
+    padding: 18px 28px;
+  }
+
+  /* FIX X invisible: el forwards de headerDropIn deja
+     transform+filter residuales en el container → stacking
+     context sin z-index que queda POR DEBAJO del drawer
+     (z-index 1000, hermano del container). Todo lo de dentro
+     — la X incluida, dé igual su z-index — se hunde con él.
+     Con el menú abierto (la entrada ya terminó) los anulamos
+     y el z-index 1200 del botón vuelve a mandar a nivel de
+     viewport, por encima del drawer y del overlay.
+     !important porque una animación activa gana a las reglas
+     normales; y NO usar animation:none — al cerrar el menú
+     la píldora volvería a "caer" cada vez. */
+  .header.is-open .header__container{
+    position:relative;
+    z-index:1200;
+
+    /* la píldora se esconde: no queremos su gradiente
+       flotando sobre el drawer */
+    background:transparent;
+    border-color:transparent;
+    box-shadow:none;
+
+    /* el container cubre todo el ancho superior del drawer:
+       que no bloquee los taps de lo que hay debajo */
+    pointer-events:none;
+}
+
+.header.is-open .header__logo{
+    opacity:0;
+    pointer-events:none;
+}
+
+/* la X sí recibe taps */
+.header.is-open .hamburger{
+    pointer-events:auto;
+}
+
+}
+
+/* ==========================
+   Tablet
+========================== */
+
+@media (max-width: 768px) {
+  .header__container {
+    width: min(92%, var(--container));
+    padding: 16px 22px;
+  }
+
+  .header__logo {
+    font-size: 1.6rem;
+  }
+}
+
+/* ==========================
+   Mobile
+========================== */
+
+@media (max-width: 576px) {
+  .header__container {
+    padding: 14px 18px;
+    border-radius: 20px;
+  }
+
+  .header__logo {
+    font-size: 1.45rem;
+  }
+}
