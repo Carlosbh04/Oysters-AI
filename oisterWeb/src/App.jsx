@@ -9,8 +9,12 @@ import HomePage from "./pages/home/Home";
 import ContactSection from "./pages/contact/Contact";
 import NotFoundPage from "./pages/error/404";
 
-import WorkList from "./components/work/WorkList.jsx";
-import trabajos from "./data/trabajos.js";
+
+import WorksPage from "./pages/work/WorkPage.jsx";
+import WorkDetailPage from "./pages/work/WorkDetailPage.jsx";
+
+// import WorkList from "./components/work/WorkList.jsx";
+// import trabajos from "./data/trabajos.js";
 
 import "./App.css";
 
@@ -30,7 +34,9 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage introDone={!showIntro} />} />
 
-          <Route path="/works" element={<WorkList trabajos={trabajos} />} />
+          <Route path="/works" element={<WorksPage />} />
+
+          <Route path="/works/:id" element={<WorkDetailPage />} />
 
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
