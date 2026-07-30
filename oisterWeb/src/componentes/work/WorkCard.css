@@ -1,0 +1,267 @@
+/* ======= WorkCard: tarjeta vertical ======= */
+
+.work-card {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+
+  border-radius: 22px;
+
+  overflow: hidden;
+
+  text-decoration: none;
+
+  color: inherit;
+
+  /* mismo lenguaje que la píldora del header:
+     glass + filo de luz + sombra con color */
+  background: rgba(255, 255, 255, 0.6);
+
+  border: 1px solid rgba(255, 255, 255, 0.65);
+
+  box-shadow:
+    0 12px 40px rgba(169, 106, 247, 0.14),
+    0 2px 8px rgba(217, 107, 197, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+
+  transition:
+    transform 0.35s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+
+.work-card:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 20px 55px rgba(169, 106, 247, 0.24),
+    0 4px 14px rgba(217, 107, 197, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* filo de gradiente que se enciende en hover */
+
+.work-card::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  padding: 1px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(244, 155, 228, 0.9),
+    rgba(217, 123, 243, 0.9)
+  );
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  opacity: 0;
+
+  transition: opacity 0.35s ease;
+
+  pointer-events: none;
+}
+
+.work-card:hover::after {
+  opacity: 1;
+}
+
+/* ======= Imagen ======= */
+
+.work-card-image {
+  position: relative;
+
+  aspect-ratio: 4 / 3;
+
+  overflow: hidden;
+
+  /* si la imagen no carga, se ve este degradado
+     en vez del icono de imagen rota */
+  background: linear-gradient(
+    135deg,
+    rgba(244, 155, 228, 0.35),
+    rgba(198, 137, 214, 0.35)
+  );
+}
+
+.work-card-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.work-card:hover .work-card-image img {
+  transform: scale(1.06);
+}
+
+/* badge glass en la esquina de la imagen */
+
+.work-card-badge {
+  position: absolute;
+
+  top: 12px;
+  left: 12px;
+
+  display: grid;
+  place-items: center;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 12px;
+
+  font-size: 1rem;
+
+  color: #7a3fb3;
+
+  background: rgba(255, 255, 255, 0.75);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  border: 1px solid rgba(255, 255, 255, 0.7);
+
+  box-shadow:
+    0 4px 12px rgba(169, 106, 247, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.work-card:hover .work-card-badge {
+  transform: rotate(12deg) scale(1.08);
+}
+
+/* barrido de shine sobre la imagen en hover
+   (misma técnica que el CTA del header) */
+
+.work-card-shine {
+  position: absolute;
+
+  top: 0;
+  left: -130%;
+
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    115deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+
+  transform: skewX(-12deg);
+
+  pointer-events: none;
+
+  transition: left 0.65s ease;
+}
+
+.work-card:hover .work-card-shine {
+  left: 170%;
+}
+
+/* ======= Contenido ======= */
+
+.work-card-content {
+  display: flex;
+  flex-direction: column;
+
+  flex: 1;
+
+  gap: 0.5rem;
+
+  padding: 20px 22px 24px;
+}
+
+.work-card-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  color: #7a3fb3;
+}
+
+.work-card-content h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+
+  color: var(--color-dark);
+}
+
+.work-card-content p {
+  font-size: 0.9rem;
+  line-height: 1.55;
+
+  color: var(--color-dark);
+  opacity: 0.68;
+
+  /* máx. 3 líneas: las tarjetas quedan parejas */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ======= Botón ======= */
+
+.work-card-button {
+  margin-top: auto;
+
+  align-self: flex-start;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  padding: 0.5rem 1.1rem;
+
+  border-radius: 999px;
+
+  font-weight: 600;
+  font-size: 0.86rem;
+
+  color: #7a3fb3;
+
+  background: rgba(232, 199, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+
+  transition:
+    transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.work-card:hover .work-card-button {
+  transform: translateX(4px);
+
+  background: rgba(232, 199, 255, 0.55);
+
+  box-shadow: 0 6px 16px rgba(169, 106, 247, 0.18);
+}
+
+/* espacio entre el texto y el botón cuando la
+   descripción es corta */
+
+.work-card-content p + .work-card-button {
+  margin-top: 1rem;
+}

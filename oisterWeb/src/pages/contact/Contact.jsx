@@ -275,7 +275,7 @@ function ContactSection({ introDone = true }) {
 
             <div className="social-buttons">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/oysters_studio/"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
@@ -284,7 +284,7 @@ function ContactSection({ introDone = true }) {
               </a>
 
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/oysters-studio/"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="LinkedIn"
@@ -293,7 +293,7 @@ function ContactSection({ introDone = true }) {
               </a>
 
               <a
-                href="https://youtube.com"
+                href="https://www.youtube.com/@Oysters2024"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="YouTube"

@@ -51,7 +51,15 @@
    (el techo primero, luego el contenido). La animación va en
    .header__container y no en .header porque .header es el
    ancla de posicionamiento — animarlo con transform crearía
-   un stacking context y descolocaría el drawer. */
+   un stacking context y descolocaría el drawer.
+
+   Secuencia (solo con motion permitido):
+   1. La píldora cae con squash elástico (headerDropIn)
+   2. Logo → links → CTA se encienden en cascada (navItemIn)
+
+   NO añadir overflow:hidden al container: los dropdowns
+   viven dentro y quedarían recortados (por eso se descartó
+   el efecto shine). */
 
 @media (prefers-reduced-motion: no-preference) {
   .header:not(.header--enter) .header__container {
@@ -62,15 +70,81 @@
     opacity: 0;
     transform: translateY(-18px);
     filter: blur(6px);
+    transform-origin: top center;
     animation: headerDropIn 0.7s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  }
+
+  /* ======= Cascada: el contenido se enciende tras el aterrizaje ======= */
+
+  .header--enter .header__logo,
+  .header--enter .header__item,
+  .header--enter .header__actions {
+    opacity: 0;
+    animation: navItemIn 0.5s ease forwards;
+  }
+
+  .header--enter .header__logo {
+    animation-delay: 0.45s;
+  }
+
+  .header--enter .header__item:nth-child(1) {
+    animation-delay: 0.52s;
+  }
+
+  .header--enter .header__item:nth-child(2) {
+    animation-delay: 0.58s;
+  }
+
+  .header--enter .header__item:nth-child(3) {
+    animation-delay: 0.64s;
+  }
+
+  .header--enter .header__item:nth-child(4) {
+    animation-delay: 0.7s;
+  }
+
+  .header--enter .header__item:nth-child(5) {
+    animation-delay: 0.76s;
+  }
+
+  .header--enter .header__item:nth-child(6) {
+    animation-delay: 0.82s;
+  }
+
+  .header--enter .header__actions {
+    animation-delay: 0.9s;
   }
 }
 
 @keyframes headerDropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(3px) scaleY(0.97);
+    filter: blur(0);
+  }
+  80% {
+    transform: translateY(-1px) scaleY(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes navItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -462,31 +536,30 @@
      !important porque una animación activa gana a las reglas
      normales; y NO usar animation:none — al cerrar el menú
      la píldora volvería a "caer" cada vez. */
-  .header.is-open .header__container{
-    position:relative;
-    z-index:1200;
+  .header.is-open .header__container {
+    position: relative;
+    z-index: 1200;
 
     /* la píldora se esconde: no queremos su gradiente
        flotando sobre el drawer */
-    background:transparent;
-    border-color:transparent;
-    box-shadow:none;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
 
     /* el container cubre todo el ancho superior del drawer:
        que no bloquee los taps de lo que hay debajo */
-    pointer-events:none;
-}
+    pointer-events: none;
+  }
 
-.header.is-open .header__logo{
-    opacity:0;
-    pointer-events:none;
-}
+  .header.is-open .header__logo {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
 
-/* la X sí recibe taps */
-.header.is-open .hamburger{
-    pointer-events:auto;
-}
-
+  /* la X sí recibe taps */
+  .header.is-open .hamburger {
+    pointer-events: auto;
+  }
 }
 
 /* ==========================

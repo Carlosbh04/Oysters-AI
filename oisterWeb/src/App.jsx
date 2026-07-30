@@ -3,18 +3,14 @@ import { Routes, Route } from "react-router-dom";
 
 import Header from "./componentes/header/Header";
 import IntroAnimation from "./componentes/introAnimation/IntroAnimation";
+import ScrollToTop from "./componentes/scrollToTop/ScrollToTop";
 
 // Páginas
 import HomePage from "./pages/home/Home";
 import ContactSection from "./pages/contact/Contact";
 import NotFoundPage from "./pages/error/404";
-
-
-import WorksPage from "./pages/work/WorkPage.jsx";
-import WorkDetailPage from "./pages/work/WorkDetailPage.jsx";
-
-// import WorkList from "./components/work/WorkList.jsx";
-// import trabajos from "./data/trabajos.js";
+import WorksPage from "./pages/work/WorkPage";
+import WorkDetailPage from "./pages/work/WorkDetailPage";
 
 import "./App.css";
 
@@ -23,12 +19,15 @@ function App() {
 
   return (
     <div className="app">
+      {/* Resetea el scroll arriba en cada cambio de ruta */}
+      <ScrollToTop />
+
       {/* La app se monta DESDE EL PRINCIPIO: la ostra (GLB),
           el canvas WebGL, fuentes y CSS cargan en paralelo
           mientras el intro anima por encima (fixed + z-index
           99999 la tapa por completo). Al terminar el intro,
           todo ya está listo → transición instantánea. */}
-      <Header />
+      <Header introDone={!showIntro} />
 
       <main className="app__main">
         <Routes>

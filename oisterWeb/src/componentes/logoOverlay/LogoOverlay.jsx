@@ -6,7 +6,7 @@ function LogoOverlay({ opacity = 0 }) {
       <div className="logo-overlay__text">
         Oysters
         <span className="logo-overlay__dot"></span>
-        IA
+        AI
       </div>
     </div>
   );
