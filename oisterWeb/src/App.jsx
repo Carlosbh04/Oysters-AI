@@ -9,6 +9,9 @@ import HomePage from "./pages/home/Home";
 import ContactSection from "./pages/contact/Contact";
 import NotFoundPage from "./pages/error/404";
 
+import WorkList from "./components/work/WorkList.jsx";
+import trabajos from "./data/trabajos.js";
+
 import "./App.css";
 
 function App() {
@@ -27,7 +30,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage introDone={!showIntro} />} />
 
-          <Route path="/works" element={<div>AÑADIR TRABAJOS</div>} />
+          <Route path="/works" element={<WorkList trabajos={trabajos} />} />
 
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
