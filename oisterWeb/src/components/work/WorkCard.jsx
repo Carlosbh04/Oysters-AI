@@ -9,7 +9,7 @@ function WorkCard({
 }) {
     return (
         <Link
-            to={`/trabajos/${id}`}
+            to={`/works/${id}`}
             className="work-card"
         >
             <div className="work-card-image">

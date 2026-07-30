@@ -6,9 +6,8 @@ import Header from "./header/Header.jsx";
 import HomePage from "./pages/home/Home.jsx";
 import ContactSection from "./pages/contact/Contact.jsx";
 import NotFoundPage from "./pages/404.jsx";
-
-import WorkList from "./components/work/WorkList.jsx";
-import trabajos from "./data/trabajos.js";
+import WorksPage from "./pages/work/WorkPage.jsx";
+import WorkDetailPage from "./pages/work/WorkDetailPage.jsx";
 
 import "./App.css";
 
@@ -24,7 +23,9 @@ function App() {
 
           <Route path="/" element={<HomePage />} />
 
-          <Route path="/works" element={<WorkList trabajos={trabajos} />} />
+          <Route path="/works" element={<WorksPage />} />
+
+          <Route path="/works/:id" element={<WorkDetailPage />} />
 
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
