@@ -5,7 +5,10 @@
 /* ============================================================
    HERO — versión pro (escena 3D SOLO desktop)
    · La ostra (.hero__right) solo existe a >1100px.
-   · Tokens locales, glow unificado, botones con borde-gradiente
+   · Tokens locales, glow unificado, botón con sombra en capas
+   · Composición limpia: título + descripción + CTA
+     (badge, botón secundario y stats eliminados)
+   · Onda de cierre al fondo (.hero__wave)
    · Entrada orquestada condicionada a .hero--enter (la pone
      App.jsx cuando termina el intro de partículas)
    ============================================================ */
@@ -33,6 +36,11 @@
 
   --h-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
+  /* ---- ONDA DE CIERRE: color de la sección siguiente ----
+     Pon aquí EXACTAMENTE el background de "Qué hacemos" para
+     que la curva se funda sin costura con esa sección. */
+  --hero-wave-color: #eee9fb;
+
   /* Altura del header */
   --nav-height: var(--header-height);
 
@@ -44,11 +52,7 @@
   --t-desc-fs: clamp(0.9rem, 0.82rem + 0.25vw, 1rem);
   --t-desc-lh: 1.55;
 
-  --t-badge-fs: 0.75rem;
   --t-btn-fs: 0.92rem;
-
-  --t-stat-fs: clamp(1.35rem, 1rem + 0.8vw, 1.7rem);
-  --t-stat-label-fs: 0.75rem;
 
   width: 100%;
   height: 100dvh;
@@ -66,6 +70,7 @@
    ENCIMA de todo esto:
      -2/-1 → glows y sombras (dentro de sus stacking contexts)
       0/-1 → atmósfera tablet/móvil (aurora, orbe, partículas)
+      1    → onda de cierre (.hero__wave)
       2    → .hero__container (contenido)
       3    → grano de película (.hero::after)
      10+   → TU NAVBAR (position: fixed; z-index: 10 o más)
@@ -95,13 +100,33 @@
   }
 }
 
-/* FIX: el bloqueo de scroll del body es un comportamiento de
-   DESKTOP (hero = pantalla exacta, escena 3D). En tablet/móvil
-   el hero puede crecer más que el viewport (accesibilidad,
-   zoom de texto, landscape) y la página DEBE poder scrollear. */
+/* ---- resplandor del hero (SOLO desktop) ----
+   Vive en el HERO, no en la escena: cuando la ostra viaja al
+   hacer scroll, esta luz se queda y se va con el hero, como
+   parte del fondo. La caída del gradiente es muy larga y
+   termina en transparente puro → no se percibe ningún borde
+   de círculo, la luz se UNE al degradado del fondo.
+   (≤1100px el ::before del hero lo usa la atmósfera móvil) */
 @media (min-width: 1101px) {
-  body:has(.hero) {
-    overflow: hidden;
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -8vw;
+    width: min(1200px, 75vw);
+    height: min(950px, 110vh);
+    transform: translateY(-52%);
+    background: radial-gradient(
+      closest-side,
+      rgba(255, 255, 255, 0.26) 0%,
+      rgba(255, 220, 245, 0.2) 20%,
+      rgba(201, 168, 255, 0.14) 40%,
+      rgba(155, 110, 255, 0.07) 58%,
+      rgba(135, 87, 245, 0.025) 74%,
+      transparent 94%
+    );
+    pointer-events: none;
+    z-index: 0;
   }
 }
 
@@ -119,6 +144,31 @@
 }
 
 /* ============================================================
+   ONDA DE CIERRE — la curva orgánica del final del hero
+   (el SVG vive en Home.jsx; aquí solo posición y color)
+   ============================================================ */
+
+.hero__wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px; /* -1px: mata la línea de subpíxel en zoom */
+  height: clamp(56px, 9vh, 120px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero__wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero__wave path {
+  fill: var(--hero-wave-color);
+}
+
+/* ============================================================
    COLUMNA IZQUIERDA
    ============================================================ */
 
@@ -126,35 +176,6 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-}
-
-/* ---- badge: cristal más fino, con highlight interior ---- */
-.hero__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: fit-content;
-  padding: 0.5rem 1.1rem;
-  border-radius: 999px;
-  background: var(--h-glass);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  border: 1px solid var(--h-glass-border);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 4px 12px -2px rgba(109, 73, 224, 0.1);
-  color: var(--h-violet-deep);
-  font-size: var(--t-badge-fs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 1.2rem;
-}
-
-.hero__badge span {
-  color: var(--h-violet);
-  font-size: 0.9em;
-  transform: translateY(-1px);
 }
 
 /* ---- título ---- */
@@ -217,7 +238,7 @@
 }
 
 /* ============================================================
-   BOTONES — el detalle que más "pro" se nota
+   BOTÓN — el detalle que más "pro" se nota
    ============================================================ */
 
 .hero__buttons {
@@ -225,7 +246,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.875rem;
-  margin-top: 1.5rem;
+  /* sin stats debajo, el CTA cierra la columna: un punto más
+     de aire para que la composición no quede apretada */
+  margin-top: 1.9rem;
 }
 
 .btn {
@@ -247,6 +270,17 @@
     box-shadow 0.3s ease,
     background-color 0.3s ease;
   will-change: transform;
+}
+
+/* refuerzo: NADA dentro de la escena captura el ratón — R3F
+   puede reactivar eventos en el canvas, y como la escena fija
+   flota sobre la sección de cards al aterrizar, bloquearía el
+   hover/pointer de los "Ver más" que quedan debajo. La ostra
+   ya no es interactiva: apagar todo es seguro. */
+.hero__right,
+.hero__right *,
+.hero__right canvas {
+  pointer-events: none !important;
 }
 
 .btn:focus-visible {
@@ -280,7 +314,269 @@
     var(--h-shadow-btn-hover);
 }
 
-/* --- secundario: cristal con borde-gradiente (truco de máscara) --- */
+/* ---- CTA gota de agua: escenario y piezas ----
+   .btn-drop-stage envuelve al botón y ancla la gota y el
+   splash centrados sobre él, mida lo que mida el botón.
+   .btn-droplet es la GOTA: un cuadrado con tres esquinas
+   redondas y una en punta, girado 45º → lágrima clásica con
+   la punta hacia arriba, pintada con el mismo gradiente del
+   botón. Cae, se aplasta en charquito (boom) y desaparece;
+   el botón brota de ese punto agrandándose desde el suelo
+   (transform-origin abajo) con el contenido ya dentro. */
+.btn-drop-stage {
+  position: relative;
+  display: inline-flex;
+}
+
+.btn-droplet {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  background: linear-gradient(160deg, #ffc0ef 0%, #f5a1ec 48%, #e78bf0 100%);
+  /* lágrima: 3 esquinas redondas + 1 en punta, girada 45º
+     (la punta queda ARRIBA, como una gota cayendo) */
+  border-radius: 50% 0 50% 50%;
+  transform: rotate(45deg);
+  box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+  opacity: 0; /* solo existe durante su animación */
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* splash del boom: onda elíptica a ras de suelo */
+.btn-drop-stage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 64px;
+  height: 22px;
+  margin-left: -32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn--drop {
+  transform-origin: 50% 100%; /* brota desde el suelo */
+}
+
+.btn__label {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.btn__label,
+.btn__arrow {
+  position: relative;
+  z-index: 1; /* por encima de la capa de llenado */
+}
+
+.btn__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   CTA: anillo orbital + llenado líquido en hover
+   · Un arco rosa/blanco gira alrededor del botón en loop
+     (conic-gradient rotando vía @property) → llama la atención
+   · En hover: el arco SE DETIENE y el botón se llena de rosa
+     desde abajo hacia arriba, como líquido subiendo; el texto
+     oscurece para mantener contraste sobre el rosa
+   ============================================================ */
+
+/* ángulo animable del conic-gradient (sin @property los
+   navegadores viejos muestran el arco quieto: fallback digno) */
+@property --btn-spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* el filamento de luz: recorre EL BORDE del botón dando la
+   vuelta al perímetro. El conic-gradient pinta todo el área,
+   pero la máscara xor (content-box vs full) deja visible SOLO
+   el aro de 2px del borde — el mismo truco del borde-gradiente
+   de .btn--secondary. Al rotar el ángulo del gradiente, el
+   tramo iluminado corre por ese aro como luz por un filamento */
+.btn--drop::before {
+  content: "";
+  position: absolute;
+  inset: -1px; /* medio dentro, medio fuera del borde */
+  z-index: 2; /* sobre el llenado, bajo nada que estorbe (es un aro) */
+  border-radius: inherit;
+  padding: 1.5px; /* filamento fino, casi un hilo de luz */
+  /* violeta profundo con núcleo blanco: sobre la base rosa
+     del botón el rosa anterior desaparecía — este contrasta */
+  background: conic-gradient(
+    from var(--btn-spin),
+    transparent 0turn 0.55turn,
+    rgba(109, 73, 224, 0.45) 0.66turn,
+    #6d49e0 0.76turn,
+    #ffffff 0.84turn,
+    #8757f5 0.92turn,
+    transparent 1turn
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 6px rgba(135, 87, 245, 0.8));
+  animation: btnRingSpin 2.8s linear infinite;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+@keyframes btnRingSpin {
+  to {
+    --btn-spin: 360deg;
+  }
+}
+
+/* en hover el arco se OCULTA (fade rápido); al salir, vuelve */
+.btn--drop:hover::before {
+  opacity: 0;
+}
+
+/* ---- AGUA de verdad, no lámina ----
+   Dos propiedades registradas y separadas:
+   · --btn-wl  (nivel del agua)  → la maneja la TRANSICIÓN
+     del hover: sube a cámara lenta
+   · --btn-tilt (inclinación de la cresta) → la maneja una
+     ANIMACIÓN infinita: la superficie se ladea de un lado a
+     otro sin parar (oleaje)
+   Como ambas viven en el mismo transform pero son variables
+   distintas, nivel y oleaje no se pisan: el agua ONDULA
+   MIENTRAS SUBE. La cresta curva son los radios superiores
+   del elemento; al inclinarse, un lado queda más alto que el
+   otro — la ola. */
+
+@property --btn-wl {
+  syntax: "<percentage>";
+  initial-value: 104%;
+  inherits: false;
+}
+
+@property --btn-tilt {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* la pecera: recorta el agua a la forma del botón */
+.btn__water {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* cuerpo de agua principal: más ancho y alto que el botón
+   para que la cresta y el ladeo nunca enseñen los bordes */
+.btn__water::before,
+.btn__water::after {
+  content: "";
+  position: absolute;
+  left: -30%;
+  top: -8%;
+  width: 160%;
+  height: 220%;
+  border-radius: 46% 44% 0 0 / 44px 38px 0 0; /* la cresta */
+  transform: translateY(var(--btn-wl)) rotate(var(--btn-tilt));
+  transform-origin: 50% 0;
+  transition: --btn-wl 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.btn__water::before {
+  background: linear-gradient(180deg, #a06fff 0%, #6d49e0 70%);
+  animation: btnSlosh 3.4s ease-in-out infinite;
+}
+
+/* segunda capa: más clara, semitransparente y a contrafase
+   (delay negativo) → profundidad, como agua de verdad */
+.btn__water::after {
+  background: rgba(190, 150, 255, 0.5);
+  animation: btnSlosh 4.6s ease-in-out -2.1s infinite reverse;
+}
+
+@keyframes btnSlosh {
+  0%,
+  100% {
+    --btn-tilt: 1.7deg;
+  }
+  50% {
+    --btn-tilt: -1.7deg;
+  }
+}
+
+/* hover: el nivel sube A CÁMARA LENTA; la capa clara llega
+   un pelín más abajo y más tarde (el agua no sube en bloque) */
+.btn--drop:hover .btn__water::before {
+  --btn-wl: -14%;
+  transition: --btn-wl 2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.btn--drop:hover .btn__water::after {
+  --btn-wl: -8%;
+  transition: --btn-wl 2.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ---- color de fondo nuevo del CTA ----
+   Base rosa (el registro del "Hablemos" del header) con texto
+   tinta; en hover el agua violeta lo inunda y el texto vira a
+   blanco acompasado con la subida */
+.btn--drop {
+  color: var(--h-ink);
+  background: linear-gradient(160deg, #ffc0ef 0%, #f5a1ec 48%, #e78bf0 100%);
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow 0.3s ease,
+    color 1.4s ease; /* acompaña la subida lenta del agua */
+}
+
+.btn--drop:hover {
+  color: #fff;
+
+  /* sobresale: se eleva un punto más que el resto de botones
+     y enciende una sombra en capas (contacto + halo violeta
+     + resplandor rosa ancho) — inequívocamente clicable */
+  transform: translateY(-4px) scale(1.02);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(23, 18, 43, 0.14),
+    0 14px 28px -6px rgba(109, 73, 224, 0.45),
+    0 30px 60px -12px rgba(231, 139, 240, 0.5);
+}
+
+/* feedback de click: se hunde un pelín al presionar */
+.btn--drop:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+/* con motion reducido el arco no gira */
+@media (prefers-reduced-motion: reduce) {
+  .btn--drop::before {
+    animation: none;
+  }
+}
+
+/* --- secundario: cristal con borde-gradiente ----
+   Ya no se usa en el hero, pero .btn--secondary se queda por
+   si el estilo se reutiliza en otra sección. Si no lo usas en
+   ningún otro sitio, puedes borrar este bloque y el ::before. */
 .btn--secondary {
   color: var(--h-ink);
   background: rgba(255, 255, 255, 0.55);
@@ -320,107 +616,53 @@
 }
 
 /* ============================================================
-   STATS
-   ============================================================ */
-
-.hero__stats {
-  display: flex;
-  align-items: stretch;
-  gap: clamp(1.25rem, 2.5vw, 2.25rem);
-  margin-top: 2rem;
-  padding-top: 1.3rem;
-
-  border-top: 1px solid var(--h-hairline);
-}
-
-.hero__stat {
-  position: relative;
-}
-
-/* separadores hairline entre stats (no en el primero) */
-.hero__stat + .hero__stat {
-  padding-left: clamp(1.25rem, 2.5vw, 2.25rem);
-  border-left: 1px solid var(--h-hairline);
-}
-
-.hero__stat h3 {
-  font-size: var(--t-stat-fs);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums; /* cifras alineadas, look editorial */
-  color: var(--h-ink);
-  line-height: 1.1;
-}
-
-.hero__stat p {
-  margin-top: 0.3rem;
-  font-size: var(--t-stat-label-fs);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--h-ink-soft);
-}
-
-/* ============================================================
    COLUMNA DERECHA — SOLO DESKTOP (>1100px)
    ============================================================ */
 
 .hero__right {
   --h-scene-x: clamp(0px, 6vw - 40px, 110px);
 
-  position: relative;
-  width: 100%;
-  height: 100%;
+  /* ═══ DIALES DE ATERRIZAJE: toca SOLO estas 3 líneas ═══
+     (los tres transforms del archivo las heredan a la vez) */
+  --h-travel: 75vw; /* cuánto viaja a la IZQUIERDA */
+  --h-drop: 50vh; /* cuánto BAJA */
+  --h-shrink: 0.5; /* cuánto ENCOGE (0.5 = mitad) */
+
+  /* FIXED: la escena vive anclada al viewport para poder
+     viajar derecha → izquierda por encima del scroll y
+     aterrizar sobre la pista de HowWeWork. Ocupa la misma
+     zona que ocupaba como columna del grid (56vw derecha).
+     pointer-events:none — ya no es interactiva y no debe
+     bloquear los links de la sección sobre la que aterriza. */
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 56vw;
+  height: 100vh;
+  z-index: 5;
+  pointer-events: none;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: visible;
   isolation: isolate;
-  /* antes: translateX(120px) fijo → desbordaba en 13".
-     El offset vive en una variable para que la animación
-     de entrada no se pise con nada. */
-  transform: translateX(var(--h-scene-x));
-}
-
-/* halo grande: respira
-   SIN filter:blur — el desenfoque vive en el propio gradiente
-   (blur de 95px sobre 760px animados competía con el WebGL
-   por la GPU: era gran parte del "no va fluido") */
-.hero__right::before {
-  content: "";
-  position: absolute;
-  width: min(820px, 88vh);
-  height: min(820px, 88vh);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(255, 220, 245, 0.28) 16%,
-    rgba(201, 168, 255, 0.22) 34%,
-    rgba(155, 110, 255, 0.13) 50%,
-    rgba(135, 87, 245, 0.07) 62%,
-    rgba(135, 87, 245, 0.03) 72%,
-    transparent 84%
-  );
-  animation: heroGlow 9s ease-in-out infinite;
-  will-change: transform, opacity;
-  z-index: -2;
-}
-
-/* núcleo: luz de contacto tras el asset — sin filter tampoco */
-.hero__right::after {
-  content: "";
-  position: absolute;
-  width: min(520px, 60vh);
-  height: min(520px, 60vh);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(255, 210, 245, 0.18) 30%,
-    rgba(255, 190, 245, 0.08) 52%,
-    transparent 74%
-  );
-  z-index: -1;
+  /* --h-scroll-p (0→1) lo publica Oyster.jsx en cada scroll:
+     a p=0 la escena está en su sitio de la derecha; a p=1 ha
+     viajado ~55vw hacia la IZQUIERDA. Como las variables se
+     resuelven en vivo, el mismo calc funciona también dentro
+     del forwards de heroSceneIn. */
+  /* viaje horizontal (scroll-p) + acople vertical (dock-y):
+     mientras p<1 dock-y es 0 (flota fija); al completarse el
+     viaje, dock-y compensa el scroll restante y la ostra sube
+     pegada a la sección, como si fuera parte de ella */
+  transform: translateX(
+      calc(var(--h-scene-x) - var(--h-scroll-p, 0) * var(--h-travel))
+    )
+    translateY(
+      calc(var(--h-dock-y, 0px) + var(--h-scroll-p, 0) * var(--h-drop))
+    )
+    scale(calc(1 - var(--h-scroll-p, 0) * var(--h-shrink)));
+  will-change: transform;
 }
 
 .hero__image {
@@ -538,29 +780,17 @@
   filter: blur(26px);
   pointer-events: none;
   z-index: -1;
+  opacity: calc(1 - var(--h-scroll-p, 0));
 }
 
-.hero__shadow {
-  position: absolute;
-  bottom: 4%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(430px, 58%);
-  height: 42px;
-  border-radius: 50%;
-  background: rgba(8, 8, 18, 0.38);
-  filter: blur(24px);
-  z-index: -2;
-}
 
 /* ============================================================
    ENTRADA ORQUESTADA — condicionada al fin del intro
    App.jsx pone .hero--enter cuando el intro de partículas
    termina; hasta entonces el hero espera invisible.
    · Texto: sube + se desenfoca a nítido (blur-rise)
-   · Badge: pop con micro-rebote
-   · Botones: rise + el primario "enciende" su sombra al final
-   · Stats: los números entran los últimos, como cierre
+   · Botón: rise + "enciende" su sombra al final
+   · Onda: fade suave, entra con el fondo
    · Escena: solo aplica en desktop (a ≤1100px no existe)
    ============================================================ */
 
@@ -569,9 +799,8 @@
      espera invisible; .hero--enter dispara la coreografía */
   .hero:not(.hero--enter) .hero__title,
   .hero:not(.hero--enter) .hero__description,
-  .hero:not(.hero--enter) .hero__badge,
   .hero:not(.hero--enter) .hero__buttons,
-  .hero:not(.hero--enter) .hero__stats,
+  .hero:not(.hero--enter) .hero__wave,
   .hero:not(.hero--enter) .hero__right {
     opacity: 0;
   }
@@ -584,25 +813,8 @@
     animation: heroBlurRise 0.85s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
   }
 
-  .hero--enter .hero__badge {
-    opacity: 0;
-    transform: translateY(10px) scale(0.92);
-    animation: heroPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    animation-delay: 0.05s;
-  }
-
-  .hero--enter .hero__buttons,
-  .hero--enter .hero__stats {
-    opacity: 0;
-    transform: translateY(16px);
-    animation: heroRise 0.7s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
-  }
-
-  /* stagger interno de las stats: cada cifra entra 80ms después */
-  .hero--enter .hero__stat {
-    opacity: 0;
-    transform: translateY(10px);
-    animation: heroRise 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+  .hero--enter .hero__buttons {
+    opacity: 1; /* el wrapper no anima: la estrella es el botón */
   }
 
   .hero--enter .hero__title {
@@ -611,40 +823,56 @@
   .hero--enter .hero__description {
     animation-delay: 0.3s;
   }
-  .hero--enter .hero__buttons {
-    animation-delay: 0.45s;
-  }
-  .hero--enter .hero__stats {
-    animation-delay: 0.55s;
-  }
-  .hero--enter .hero__stat:nth-child(1) {
-    animation-delay: 0.62s;
-  }
-  .hero--enter .hero__stat:nth-child(2) {
-    animation-delay: 0.7s;
-  }
-  .hero--enter .hero__stat:nth-child(3) {
-    animation-delay: 0.78s;
+
+  /* ---- secuencia del CTA gota: EL CIERRE de la escena ----
+     Todo lo demás ya está en pantalla (título 0.15s,
+     descripción 0.3s, ostra 0.25s). Entonces:
+     1.0s   la GOTA (forma de lágrima) cae acelerando,
+            estirándose un poco por la velocidad
+     ~1.5s  BOOM abajo: se aplasta en charquito + onda de
+            splash a ras de suelo, y se desvanece
+     ~1.65s BOOM el botón: brota del charquito agrandándose
+            desde el suelo con overshoot — el contenido
+            (texto + flecha) viene dentro, escala con él */
+
+  .hero--enter .btn-droplet {
+    animation: btnDropletLife 0.95s linear 1s both;
   }
 
-  /* el primario "enciende" su sombra violeta al aterrizar */
-  .hero--enter .btn--primary {
-    animation: heroBtnGlow 1s ease 0.45s backwards;
+  .hero--enter .btn-drop-stage::after {
+    animation: btnGroundSplash 0.55s ease-out 1.5s backwards;
   }
+
+  /* OJO: btnBoom y heroBtnGlow van JUNTAS en esta declaración.
+     .btn--drop y .btn--primary son el mismo elemento: si cada
+     animación viviera en su propia regla, la segunda pisaría
+     a la primera (animation se sobrescribe, no se suma). */
+  .hero--enter .btn--drop {
+    animation:
+      btnBoom 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 1.62s backwards,
+      heroBtnGlow 0.9s ease 1.62s backwards;
+  }
+
+  /* la onda entra en fade con el resto del telón */
+  .hero--enter .hero__wave {
+    opacity: 0;
+    animation: heroFade 0.9s ease 0.35s forwards;
+  }
+
 
   /* la escena solo hace FADE, y rápido: la escala (el pop)
      es trabajo exclusivo del spring de la ostra. Si el CSS
      también escalara, el pop quedaría enterrado en el fade */
   .hero--enter .hero__right {
     opacity: 0;
-    transform: translateX(var(--h-scene-x));
+    transform: translateX(
+        calc(var(--h-scene-x) - var(--h-scroll-p, 0) * var(--h-travel))
+      )
+      translateY(
+        calc(var(--h-dock-y, 0px) + var(--h-scroll-p, 0) * var(--h-drop))
+      )
+      scale(calc(1 - var(--h-scroll-p, 0) * var(--h-shrink)));
     animation: heroSceneIn 0.35s ease-out 0.25s forwards;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero__right::before {
-    animation: none;
   }
 }
 
@@ -663,10 +891,75 @@
   }
 }
 
-@keyframes heroPop {
-  to {
+/* la gota completa: el botón comprimido en bola (scaleX 0.16
+   con radius 999 ≈ esfera) cae acelerando, impacta con squash
+   de líquido, REBOTA hacia arriba estirándose, vuelve a caer
+   y en el segundo impacto — el pum — se expande a píldora.
+   Los tramos de caída aceleran y los de subida frenan (curva
+   de gravedad dibujada a mano dentro de los keyframes; por
+   eso la animación va con timing linear). */
+/* vida completa de la gota: cae acelerando (estirada por la
+   velocidad, como el agua real), BOOM — se aplasta contra el
+   suelo deshaciéndose en charquito y se desvanece. El timing
+   linear + curva dibujada en los keyframes = gravedad creíble */
+@keyframes btnDropletLife {
+  0% {
+    opacity: 0;
+    transform: translateY(-170px) rotate(45deg) scale(0.85);
+  }
+  10% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(-150px) rotate(45deg) scale(0.9);
+  }
+  40% {
+    /* a media caída va estirada por la velocidad */
+    transform: translateY(-60px) rotate(45deg) scaleX(0.92) scaleY(1.18);
+  }
+  55% {
+    /* BOOM: toca el suelo */
+    transform: translateY(0) rotate(45deg) scale(1);
+  }
+  68% {
+    /* se deshace en charquito: gira a plano y se aplasta */
+    opacity: 1;
+    transform: translateY(6px) rotate(0deg) scaleX(2.1) scaleY(0.3);
+    border-radius: 50%;
+  }
+  100% {
+    /* el charquito se desvanece mientras brota el botón */
+    opacity: 0;
+    transform: translateY(8px) rotate(0deg) scaleX(2.6) scaleY(0.16);
+    border-radius: 50%;
+  }
+}
+
+/* onda de splash a ras de suelo: se abre y se apaga */
+@keyframes btnGroundSplash {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+/* el botón brota del charquito: crece desde el suelo con
+   rebote elástico (el cubic-bezier de la declaración pone
+   el overshoot). El contenido escala CON él: aparece todo
+   junto, como pediste */
+@keyframes btnBoom {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -683,7 +976,13 @@
 @keyframes heroSceneIn {
   to {
     opacity: 1;
-    transform: translateX(var(--h-scene-x));
+    transform: translateX(
+        calc(var(--h-scene-x) - var(--h-scroll-p, 0) * var(--h-travel))
+      )
+      translateY(
+        calc(var(--h-dock-y, 0px) + var(--h-scroll-p, 0) * var(--h-drop))
+      )
+      scale(calc(1 - var(--h-scroll-p, 0) * var(--h-shrink)));
   }
 }
 
@@ -693,17 +992,6 @@
   }
 }
 
-@keyframes heroGlow {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.82;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 1;
-  }
-}
 
 /* ============================================================
    PANTALLA GRANDE (≥1600px) — modo impacto
@@ -731,12 +1019,20 @@
     display: none;
   }
 
+  /* el hero móvil ya tiene sus propias partículas bokeh:
+     el LightDust solo aplica en desktop para no duplicar */
+  .hero .light-dust {
+    display: none;
+  }
+
   .hero {
     height: auto;
     min-height: 100dvh;
 
-    /* arriba: header + aire · abajo: aire de cierre */
-    padding: calc(var(--nav-height) + 0.5rem) 0 clamp(2rem, 5vh, 3.5rem);
+    /* arriba: header + aire · abajo: aire de cierre
+       (la onda es absolute: el padding le deja hueco) */
+    padding: calc(var(--nav-height) + 0.5rem) 0
+      clamp(4rem, 12vh, 6.5rem);
 
     /* tipografía intermedia: sin escena, el título centrado
        puede respirar, pero aún no pide el aire del móvil */
@@ -745,9 +1041,6 @@
     --t-title-ls: -0.018em;
 
     --t-desc-fs: 0.95rem;
-
-    --t-stat-fs: clamp(1.4rem, 2.2vw, 1.7rem);
-    --t-stat-label-fs: 0.75rem;
   }
 
   .hero__container {
@@ -761,7 +1054,7 @@
   }
 
   /* centrado REAL de la columna: sin esto el texto se centra
-     pero badge, botones y stats se quedan pegados a la izquierda */
+     pero los botones se quedan pegados a la izquierda */
   .hero__left {
     align-items: center;
   }
@@ -769,10 +1062,6 @@
   .hero__title,
   .hero__description {
     margin-inline: auto;
-  }
-
-  .hero__stats {
-    justify-content: center;
   }
 
   .hero__buttons {
@@ -972,8 +1261,8 @@
 
 /* ============================================================
    MÓVIL (≤768px) — composición editorial, alineada a la
-   IZQUIERDA: badge, título, descripción y botones en columna
-   izquierda; el titular respira a lo ancho en 4–5 líneas.
+   IZQUIERDA: título, descripción y CTA en columna izquierda;
+   el titular respira a lo ancho en 4–5 líneas.
    ============================================================ */
 
 @media (max-width: 768px) {
@@ -984,8 +1273,10 @@
     display: flex;
     flex-direction: column;
 
-    /* header + aire arriba · aire de cierre abajo */
-    padding: calc(var(--nav-height) + 0.75rem) 0 1.5rem;
+    /* header + aire arriba · aire de cierre abajo
+       (hueco para la onda absolute) */
+    padding: calc(var(--nav-height) + 0.75rem) 0
+      clamp(3.5rem, 10vh, 5rem);
 
     /* al ir a la izquierda y a todo el ancho, el título puede
        ser más grande que antes sin comerse la pantalla */
@@ -996,20 +1287,14 @@
     --t-desc-fs: 0.9rem;
     --t-desc-lh: 1.55;
 
-    --t-badge-fs: 0.68rem;
-
     --t-btn-fs: 0.9rem;
-
-    --t-stat-fs: 1.15rem;
-    --t-stat-label-fs: 0.62rem;
-    
   }
 
   .hero__container {
     width: min(600px, 90%);
     height: auto;
 
-     flex:  1;
+    flex: 1;
     margin-top: 0;
 
     display: flex;
@@ -1026,13 +1311,8 @@
   .hero__left {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* badge y todo lo demás a la izquierda */
+    align-items: flex-start; /* todo a la izquierda */
     gap: clamp(0.85rem, 2.2vh, 1.4rem);
-  }
-
-  .hero__badge {
-    margin: 0;
-    padding: 0.4rem 0.95rem;
   }
 
   .hero__title {
@@ -1064,65 +1344,9 @@
     padding: 0.85rem 1.4rem;
   }
 
-  /* stats: tira de cristal a todo el ancho */
-  .hero__stats {
-    width: 100%;
-    max-width: 100%;
-
-    display: flex;
-    justify-content: space-between;
-
-    gap: 0.3rem;
-
-    margin-top: auto;
-
-    padding: 0.65rem 0.75rem;
-
-    border-radius: 18px;
-
-    background: rgba(255, 255, 255, 0.42);
-
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-
-    border: 1px solid rgba(255, 255, 255, 0.55);
-
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      0 10px 25px -10px rgba(109, 73, 224, 0.22);
-  }
-
-  .hero__stat {
-    flex: 1;
-    min-width: 0;
-    text-align: center; /* dentro de la tira, las cifras sí centradas */
-  }
-
-  .hero__stat + .hero__stat {
-    padding-left: 0.4rem;
-    border-left: 1px solid rgba(23, 18, 43, 0.08);
-  }
-
-  .hero__stat h3 {
-    background: linear-gradient(160deg, var(--h-ink), var(--h-violet-deep));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
-/* la tira de cristal entra con un pop suave, no con rise plano */
-@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
-  .hero--enter .hero__stats {
-    transform: translateY(16px) scale(0.97);
-    animation-name: heroPanelIn;
-  }
-}
-
-@keyframes heroPanelIn {
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  /* la onda baja un punto en móvil para no comerse el CTA */
+  .hero__wave {
+    height: clamp(42px, 7vh, 72px);
   }
 }
 
@@ -1137,23 +1361,11 @@
     --t-title-lh: 1.18;
     --t-title-ls: -0.01em;
     --t-desc-fs: 0.85rem;
-    --t-badge-fs: 0.64rem;
     --t-btn-fs: 0.86rem;
-    --t-stat-fs: 1.02rem;
-    --t-stat-label-fs: 0.58rem;
-  }
-
-  .hero__badge {
-    padding: 0.4rem 0.9rem;
   }
 
   .hero__buttons {
     max-width: 100%;
-  }
-
-  .hero__stats {
-    padding: 0.6rem 0.65rem;
-    margin-top: 0.9rem;
   }
 }
 
@@ -1173,7 +1385,7 @@
        quedaba debajo de la píldora en móvil girado */
     height: auto;
     min-height: 100dvh;
-    padding: calc(var(--nav-height) + 0.25rem) 0 1rem;
+    padding: calc(var(--nav-height) + 0.25rem) 0 3rem;
   }
 
   .hero__container {
@@ -1190,10 +1402,6 @@
     align-items: flex-start;
   }
 
-  .hero__badge {
-    margin-bottom: 0.6rem;
-  }
-
   .hero {
     --t-title-fs: clamp(1.4rem, 4.5vh + 1vw, 2rem);
     --t-title-lh: 1.15;
@@ -1201,8 +1409,6 @@
     --t-desc-fs: 0.85rem;
     --t-desc-lh: 1.5;
     --t-btn-fs: 0.875rem;
-    --t-stat-fs: 1.1rem;
-    --t-stat-label-fs: 0.64rem;
   }
 
   .hero__title,
@@ -1226,13 +1432,7 @@
     padding: 0.6rem 1.4rem;
   }
 
-  .hero__stats {
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    justify-content: flex-start;
-  }
-
-  .hero__stat p {
-    margin-top: 0.1rem;
+  .hero__wave {
+    height: clamp(32px, 8vh, 56px);
   }
 }

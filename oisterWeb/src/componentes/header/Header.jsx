@@ -1,15 +1,39 @@
 import "./Header.css";
 import { NavLink } from "react-router-dom";
-import Dropdown from "../dropdown/Dropdown.jsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HamburgerButton from "../hamburger/HamburgerButton.jsx";
 import MobileMenu from "../mobileMenu/MobileMenu.jsx";
+import DesktopMenu from "../desktopMenu/DesktopMenu.jsx";
 
-function Header({ introDone = true }) {
-  const linkClass = ({ isActive }) =>
-    isActive ? "header__link header__link--active" : "header__link";
+/* Hook mínimo: ¿estamos en desktop (>1100px)?
+   Decide qué menú renderiza la hamburguesa:
+   - Desktop → DesktopMenu (panel que cae desde la píldora,
+     dropdowns como flyouts laterales)
+   - ≤1100px → MobileMenu (el drawer de siempre) */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    () => window.matchMedia("(min-width: 1101px)").matches
+  );
 
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1101px)");
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return isDesktop;
+}
+
+function Header({ introDone = true, tagline = "LOOKING SHARP TODAY" }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isDesktop = useIsDesktop();
+
+  /* si cambia el breakpoint con el menú abierto, se cierra:
+     evita que el drawer móvil quede abierto al pasar a desktop */
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [isDesktop]);
 
   return (
     <header
@@ -23,90 +47,26 @@ function Header({ introDone = true }) {
           Logo
         </NavLink>
 
-        {/* Navegación */}
-        <nav className="header__nav">
-          <ul className="header__menu">
-            {/* Nosotros */}
-            <li className="header__item">
-              <NavLink to="/about" className={linkClass}>
-                Nosotros
-                <span className="header__sparkles">
-                  <span className="spark sparkle-1"></span>
-                  <span className="spark sparkle-2"></span>
-                  <span className="spark sparkle-3"></span>
-                </span>
-              </NavLink>
-            </li>
+        {/* Texto central — centrado absoluto respecto a la píldora,
+            independiente del ancho del logo y de la hamburguesa */}
+        <span className="header__tagline">{tagline}</span>
 
-            {/* Qué hacemos */}
-            <li className="header__item">
-              <NavLink to="/services" className={linkClass}>
-                Qué hacemos
-                <span className="header__sparkles">
-                  <span className="spark sparkle-1"></span>
-                  <span className="spark sparkle-2"></span>
-                  <span className="spark sparkle-3"></span>
-                </span>
-              </NavLink>
-            </li>
-
-            {/* Cómo lo hacemos */}
-            <li className="header__item">
-              <Dropdown menu="methodology" />
-            </li>
-
-            {/* Casos de uso */}
-            <li className="header__item">
-              <NavLink to="/use-cases" className={linkClass}>
-                Casos de uso
-                <span className="header__sparkles">
-                  <span className="spark sparkle-1"></span>
-                  <span className="spark sparkle-2"></span>
-                  <span className="spark sparkle-3"></span>
-                </span>
-              </NavLink>
-            </li>
-
-            {/* Trabajos */}
-            <li className="header__item">
-              <NavLink to="/works" className={linkClass}>
-                Trabajos
-                <span className="header__sparkles">
-                  <span className="spark sparkle-1"></span>
-                  <span className="spark sparkle-2"></span>
-                  <span className="spark sparkle-3"></span>
-                </span>
-              </NavLink>
-            </li>
-
-            {/* Recursos */}
-            <li className="header__item">
-              <Dropdown menu="resources" />
-            </li>
-          </ul>
-        </nav>
-
-        {/* Acciones */}
-        <div className="header__actions">
-          <button type="button" className="header__language">
-            ES
-          </button>
-
-          <NavLink to="/contact" className="header__cta">
-            Hablemos
-            <span className="header__sparkles">
-              <span className="spark sparkle-1"></span>
-              <span className="spark sparkle-2"></span>
-              <span className="spark sparkle-3"></span>
-            </span>
-          </NavLink>
-        </div>
-
+        {/* Hamburguesa: SIEMPRE visible (también en desktop). */}
         <HamburgerButton
           isOpen={isMenuOpen}
           onToggle={() => setIsMenuOpen(!isMenuOpen)}
         />
       </div>
+
+      {/* DesktopMenu va DESPUÉS de .header__container y en flujo
+          normal: así el panel cae de forma natural justo debajo
+          de la píldora, pegado a su borde inferior. */}
+      {isDesktop && (
+        <DesktopMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+        />
+      )}
 
       {/* FUERA de .header__container: la animación de entrada
           deja transform+filter en el container (por el forwards),
@@ -114,10 +74,12 @@ function Header({ introDone = true }) {
           de cualquier position:fixed descendiente → el drawer se
           descolocaba. Como hermano del container, el fixed vuelve
           a referirse al viewport y el drawer funciona normal. */}
-      <MobileMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-      />
+      {!isDesktop && (
+        <MobileMenu
+          isOpen={isMenuOpen}
+          onClose={() => setIsMenuOpen(false)}
+        />
+      )}
     </header>
   );
 }

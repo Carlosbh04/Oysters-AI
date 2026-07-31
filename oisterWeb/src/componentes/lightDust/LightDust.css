@@ -1,0 +1,112 @@
+/* ======= LightDust =======
+   Polvo de luz cayendo. Dos capas en los pseudos:
+   · ::before → motas cercanas: más grandes, brillantes,
+     caen más rápido (26s)
+   · ::after  → motas lejanas: pequeñas, tenues, lentas
+     (40s) → parallax
+   Cada capa define su patrón DOS veces (0–100vh y una
+   réplica a -100vh): al animar translateY(+100vh), la
+   réplica ocupa el lugar del patrón original y el loop
+   cierra sin salto.
+
+   DIALES: velocidad → los 26s/40s · densidad → añade o
+   quita sombras · brillo → las opacidades rgba */
+
+.light-dust {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden; /* las motas no se salen de la sección */
+
+  pointer-events: none;
+
+  z-index: 1; /* sobre el fondo, bajo el contenido */
+}
+
+.light-dust::before,
+.light-dust::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+/* capa cercana — VIOLETA y ROSA intensos: sobre el fondo
+   lila claro, el blanco desaparecía; estos contrastan */
+.light-dust::before {
+  box-shadow:
+    8vw 12vh 4px 2px rgba(135, 87, 245, 0.65),
+    24vw 55vh 5px 2px rgba(183, 109, 240, 0.6),
+    38vw 25vh 4px 2px rgba(135, 87, 245, 0.55),
+    52vw 70vh 5px 2px rgba(217, 123, 243, 0.55),
+    67vw 15vh 4px 2px rgba(135, 87, 245, 0.6),
+    79vw 48vh 5px 2px rgba(183, 109, 240, 0.5),
+    91vw 78vh 4px 2px rgba(217, 123, 243, 0.55),
+    15vw 88vh 4px 2px rgba(135, 87, 245, 0.5),
+    /* réplica a -100vh para el loop */
+      8vw -88vh 4px 2px rgba(135, 87, 245, 0.65),
+    24vw -45vh 5px 2px rgba(183, 109, 240, 0.6),
+    38vw -75vh 4px 2px rgba(135, 87, 245, 0.55),
+    52vw -30vh 5px 2px rgba(217, 123, 243, 0.55),
+    67vw -85vh 4px 2px rgba(135, 87, 245, 0.6),
+    79vw -52vh 5px 2px rgba(183, 109, 240, 0.5),
+    91vw -22vh 4px 2px rgba(217, 123, 243, 0.55),
+    15vw -12vh 4px 2px rgba(135, 87, 245, 0.5);
+}
+
+/* capa lejana — mismo violeta, más tenue y pequeño */
+.light-dust::after {
+  width: 3px;
+  height: 3px;
+  filter: blur(0.6px);
+  box-shadow:
+    12vw 35vh 3px 1px rgba(135, 87, 245, 0.4),
+    30vw 8vh 3px 1px rgba(183, 109, 240, 0.35),
+    45vw 60vh 3px 1px rgba(135, 87, 245, 0.32),
+    60vw 30vh 3px 1px rgba(217, 123, 243, 0.35),
+    73vw 82vh 3px 1px rgba(135, 87, 245, 0.3),
+    86vw 42vh 3px 1px rgba(183, 109, 240, 0.32),
+    95vw 12vh 3px 1px rgba(217, 123, 243, 0.3),
+    5vw 68vh 3px 1px rgba(135, 87, 245, 0.28),
+    /* réplica a -100vh */
+      12vw -65vh 3px 1px rgba(135, 87, 245, 0.4),
+    30vw -92vh 3px 1px rgba(183, 109, 240, 0.35),
+    45vw -40vh 3px 1px rgba(135, 87, 245, 0.32),
+    60vw -70vh 3px 1px rgba(217, 123, 243, 0.35),
+    73vw -18vh 3px 1px rgba(135, 87, 245, 0.3),
+    86vw -58vh 3px 1px rgba(183, 109, 240, 0.32),
+    95vw -88vh 3px 1px rgba(217, 123, 243, 0.3),
+    5vw -32vh 3px 1px rgba(135, 87, 245, 0.28);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .light-dust::before {
+    animation: dustFall 26s linear infinite;
+  }
+
+  .light-dust::after {
+    animation: dustFall 40s linear infinite;
+  }
+}
+
+/* caída: al avanzar +100vh la réplica coincide con el patrón
+   inicial → loop continuo sin salto */
+@keyframes dustFall {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+/* con motion reducido: motas estáticas, muy tenues */
+@media (prefers-reduced-motion: reduce) {
+  .light-dust {
+    opacity: 0.4;
+  }
+}

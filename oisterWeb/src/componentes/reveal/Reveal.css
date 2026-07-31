@@ -1,0 +1,47 @@
+/* ======= Reveal =======
+   Estados de entrada por variante. Son TRANSICIONES (no
+   animaciones) → reversibles: se ocultan al salir del
+   viewport y reaparecen al volver, salvo con `once`. */
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s cubic-bezier(0.22, 0.8, 0.36, 1),
+      filter 0.7s ease;
+    will-change: opacity, transform;
+  }
+
+  .reveal--up {
+    transform: translateY(26px);
+  }
+
+  .reveal--left {
+    transform: translateX(-30px);
+  }
+
+  .reveal--right {
+    transform: translateX(30px);
+  }
+
+  .reveal--blur {
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+
+  /* --fade: solo opacidad, sin desplazamiento */
+
+  .reveal--shown {
+    opacity: 1;
+    transform: translate(0, 0);
+    filter: blur(0);
+  }
+}
+
+/* con motion reducido: todo visible, sin teatro */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+  }
+}
