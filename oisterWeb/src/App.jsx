@@ -98,7 +98,7 @@ function App() {
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
           <Route path="/blog" element={<BlogPage/>} />
-
+          <Route path="/blog/page/:page" element={<BlogPage />} />
           <Route path="/blog/:id" element={<BlogDetailPage />} />
 
           <Route

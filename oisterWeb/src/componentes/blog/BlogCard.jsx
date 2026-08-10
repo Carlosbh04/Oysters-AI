@@ -1,20 +1,14 @@
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import "./BlogCard.css";
 
-function BlogCard({ id, titulo, subtitulo, foto, entrada }) {
-  const textoResumen = entrada?.texto || subtitulo || "Lee esta entrada del blog";
+function BlogCard({ id, titulo, subtitulo, entrada }) {
+  const textoCompleto = entrada?.texto || subtitulo || "Lee esta entrada del blog";
+  const textoResumen = textoCompleto.length > 160
+    ? `${textoCompleto.slice(0, 160).trim()}...`
+    : textoCompleto;
 
   return (
     <Link to={`/blog/${id}`} className="blog-card">
-      <div className="blog-card-image">
-        <img src={foto} alt={titulo} loading="lazy" />
-        <span className="blog-card-badge" aria-hidden="true">
-          <Sparkles size={17} strokeWidth={2.2} />
-        </span>
-        <span className="blog-card-shine" aria-hidden="true"></span>
-      </div>
-
       <div className="blog-card-content">
         <span className="blog-card-category">Blog</span>
         <h2>{titulo}</h2>
