@@ -19,7 +19,7 @@ function WorkDetailPage() {
 
     useEffect(() => {
         /* cada vez que cambia el id, se relanza la carga */
-        setCargando(true);
+        // setCargando(true);
 
         const temporizador = setTimeout(() => {
             setCargando(false);

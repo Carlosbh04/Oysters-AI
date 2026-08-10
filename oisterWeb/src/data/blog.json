@@ -1,0 +1,60 @@
+[
+  {
+    "id": 1,
+    "titulo": "Narrativas IA para marcas que quieren diferenciarse",
+    "entradas": [
+      {
+        "subtitulo": "Una estrategia creativa preparada para nuevos canales",
+        "texto": "Las marcas necesitan contar historias con una velocidad y una capacidad de adaptación que antes resultaban imposibles. La inteligencia artificial abre una nueva forma de entender la creatividad: permite producir, testar y adaptar mensajes en función de las señales del mercado.",
+        "foto": "/img/acciona/halloween.png"
+      },
+      {
+        "subtitulo": "Del briefing a la campaña visual",
+        "texto": "La clave deja de ser producir más contenido y pasa a producir contenido con criterio. El sistema creativo debe conectar el posicionamiento, la voz y la intención de la marca con cada canal donde se va a desplegar.",
+        "foto": "/img/acciona/ganzo.png"
+      },
+      {
+        "subtitulo": "La IA como acelerador del pensamiento",
+        "texto": "La creatividad no sustituye al ser humano: la IA actúa como acelerador de exploración. Genera variantes, deja visibles nuevas rutas y aporta una velocidad imposible para un equipo que trabaja con muchos filtros de decisión.",
+        "foto": "/img/alsea/05_BDAY_EMAIL-BDAY-DAY_PROMO-UNREDEEMED.webp"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "titulo": "Cómo construir una voz de marca consistente en IA",
+    "entradas": [
+      {
+        "subtitulo": "Los prompts son punto de partida, no destino",
+        "texto": "Un prompt bien definido ayuda a orientar el estilo del mensaje, pero no sustituye el criterio estratégico. La consistencia de una marca se construye con una guía clara de tono, referencias y prioridades comunicativas.",
+        "foto": "/img/alsea/04_BDAY_EMAIL-BDAY-DAY_PROMO-REDEEMED.gif"
+      },
+      {
+        "subtitulo": "Guías que escalan a todos los equipos",
+        "texto": "Cuando una marca define una biblioteca de tonos, líneas de valor y ejemplos de comunicación, la IA puede reutilizarlos como base para producir campañas, piezas de CRM y social ads sin perder coherencia.",
+        "foto": "/img/acciona/halloween.png"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "titulo": "Del contenido visual a la experiencia emocional",
+    "entradas": [
+      {
+        "subtitulo": "Visuales para sostener la relación con la audiencia",
+        "texto": "Las imágenes generadas con IA no solo sirven para 'ilustrar' un tema; cada pieza tiene que sostener un punto de vista y ofrecer un paso hacia la relación con el cliente.",
+        "foto": "/img/acciona/ganzo.png"
+      },
+      {
+        "subtitulo": "Editorial y diseño para una presencia reconocible",
+        "texto": "Un feed, una landing y un email necesitan compartir una lógica visual. El trabajo de diseño debe volver estas piezas más reconocibles, más rápidas de consumir y más al servicio del objetivo comercial.",
+        "foto": "/img/alsea/05_BDAY_EMAIL-BDAY-DAY_PROMO-UNREDEEMED.webp"
+      },
+      {
+        "subtitulo": "El próximo paso: medir impacto",
+        "texto": "La creatividad con IA se vuelve estratégica cuando incorpora un sistema de retrospectiva: qué funcionó, qué se repitió, qué hizo crecer la conversación y qué mejoró la contratación o el engagement.",
+        "foto": "/img/alsea/04_BDAY_EMAIL-BDAY-DAY_PROMO-REDEEMED.gif"
+      }
+    ]
+  }
+]

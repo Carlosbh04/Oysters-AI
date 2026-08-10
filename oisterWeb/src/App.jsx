@@ -11,6 +11,8 @@ import ContactSection from "./pages/contact/Contact";
 import NotFoundPage from "./pages/error/404";
 import WorksPage from "./pages/work/WorkPage";
 import WorkDetailPage from "./pages/work/WorkDetailPage";
+import BlogPage from "./pages/blog/BlogPage";
+import BlogDetailPage from "./pages/blog/BlogDetailPage";
 
 import "./App.css";
 
@@ -39,7 +41,9 @@ function App() {
 
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
-          <Route path="/blog" element={<div>AÑADIR ENTRADAS DEL BLOG</div>} />
+          <Route path="/blog" element={<BlogPage />} />
+
+          <Route path="/blog/:id" element={<BlogDetailPage />} />
 
           <Route
             path="/contact"

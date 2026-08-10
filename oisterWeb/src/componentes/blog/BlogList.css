@@ -1,0 +1,117 @@
+.blog-list {
+  width: min(100%, 1240px);
+  margin: 0 auto;
+}
+
+.blog-list-head {
+  margin-bottom: 38px;
+}
+
+.blog-list-badge {
+  color: #b9e6de;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.blog-list-title {
+  position: relative;
+  margin: 12px 0 8px;
+  font-size: clamp(44px, 7.8vw, 116px);
+  line-height: .93;
+  color: #fff;
+}
+
+.blog-list-title-glow {
+  display: inline-block;
+  width: 140px;
+  height: 4px;
+  border-radius: 999px;
+  margin-left: 14px;
+  background: #a2f7c0;
+  box-shadow: 0 0 30px #a2f7c0;
+}
+
+.blog-list-subtitle {
+  max-width: 740px;
+  margin: 0;
+  color: #bdbac8;
+  font-size: 20px;
+  line-height: 1.55;
+}
+
+.blog-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(250px, 1fr));
+  gap: 28px;
+}
+
+.blog-list-cta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 58px;
+  padding: 26px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, rgba(255,255,255,.08), transparent);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.blog-list-cta-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255,255,255,.10);
+}
+
+.blog-list-cta-text h2 {
+  margin: 0;
+  color: #fff;
+}
+
+.blog-list-cta-text p {
+  margin: 8px 0 0;
+  color: #b9b4bd;
+}
+
+.blog-list-cta-button {
+  margin-left: auto;
+  color: #fff;
+  text-decoration: none;
+  padding: 13px 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.34);
+}
+
+.blog-deco {
+  position: absolute;
+  pointer-events: none;
+  color: rgba(255,255,255,.6);
+  font-size: 34px;
+}
+
+.blog-deco-1 { top: 16%; left: 12%; }
+.blog-deco-2 { top: 38%; right: 8%; }
+.blog-deco-3 { bottom: 15%; left: 22%; }
+.blog-deco-4 { bottom: 22%; right: 16%; }
+
+@media (max-width: 900px) {
+  .blog-list-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-list-cta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .blog-list-cta-button {
+    margin-left: 0;
+  }
+}
