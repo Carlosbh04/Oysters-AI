@@ -19,6 +19,7 @@ function WorkDetailPage() {
 
     useEffect(() => {
         /* cada vez que cambia el id, se relanza la carga */
+        // eslint-disable-next-line
         setCargando(true);
 
         const temporizador = setTimeout(() => {

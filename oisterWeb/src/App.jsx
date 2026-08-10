@@ -15,14 +15,13 @@ import PageSkeleton from "./componentes/skeleton/PageSkeleton";
    navegar a ellas (code-splitting) y mientras cargan, Suspense
    muestra EL esqueleto genérico — uno para todas las rutas. */
 import HomePage from "./pages/home/Home";
+import ContactSection from "./pages/contact/Contact";
+import NotFoundPage from "./pages/error/404";
+import WorksPage from "./pages/work/WorkPage";
+import WorkDetailPage from "./pages/work/WorkDetailPage";
 
-/* lazyWithMin = lazy + skeleton visible un mínimo de 600ms:
-   sin él, en conexiones rápidas el esqueleto parpadearía
-   30ms y se sentiría glitch en vez de carga */
-const ContactSection = lazyWithMin(() => import("./pages/contact/Contact"));
-const NotFoundPage = lazyWithMin(() => import("./pages/error/404"));
-const WorksPage = lazyWithMin(() => import("./pages/work/WorkPage"));
-const WorkDetailPage = lazyWithMin(() => import("./pages/work/WorkDetailPage"));
+import BlogPage from "./pages/blog/BlogPage";
+import BlogDetailPage from "./pages/blog/BlogDetailPage";
 
 import "./App.css";
 
@@ -98,7 +97,9 @@ function App() {
 
           <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
 
-          <Route path="/blog" element={<div>AÑADIR ENTRADAS DEL BLOG</div>} />
+          <Route path="/blog" element={<BlogPage/>} />
+
+          <Route path="/blog/:id" element={<BlogDetailPage />} />
 
           <Route
             path="/contact"
