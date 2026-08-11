@@ -1,7 +1,10 @@
 /* ======= HowWeWork =======
-   La sección que recibe la ostra. Su fondo arranca en el
-   MISMO color de la onda del hero (--hero-wave-color en
-   Home.css, #eee9fb): la curva y la sección se funden. */
+   La sección que recibe la ostra. Segundo eslabón de la cadena
+   de color del home (ver --sec-deep/--sec-lift en
+   variables.css): ARRANCA en el tono oscuro — el mismo de la
+   onda del hero, así la curva y la sección se funden — y SUBE
+   hasta el claro. LatestProjects recoge ese claro y devuelve el
+   viaje hacia el oscuro. */
 
 .how-we-work {
   position: relative;
@@ -10,13 +13,65 @@
 
   background: linear-gradient(
     180deg,
-    #eee9fb 0%,
-    #f6f1fd 55%,
-    #efe6fa 100%
+    var(--sec-deep, #442f65) 0%,
+    var(--sec-mid, #4e3069) 50%,
+    var(--sec-lift, #56336b) 100%
   );
 }
 
+/* ---- LA TRAMA ----
+   Cubre la sección entera por detrás de todo. El degradado de
+   .how-we-work de arriba sigue puesto a propósito: es el color de
+   respaldo si la trama no llegara a pintar, y lo que enlaza con la
+   onda de "Nuestros trabajos", que lo lee en --sec-lift. */
+/* ---- POR QUÉ EL SELECTOR DOBLE ----
+   `.ft` (la raíz de FondoTrama) trae `position: relative`. Con un
+   solo `.how-we-work__trama` las dos reglas empatan en
+   especificidad y gana la que se carga después — y FondoTrama.css
+   se importa DESPUÉS de esta hoja, porque el import del componente
+   va por debajo del import del CSS en el JSX.
+
+   La trama se quedaba en `relative` con su `height: 100%`, que sin
+   una altura definida en el padre no resuelve: 0px de alto y
+   sección sin fondo. Anteponer `.how-we-work` la desempata. */
+.how-we-work .how-we-work__trama {
+  /* ---- LA TRAMA, MÁS APAGADA QUE EN SU PÁGINA SUELTA ----
+     Los valores por defecto están calibrados para verse solos.
+     Aquí debajo hay titular, párrafo y cuatro tarjetas, y a esa
+     intensidad el circuito competía con el texto. Bajan a poco
+     más de la mitad: sigue leyéndose la trama, deja de pelear. */
+  --ft-linea: rgba(255, 255, 255, 0.18);
+  --ft-punto: rgba(255, 255, 255, 0.12);
+  --ft-hex: rgba(255, 255, 255, 0.09);
+
+  position: absolute;
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
+  /* ---- SOLO SE DESVANECE ARRIBA ----
+     Arriba sí, porque ahí la trama nace: sin desvanecido la
+     retícula empezaría de golpe contra el hero.
+
+     ABAJO NO, y esto es lo que arregla la "separación". El borde
+     inferior de esta sección toca el superior de "Nuestros
+     trabajos", que también lleva trama. Si cada una se desvanece
+     en su borde, queda una franja lisa de ~140px sin retícula
+     justo en la juntura — y esa franja es lo que se leía como
+     corte, aunque el COLOR fuera continuo. Dejando las dos a tope
+     en el borde, el dibujo pasa de una sección a la otra sin
+     interrupción. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 70px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 70px);
+}
+
 .how-we-work__container {
+  /* por encima de la trama y del polvo de luz */
+  position: relative;
+  z-index: 2;
+
   width: min(1440px, 92%);
 
   margin: 0 auto;
@@ -64,10 +119,14 @@
 
 /* halo: centro hueco + luz de respaldo, y ANILLO de trazo
    real encendido por encima (el ::after, el que se VE) */
+/* top: la luna baja del 40% al 52%. La ostra se centra en ELLA
+   automáticamente (useHeroScrollDock mide su centro real), así
+   que mover este número la arrastra consigo: no hay que tocar
+   ningún dial del aterrizaje. */
 .how-we-work__halo {
   position: absolute;
   left: 30%;
-  top: 40%;
+  top: 52%;
   transform: translate(-50%, -50%);
   width: min(520px, 115%);
   aspect-ratio: 1;
@@ -152,7 +211,7 @@
   background: radial-gradient(
     ellipse,
     rgba(255, 255, 255, 0.5),
-    rgba(212, 171, 255, 0.28),
+    rgb(var(--rgb-secondary) / 0.28),
     transparent 75%
   );
   filter: blur(24px);
@@ -170,17 +229,10 @@
   z-index: 10;
 }
 
-.how-we-work__eyebrow {
-  margin-bottom: 0.9rem;
-
-  font-size: 0.75rem;
-  font-weight: 700;
-
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-
-  color: #8757f5;
-}
+/* El rótulo de esta sección no tiene regla propia: forma, color y
+   margen los pone el componente Rotulo, compartido con las otras
+   tres del home. La clase sigue en el marcado porque de ella
+   cuelga la animación de entrada, más abajo. */
 
 .how-we-work__title {
   font-size: clamp(1.6rem, 1.1rem + 1.4vw, 2.3rem);
@@ -188,18 +240,29 @@
   line-height: 1.2;
   letter-spacing: -0.02em;
 
-  color: var(--color-text, #17122b);
+  color: var(--color-text, #f6f0ff);
+
+  /* mismo apoyo que en "Nuestros trabajos": una sombra corta que
+     dibuja el filo y otra muy abierta que apaga el fondo alrededor
+     del texto, ahí donde la cinta de luz de la trama lo aclara */
+  text-shadow:
+    0 1px 2px rgba(18, 9, 32, 0.4),
+    0 6px 28px rgba(18, 9, 32, 0.55);
 }
 
 /* "resultados reales." en itálica violeta, como el mockup */
 .how-we-work__title span {
   font-style: italic;
 
-  background: linear-gradient(110deg, #8757f5, #b76df0);
+  background: linear-gradient(110deg, var(--color-primary-light), #E68CE0);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+
+  /* la letra es transparente: una sombra se vería A TRAVÉS de
+     ella, como una mancha borrosa dentro de cada trazo */
+  text-shadow: none;
 }
 
 .how-we-work__description {
@@ -210,7 +273,11 @@
   font-size: 0.92rem;
   line-height: 1.6;
 
-  color: var(--color-text-light, #5c5673);
+  color: var(--color-text-light, #cdc1e2);
+
+  /* más suave que la del titular: a este cuerpo una sombra fuerte
+     lo emborronaría en vez de separarlo */
+  text-shadow: 0 2px 14px rgba(18, 9, 32, 0.5);
 }
 
 /* ======= Grid de cards ======= */
@@ -282,7 +349,17 @@
   .how-we-work--landed .how-we-work__title {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
+    /* `none` y no `blur(0)`. No es lo mismo: blur(0) sigue siendo
+       un filtro, así que el titular se queda con capa compuesta
+       propia y una pasada de filtro por fotograma para siempre.
+       Medido con la sección ya asentada, ahí seguía.
+
+       Aquí SÍ vale poner `none` como destino porque esto es una
+       TRANSICIÓN: al acabar, el valor calculado es el de destino.
+       En el hero, que iba con animación y `forwards`, no valía —
+       lo congelado era el valor interpolado, o sea blur(0px), y
+       hubo que darle la vuelta a la regla. */
+    filter: none;
     transition-delay: 0.15s;
   }
 

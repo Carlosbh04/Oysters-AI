@@ -1,19 +1,23 @@
 import "./MobileMenu.css";
+import useIrASeccion from "../../hooks/useIrASeccion";
 import { NavLink } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import MobileAccordion from "../mobileAccordion/MobileAccordion.jsx";
 import { dropdowns } from "../../data/dropdown.js";
 
 function MobileMenu({ isOpen, onClose }) {
+  const irASeccion = useIrASeccion();
+
   const [openAccordion, setOpenAccordion] = useState(null);
   const navRef = useRef(null);
 
+  const closeMenu = () => {
+    setOpenAccordion(null);
+    onClose();
+  };
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
-
-    if (!isOpen) {
-      setOpenAccordion(null);
-    }
 
     /* al abrir, el nav siempre arranca arriba del todo:
        aunque la sesión anterior quedara scrolleada,
@@ -32,6 +36,7 @@ function MobileMenu({ isOpen, onClose }) {
 
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
+        setOpenAccordion(null);
         onClose();
       }
     };
@@ -47,23 +52,33 @@ function MobileMenu({ isOpen, onClose }) {
     <>
       <div
         className={`mobile-menu__overlay ${isOpen ? "active" : ""}`}
-        onClick={onClose}
+        onClick={closeMenu}
       />
 
       <aside className={`mobile-menu ${isOpen ? "active" : ""}`}>
         <div className="mobile-menu__header">
-          <NavLink to="/" className="mobile-menu__logo" onClick={onClose}>
+          <NavLink to="/" className="mobile-menu__logo" onClick={closeMenu}>
             Oysters AI
           </NavLink>
         </div>
 
         <nav className="mobile-menu__nav" ref={navRef}>
-          <NavLink className="mobile-menu__link" to="/about" onClick={onClose}>
+          <NavLink
+            className="mobile-menu__link"
+            to="/#nosotros"
+            onClick={closeMenu}
+            onClickCapture={irASeccion("nosotros")}
+          >
             Nosotros
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
-          <NavLink className="mobile-menu__link" to="/services" onClick={onClose}>
+          <NavLink
+            className="mobile-menu__link"
+            to="/#que-hacemos"
+            onClick={closeMenu}
+            onClickCapture={irASeccion("que-hacemos")}
+          >
             Qué hacemos
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
@@ -72,17 +87,17 @@ function MobileMenu({ isOpen, onClose }) {
             id="methodology"
             title={dropdowns.methodology.title}
             items={dropdowns.methodology.items}
-            onClose={onClose}
+            onClose={closeMenu}
             isOpen={openAccordion === "methodology"}
             setOpenAccordion={setOpenAccordion}
           />
 
-          <NavLink className="mobile-menu__link" to="/use-cases" onClick={onClose}>
+          <NavLink className="mobile-menu__link" to="/use-cases" onClick={closeMenu}>
             Casos de uso
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
-          <NavLink className="mobile-menu__link" to="/works" onClick={onClose}>
+          <NavLink className="mobile-menu__link" to="/works" onClick={closeMenu}>
             Trabajos
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
@@ -91,7 +106,7 @@ function MobileMenu({ isOpen, onClose }) {
             id="resources"
             title={dropdowns.resources.title}
             items={dropdowns.resources.items}
-            onClose={onClose}
+            onClose={closeMenu}
             isOpen={openAccordion === "resources"}
             setOpenAccordion={setOpenAccordion}
           />
@@ -102,7 +117,7 @@ function MobileMenu({ isOpen, onClose }) {
             ES
           </button>
 
-          <NavLink to="/contact" className="mobile-menu__cta" onClick={onClose}>
+          <NavLink to="/contact" className="mobile-menu__cta" onClick={closeMenu}>
             Hablemos
           </NavLink>
         </div>

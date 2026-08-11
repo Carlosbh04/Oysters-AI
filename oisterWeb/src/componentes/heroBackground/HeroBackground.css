@@ -1,0 +1,2348 @@
+/* ============================================================
+   FONDO DEL HERO — sala de cristal
+
+   Orden de las capas, de atrás hacia delante. Los z-index van
+   de 10 en 10 para poder colar algo en medio sin renumerar
+   todo:
+
+     0  atmósfera      niebla y foco cenital
+    10  haz de luz     la columna que baja del techo
+    20  suelo          plano en perspectiva + reflejos
+    30  paneles        cristales de fondo y medio
+    40  imágenes       logo y retrato (lo único no dibujado)
+    50  diamante       octaedro + pedestal
+    60  HUD            etiquetas apoyadas en el suelo
+    70  esquirlas      canvas de partículas
+    80  post-proceso   grano y aberración
+
+   ---- LA PALETA ESTÁ ENTERA AQUÍ ARRIBA ----
+   Ningún color suelto más abajo. Una escena de un solo tono
+   vive de que todos los violetas sean el mismo violeta; en
+   cuanto entran dos parecidos pero distintos, el conjunto se
+   ensucia y no se sabe por qué.
+   ============================================================ */
+
+.hb {
+  /* paleta */
+  --hb-void: #120424;
+  --hb-fog-deep: #3d1a6d;
+  --hb-fog-mid: #6b3fa0;
+  --hb-fog-light: #9d6fd4;
+  --hb-glass: rgb(var(--rgb-primary-light) / 0.12);
+  --hb-edge: #c084fc;
+  --hb-edge-hot: var(--color-magenta);
+  --hb-core: #a855f7;
+  --hb-ui: rgba(230, 215, 255, 0.55);
+
+  /* diales del panel de debug; el JSX los sobrescribe */
+  --hb-niebla: 1;
+  --hb-glow: 1;
+  --hb-persp: 1;
+
+  /* ---- LA COREOGRAFÍA DE ENTRADA ----
+     Los dos números que la gobiernan, juntos para poder
+     ajustarla sin buscar retardos sueltos por el archivo.
+
+     · ESPERA  lo que tarda en arrancar nada. Existe para que la
+       niebla y el suelo se asienten antes de que empiece a
+       encenderse el cristal. Sin ella todo llegaba a la vez y la
+       secuencia se leía como un fundido, no como un encendido.
+
+     · RITMO   la separación entre panel y panel. A 120ms los
+       doce cabían en 1,3s y para cuando el ojo se posaba ya
+       había terminado. A 230ms el recorrido dura ~3s y se ve
+       cómo va prendiendo.
+
+     La cola completa: paneles 0-11, luego imágenes, luego el
+     diamante, y las dos etiquetas del HUD (12 y 13) cierran.
+     Total ~4,8s. */
+  --hb-espera: 700ms;
+  --hb-ritmo: 230ms;
+
+  /* posición del puntero, normalizada de -1 a 1 */
+  --hb-px: 0;
+  --hb-py: 0;
+  --hb-scroll: 0;
+
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  background: var(--hb-void);
+
+  /* el fondo no intercepta nada: el hero va encima */
+  pointer-events: none;
+
+  /* ---- UN SOLO CONTEXTO 3D PARA TODA LA ESCENA ----
+     Todas las rotaciones en Y comparten así el mismo punto de
+     fuga. Si cada panel abriera su propia perspectiva, cada uno
+     convergería a un sitio distinto y la sala dejaría de ser
+     una sala. */
+  perspective: calc(1400px / var(--hb-persp));
+  perspective-origin: 50% 42%;
+
+  /* ---- LA ESCENA SE HUNDE, PERO YA NO SE ACERCA ----
+     Llevaba también `scale(1 + scroll * 0.05)`. Cinco por ciento
+     de zoom, imperceptible, y era lo más caro de toda la página:
+     escalar una capa compuesta obliga a RERASTERIZARLA, y aquí
+     debajo hay 87 capas y 29 megapíxeles que se rehacen en cada
+     fotograma mientras el scroll cambia la escala.
+
+     Medido rodando la página de detalle:
+
+                          mediana   peor    fotogramas >20ms
+       con scale()         33,7ms   166,6ms      132/148
+       sin scale()         16,7ms    34,4ms       22/148
+
+     Ese pico de 166ms es el parpadeo: la escena se queda a medio
+     rerasterizar y se ve por baldosas. El desplazamiento vertical
+     se queda porque `translate` no rerasteriza nada. */
+  transform: translateY(calc(var(--hb-scroll) * 40px));
+}
+
+/* ---- CAPAS ----
+   Todas comparten esta base; lo único propio de cada una es el
+   z-index y su factor de paralaje. */
+.hb > * {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- EL 3D SOLO DONDE HACE FALTA ----
+   `transform-style: preserve-3d` estaba en las NUEVE capas de
+   primer nivel, y solo los paneles lo necesitan: son los únicos
+   que tienen giro en Y y profundidad en Z.
+
+   No es un detalle de estilo. Con preserve-3d, cualquier
+   descendiente con transformación deja de poder aplanarse contra
+   su padre y se convierte en capa compuesta propia. Medido con el
+   árbol de capas del motor, la escena estaba en 98 capas y 38,4
+   megapíxeles de textura —unos 146 MB— para un encuadre de 1,3
+   Mpx. Al volver de una pestaña en segundo plano el navegador
+   descarta esas texturas y las rehace por baldosas, y eso es lo
+   que se ve como rayas apareciendo.
+
+   Lo necesitan TRES capas, y solo esas tres: los paneles del
+   fondo y las cajas del HUD, porque sus losas giran en Y y se
+   separan en Z, y las imágenes, porque el logo va escorzado 26°.
+   Quitárselo a las imágenes le aplanaba el giro al logo —la
+   perspectiva de la sala deja de alcanzarle— y eso se ve al
+   instante. Las otras seis capas son degradados y lienzos planos
+   que no ganan nada con el 3D y sí cuestan capa propia. */
+.hb-paneles,
+.hb-imagenes,
+.hb-hud {
+  transform-style: preserve-3d;
+}
+
+/* ============================================================
+   z0 · ATMÓSFERA
+   ============================================================ */
+
+.hb-atmosfera {
+  z-index: 0;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-fondo) * -1),
+    calc(var(--hb-py) * var(--hb-par-fondo) * -1),
+    0
+  );
+}
+
+/* ============================================================
+   EL MODELO DE LUZ — oscuro con destellos, no lavado uniforme
+
+   La primera versión llenaba el encuadre de violeta medio y
+   ponía sombras encima. Medido, todo caía entre luminancia 0.08
+   y 0.19: un rango de once centésimas para una escena entera.
+   Por eso se veía apagada — no le faltaba luz, le faltaba
+   RANGO.
+
+   Una sala de cristal iluminada es lo contrario: negro casi en
+   los huecos y destellos que se van al 0.5 en los filos. El
+   contraste es lo que hace brillar el vidrio; sobre un fondo
+   medio, un filo brillante no tiene contra qué destacar.
+
+   Y sale un beneficio que no es menor: con el centro oscuro, el
+   texto blanco del titular pasa AA con margen de sobra. Todo el
+   pulso anterior con el techo de 0.183 venía de haber tomado el
+   camino equivocado.
+   ============================================================ */
+
+
+
+
+
+
+
+
+
+
+
+/* ---- LOS CINCO DEGRADADOS, EN UN SOLO ELEMENTO ----
+   Eran cinco <span> a pantalla completa, uno por degradado, y el
+   motor los trataba como cinco capas de 1440x900: 6,5 megapíxeles
+   de textura solo para pintar cinco degradados que no se mueven
+   ni uno respecto a otro.
+
+   Un elemento admite varios fondos apilados, así que hacen el
+   mismo trabajo en una sola capa. OJO AL ORDEN: en la lista de
+   `background`, el PRIMERO se pinta encima, al revés que en el
+   DOM. Por eso van del último al primero — viñeta arriba del todo
+   y relleno al fondo, igual que estaban.
+
+   De aquí salen 5,2 de los megapíxeles ahorrados. */
+.hb-atmosfera__capas {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+    ellipse 80% 76% at 50% 52%,
+    transparent 34%,
+    rgba(12, 3, 26, 0.5) 76%,
+    rgba(8, 2, 18, 0.88) 100%
+  ),
+    radial-gradient(
+    ellipse 50% 26% at 50% 99%,
+    rgba(170, 120, 226, calc(0.34 * var(--hb-niebla))),
+    rgba(140, 96, 200, calc(0.2 * var(--hb-niebla))) 34%,
+    rgba(108, 68, 166, calc(0.08 * var(--hb-niebla))) 62%,
+    transparent 88%
+  ),
+    radial-gradient(
+    ellipse 44% 11% at 50% 74%,
+    rgba(224, 198, 255, calc(0.9 * var(--hb-glow))),
+    rgba(196, 152, 250, calc(0.62 * var(--hb-glow))) 26%,
+    rgba(168, 108, 240, calc(0.3 * var(--hb-glow))) 48%,
+    rgba(130, 76, 200, calc(0.1 * var(--hb-glow))) 70%,
+    transparent 90%
+  ),
+    radial-gradient(
+    ellipse 52% 58% at 50% -14%,
+    rgba(150, 108, 214, calc(0.5 * var(--hb-niebla))),
+    rgba(120, 82, 186, calc(0.36 * var(--hb-niebla))) 28%,
+    rgba(96, 58, 152, calc(0.2 * var(--hb-niebla))) 52%,
+    rgba(70, 40, 118, calc(0.08 * var(--hb-niebla))) 74%,
+    transparent 94%
+  ),
+    linear-gradient(
+    to bottom,
+    rgba(74, 44, 122, calc(0.22 * var(--hb-niebla))) 0%,
+    rgba(52, 28, 92, calc(0.17 * var(--hb-niebla))) 58%,
+    rgba(38, 18, 72, calc(0.13 * var(--hb-niebla))) 100%
+  );
+}
+
+/* ============================================================
+   z1 · HAZ DE LUZ
+   ============================================================ */
+
+.hb-haz {
+  z-index: 10;
+
+  /* screen para que sume luz en vez de taparla: es lo que hace
+     que el haz atraviese la niebla en vez de pintarse encima */
+  mix-blend-mode: screen;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-fondo) * -1),
+    0,
+    0
+  );
+}
+
+.hb-haz__cono {
+  position: absolute;
+  left: 34%;
+  top: -6%;
+
+  width: 32%;
+  height: 100%;
+
+  /* trapecio: estrecho arriba, ancho abajo. Un haz real se abre
+     al bajar porque la fuente es puntual; con un rectángulo se
+     lee como una barra pintada encima. */
+  clip-path: polygon(34% 0%, 66% 0%, 100% 100%, 0% 100%);
+
+  /* ---- CAE RÁPIDO, NO LINEALMENTE ----
+     El haz conserva su brillo en el primer 18% —donde entra la
+     luz por el techo y es donde se ve— y se apaga al entrar en
+     la franja reservada al titular. Un degradado lineal repartía
+     el brillo por igual y era justo en el centro donde sobraba.
+
+     Así el haz se ve igual de contundente arriba y deja limpia
+     la zona del texto. */
+  /* Cae aún más rápido que antes. El mapa de luminancia enseñó
+     que la franja superior de la zona del titular (y 18-28%) y
+     su columna derecha seguían por encima del techo, y las dos
+     son el haz. Apagándolo antes del 12% el brillo se queda
+     donde se ve —arriba, donde entra la luz— y la franja del
+     texto queda limpia. */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(226, 200, 255, 0.17) 11%,
+    rgba(190, 150, 240, 0.055) 24%,
+    rgba(157, 111, 212, 0.03) 100%
+  );
+
+  /* ---- POR QUÉ EL HAZ NO PUEDE SER MÁS BRILLANTE ----
+     Cae justo sobre la zona reservada al titular. Medido: con
+     el haz al 30% el percentil 95 de esa zona llegaba a
+     luminancia 0.212, y el texto blanco encima se quedaba en
+     4.01:1 — por debajo del 4.5 del AA.
+
+     No basta con mirar la media de la zona (0.102, que da
+     5.9:1): el texto no cae sobre la media, cae sobre lo que
+     tenga debajo, y lo más claro manda. */
+  filter: blur(46px);
+
+  opacity: calc(0.22 * var(--hb-niebla));
+
+  animation: hbRespira 8s ease-in-out infinite;
+}
+
+/* el charco donde el haz toca el suelo. Sin él el haz parece
+   cortado a media altura y se nota que es un degradado */
+.hb-haz__charco {
+  position: absolute;
+  left: 26%;
+  bottom: 2%;
+
+  width: 48%;
+  height: 18%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(216, 190, 255, calc(0.3 * var(--hb-glow))),
+    transparent 70%
+  );
+
+  filter: blur(30px);
+}
+
+@keyframes hbRespira {
+  0%,
+  100% {
+    opacity: calc(0.18 * var(--hb-niebla));
+  }
+  50% {
+    opacity: calc(0.26 * var(--hb-niebla));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-haz__cono {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   z2 · SUELO
+   ============================================================ */
+
+.hb-suelo {
+  z-index: 20;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-medio) * -1),
+    0,
+    0
+  );
+}
+
+.hb-suelo__plano {
+  position: absolute;
+  left: -30%;
+  bottom: 0;
+
+  width: 160%;
+
+  /* ---- EL ALTO DECLARADO NO ES EL ALTO QUE SE VE ----
+     Medido: con height 42% el plano declaraba 378px y se
+     proyectaba en 161px — el 17,9% de la pantalla, una tira
+     fina. Y es lógico: rotar 72° deja el plano casi de canto,
+     así que lo que se ve es h × cos(72°) ≈ 0.31·h, más lo que
+     añada la perspectiva.
+
+     Ese era el motivo real de que el suelo no se viera. Estuve
+     subiéndole el color varias veces sin tocar lo que fallaba,
+     que era la geometría.
+
+     Con 85% y una distancia de perspectiva mayor, el plano se
+     proyecta al doble y además las tablas convergen más lejos,
+     que es lo que da la sensación de sala profunda. */
+  height: 85%;
+
+  transform: perspective(calc(1900px / var(--hb-persp))) rotateX(72deg);
+  transform-origin: 50% 100%;
+
+  /* Más claro que la niebla, no igual. Antes el suelo medía la
+     misma luminancia que el aire (0.095) y por eso no se
+     distinguía: un suelo se reconoce porque es OTRA superficie,
+     y eso se dice con luminancia, no con dibujo. */
+  /* Oscuro, como en la referencia: un suelo pulido es negro que
+     REFLEJA, no una superficie clara. Lo que se ve son los
+     reflejos, y para eso el plano tiene que estar por debajo de
+     ellos. */
+  background: linear-gradient(
+    to top,
+    #23103f 0%,
+    #351a5c 45%,
+    #4c2880 100%
+  );
+
+  /* ---- LA MÁSCARA VA EN ESPACIO LOCAL ----
+     Se aplica ANTES de la rotación, sobre los 765px del
+     elemento, no sobre los ~300 que se ven. La perspectiva
+     comprime después la mitad lejana, así que un desvanecido
+     que empieza al 20% local acaba concentrado en una franja
+     minúscula de pantalla.
+
+     Por eso las paradas van corridas hacia arriba: la zona
+     opaca cubre la mitad cercana entera y el desvanecido ocupa
+     la mitad lejana, que es la que la perspectiva encoge. */
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 0 45%,
+    rgba(0, 0, 0, 0.45) 75%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to top,
+    #000 0 45%,
+    rgba(0, 0, 0, 0.45) 75%,
+    transparent 100%
+  );
+}
+
+/* las tablas van DENTRO del plano rotado, así que la
+   perspectiva se las aplica gratis y convergen solas */
+.hb-suelo__tablas {
+  position: absolute;
+  inset: 0;
+
+  /* ---- LÍNEAS MÁS FINAS Y MÁS APAGADAS ----
+     Estaban a 0.32 de opacidad y 0.25 puntos de grosor, y se
+     leían como una rejilla dibujada encima del suelo en vez de
+     como las juntas de un pavimento pulido. Bajé a 0.17 y me
+     pasé: desaparecían del todo y el plano perdía la escala que
+     daba la profundidad. 0.24 es el punto donde se intuyen sin
+     dibujarse. */
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 5.66%,
+    rgba(246, 232, 255, 0.24) 5.66% 5.85%
+  );
+
+  /* ---- SE APAGAN HACIA EL CENTRO ----
+     El centro del encuadre es zona reservada al titular, y
+     además es por donde el haz de luz lava el suelo: unas juntas
+     nítidas justo ahí compiten con el texto y rompen la niebla.
+
+     La máscara va en horizontal y se abre en el medio, así que
+     las juntas se ven en los laterales —donde dan profundidad— y
+     desaparecen en el centro. Se combina con el desvanecido
+     vertical que ya lleva el plano: este recorta a lo ancho, el
+     del plano a lo largo. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    rgba(0, 0, 0, 0.25) 32%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 68%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    rgba(0, 0, 0, 0.25) 32%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 68%,
+    #000 100%
+  );
+}
+
+/* Los reflejos van FUERA del plano rotado, en 2D. Dentro, la
+   perspectiva los inclinaría en diagonal, y el reflejo de una
+   luz cenital cae recto. */
+.hb-suelo__reflejos {
+  position: absolute;
+  inset: auto 0 0;
+
+  height: 26%;
+
+  mix-blend-mode: screen;
+}
+
+.hb-suelo__reflejo {
+  position: absolute;
+  bottom: 0;
+
+  border-radius: 50%;
+
+  filter: blur(26px);
+
+  opacity: calc(0.55 * var(--hb-glow));
+}
+
+.hb-suelo__reflejo--centro {
+  left: 32%;
+  width: 36%;
+  height: 90%;
+
+  background: linear-gradient(to top, rgba(216, 190, 255, 0.55), transparent);
+}
+
+/* Se llamaba --diamante porque marcaba el pie de la gema. La gema
+   ya no está, pero el charco sigue teniendo sentido: ahora es el
+   pie de la ESCULTURA, que es lo que ocupa ese lado. Baja de 0.5
+   a 0.34 y se estrecha, porque una figura mate no devuelve tanta
+   luz como devolvía un cristal. */
+.hb-suelo__reflejo--derecha {
+  left: 72%;
+  width: 21%;
+  height: 92%;
+
+  background: linear-gradient(to top, rgba(206, 150, 255, 0.34), transparent);
+}
+
+.hb-suelo__reflejo--izquierda {
+  left: 2%;
+  width: 20%;
+  height: 70%;
+
+  background: linear-gradient(to top, rgba(168, 85, 247, 0.4), transparent);
+}
+
+/* ---- VETAS DE LUZ EN PRIMER PLANO ----
+   Van en `screen` y muy desenfocadas en vertical: una veta de
+   luz sobre suelo pulido no tiene canto, se estira y se
+   desvanece. El desenfoque asimétrico —mucho en Y, poco en X—
+   es lo que las hace leer como reflejo tumbado y no como una
+   barra pintada. */
+.hb-suelo__vetas {
+  position: absolute;
+  inset: auto 0 0;
+
+  height: 22%;
+
+  mix-blend-mode: screen;
+}
+
+.hb-suelo__vetas span {
+  position: absolute;
+  left: var(--x);
+  bottom: var(--y);
+
+  width: var(--w);
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 248, 255, calc(1 * var(--hb-glow))) 26%,
+    rgba(240, 160, 255, calc(0.9 * var(--hb-glow))) 68%,
+    transparent
+  );
+
+  /* ---- DESENFOQUE ASIMÉTRICO ----
+     Mucho en vertical y nada en horizontal. Una veta de luz
+     sobre suelo pulido se estira a lo largo y se difumina a lo
+     ancho; con desenfoque parejo sale una barra, no un reflejo. */
+  filter: blur(3px);
+}
+
+/* ============================================================
+   z3 · PANELES DE CRISTAL
+   ============================================================ */
+
+.hb-paneles {
+  z-index: 30;
+}
+
+.hb-panel {
+  position: absolute;
+
+  /* el contenedor no pinta nada: solo sostiene las dos caras y
+     el contexto 3D que las relaciona */
+  transform-style: preserve-3d;
+
+  opacity: 0;
+  filter: blur(8px);
+
+  transition:
+    opacity 1.1s ease-out,
+    filter 1.1s ease-out;
+  transition-delay: calc(var(--hb-espera) + var(--i, 0) * var(--hb-ritmo));
+}
+
+.hb--dentro .hb-panel {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* ---- EL DESTELLO DE ENCENDIDO ----
+   Un fogonazo breve en el instante en que cada panel entra: sube
+   a más del doble de brillo y baja.
+
+   Existe porque un fundido de opacidad SOLO se percibe si la
+   pieza ocupa bastante pantalla. En la torre izquierda los
+   paneles son grandes y se ve perfectamente cómo van prendiendo;
+   en la derecha están medio tapados por el retrato y de cada uno
+   se ve una franja estrecha, así que el mismo fundido pasaba
+   desapercibido. El único encendido que se notaba allí era el de
+   AI FIRST, que es el panel que está despejado.
+
+   El fogonazo hace visible el momento del encendido sin tocar la
+   composición: no cambia dónde está nada, solo cuándo brilla.
+   Y funciona igual en una franja de 100px que en un panel
+   entero, porque lo que llama la atención es el CAMBIO, no el
+   área. */
+@keyframes hbEnciende {
+  0% {
+    filter: brightness(1);
+  }
+  26% {
+    filter: brightness(2.6);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+.hb--dentro .hb-panel__cara {
+  animation: hbEnciende 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--hb-espera) + var(--i, 0) * var(--hb-ritmo));
+}
+
+/* ---- LOS DOS DE ABAJO SON EL REMATE ----
+   Cierran cada uno su columna, así que su encendido es más
+   fuerte y más largo que el de los demás. Es lo que convierte
+   una lista de fundidos en una frase con final. */
+@keyframes hbEnciendeFuerte {
+  0% {
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(206, 232, 255, 0);
+  }
+  22% {
+    filter: brightness(4);
+    box-shadow: 0 0 70px rgba(206, 232, 255, 0.8);
+  }
+  100% {
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(206, 232, 255, 0);
+  }
+}
+
+.hb--dentro .hb-hud__caja .hb-panel__cara {
+  animation-name: hbEnciendeFuerte;
+  animation-duration: 2s;
+}
+
+/* con movimiento reducido no hay fogonazo: la escena aparece
+   completa y quieta */
+@media (prefers-reduced-motion: reduce) {
+  .hb--dentro .hb-panel__cara {
+    animation: none;
+  }
+}
+
+/* ---- LA CARA FRONTAL ---- */
+.hb-panel__cara {
+  position: absolute;
+  inset: 0;
+
+  /* El filo base baja de 0.85 a 0.3: el trazo que se ve lo pinta
+     ahora ::before con brillo VARIABLE a lo largo del perímetro.
+     Este solo queda como suelo, para que ningún tramo del
+     contorno llegue a desaparecer del todo. */
+  border: 1px solid rgba(214, 232, 255, 0.3);
+  border-radius: 2px;
+
+  /* ---- LA CARA NECESITA SUPERFICIE ----
+     Aquí ponía "poco relleno, un cristal es sobre todo canto".
+     Medido contra el fondo, el interior de cada panel daba entre
+     1.5x y 2x la luminancia del aire, y los dos paneles del plano
+     lejano daban 0.84x y 0.89x: MÁS OSCUROS que el fondo. Por eso
+     la escena se leía como un dibujo de líneas flotando sobre un
+     degradado, y por eso las únicas piezas que sí parecían vidrio
+     eran las cajas del HUD, que son las únicas con relleno de
+     verdad.
+
+     El razonamiento de partida no era falso —un cristal limpio
+     apenas tiene color propio— pero le faltaba la otra mitad: lo
+     que sí tiene es un REFLEJO del ambiente en su superficie, y
+     eso es justo lo que se veía como ausencia de material.
+
+     Así que el relleno sube y deja de ser plano: fuerte en el
+     borde superior, donde la cara mira al foco cenital, y
+     apagándose hacia abajo. Es un degradado de reflexión, no de
+     pintura. */
+  background: linear-gradient(
+    163deg,
+    rgba(206, 188, 255, calc(0.26 * var(--relleno, 1))) 0%,
+    rgba(150, 118, 226, calc(0.13 * var(--relleno, 1))) 26%,
+    rgba(96, 64, 158, calc(0.06 * var(--relleno, 1))) 58%,
+    rgba(138, 104, 210, calc(0.1 * var(--relleno, 1))) 82%,
+    rgb(var(--rgb-secondary) / calc(0.19 * var(--relleno, 1))) 100%
+  );
+
+  /* ---- EL FILO ES NEÓN, NO UNA LÍNEA ----
+     Sobre fondo oscuro un canto iluminado es una fuente de luz:
+     núcleo casi blanco, halo apretado y luz que tira sobre la
+     niebla. Esos son los tres radios: 4, 14 y 45.
+
+     El tono va hacia el cian y no al violeta puro. En la
+     referencia los filos tiran a azul frío mientras el ambiente
+     es magenta, y ese contraste de temperatura es lo que los
+     hace saltar. */
+  /* ---- EL HALO EXTERIOR SE RECORTA, EL FILO NO ----
+     Medido apagando capa por capa, los paneles eran lo que más
+     iluminaba el aire de la escena: quitándolos, el fondo bajaba
+     de 45 a 31 de 255. Y no era su filo sino su derrame — los
+     radios de 16 y 48 píxeles, que se suman entre catorce paneles
+     y levantan el negro de toda la sala.
+
+     Así que baja el derrame y se queda el núcleo de 4px intacto.
+     El vidrio sigue leyéndose igual de encendido; lo que se apaga
+     es lo que tiñe el aire alrededor, que es justo lo que separa
+     una sala iluminada de unos objetos que brillan en lo
+     oscuro. */
+  box-shadow:
+    0 0 4px rgba(206, 232, 255, calc(0.9 * var(--hb-glow))),
+    0 0 14px rgba(150, 170, 255, calc(0.3 * var(--hb-glow))),
+    0 0 42px rgba(140, 70, 235, calc(0.16 * var(--hb-glow))),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(190, 200, 255, 0.4);
+}
+
+/* ---- EL FILO NO BRILLA IGUAL EN TODO EL PERÍMETRO ----
+   Un borde de 1px de opacidad constante es la marca inequívoca
+   del dibujo vectorial: en el mundo real, el canto de una lámina
+   de vidrio recoge la luz según hacia dónde mire cada tramo, así
+   que un mismo contorno va del blanco al casi nada y vuelve.
+
+   El truco de las dos máscaras es lo que permite pintar un marco
+   de 1px con un DEGRADADO en vez de un color: se pinta el
+   degradado por toda la caja y luego se recorta el interior
+   (`content-box` menos la caja entera), dejando solo el anillo.
+   Un `border` no admite degradados que recorran el perímetro. */
+.hb-panel__cara::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  padding: 1px;
+  border-radius: inherit;
+
+  background: linear-gradient(
+    148deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(196, 220, 255, 0.6) 24%,
+    rgba(150, 120, 230, 0.14) 52%,
+    rgba(214, 194, 255, 0.72) 84%,
+    rgba(255, 255, 255, 0.45) 100%
+  );
+
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+
+  pointer-events: none;
+}
+
+/* el reflejo especular que cruza la cara */
+.hb-panel__cara::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    118deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.2) 42%,
+    rgba(255, 255, 255, 0.06) 52%,
+    transparent 66%
+  );
+}
+
+/* ---- EL CANTO: la cara lateral ----
+   Girada 90° y colgada del filo. El navegador la proyecta según
+   el giro de la losa, así que se ve más ancha cuanto más de
+   perfil esté — que es justo lo que hace un bloque real. */
+.hb-panel__canto {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+
+  width: var(--grosor);
+
+  background: linear-gradient(
+    to right,
+    rgba(226, 240, 255, 0.5),
+    rgba(120, 90, 190, 0.22) 60%,
+    rgba(70, 40, 130, 0.3)
+  );
+
+  box-shadow: 0 0 18px rgba(150, 170, 255, calc(0.4 * var(--hb-glow)));
+}
+
+.hb-panel--luz-izquierda .hb-panel__canto {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+}
+
+.hb-panel--luz-derecha .hb-panel__canto {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+}
+
+/* ---- DETALLE INTERNO ----
+   Lo que separa un panel de instrumentación de un cristal liso.
+   Cada variante ocupa una esquina distinta para que no salgan
+   todos iguales. */
+.hb-panel__datos {
+  position: absolute;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  pointer-events: none;
+}
+
+.hb-panel__datos i {
+  height: 1px;
+  background: rgba(200, 220, 255, 0.45);
+}
+
+.hb-panel__datos i:nth-child(1) { width: 100%; }
+.hb-panel__datos i:nth-child(2) { width: 72%; }
+.hb-panel__datos i:nth-child(3) { width: 90%; }
+.hb-panel__datos i:nth-child(4) { width: 54%; }
+
+.hb-panel__datos--alto {
+  left: 9%;
+  top: 8%;
+  width: 46%;
+}
+
+.hb-panel__datos--bajo {
+  left: 9%;
+  bottom: 12%;
+  width: 38%;
+}
+
+/* retícula de píxeles: cuadraditos muy tenues, como un mapa de
+   datos al fondo del vidrio */
+.hb-panel__datos--rejilla {
+  left: 8%;
+  bottom: 10%;
+
+  width: 44%;
+  height: 22%;
+
+  background-image:
+    radial-gradient(rgba(190, 215, 255, 0.5) 0.8px, transparent 0.8px);
+  background-size: 6px 6px;
+}
+
+.hb-panel__datos--rejilla i {
+  display: none;
+}
+
+/* ---- LOS TRES PLANOS ----
+   Desenfoque + saturación + paralaje. Las tres cosas a la vez:
+   con una sola el ojo no compra la profundidad.
+
+   Las opacidades subieron respecto a la primera versión (0.55 /
+   0.8 / 1). Sobre una niebla clara, un panel al 55% desaparece:
+   cuanto más luminoso es el fondo, MÁS contraste necesita lo
+   que va encima, no menos. */
+.hb-panel--fondo,
+.hb-panel--lejano,
+.hb-panel--tenue {
+  opacity: 0;
+}
+
+/* ---- LOS PLANOS LEJANOS NECESITAN MÁS RELLENO, NO MENOS ----
+   Su opacidad de capa ya los apaga: el lejano va al 0.28, así que
+   un relleno del 0.26 se queda en 0.073 efectivo y el panel
+   desaparece contra el fondo — medido, daban 0.84x la luminancia
+   del aire, o sea NEGATIVO.
+
+   Subiendo el relleno en origen, después de la opacidad de capa
+   siguen siendo los más tenues de la escena (que es lo correcto),
+   pero se ven. La lejanía la marcan el desenfoque y la
+   desaturación, no la desaparición. */
+.hb-panel--tenue {
+  --relleno: 2.1;
+}
+
+.hb-panel--lejano {
+  --relleno: 3;
+}
+
+.hb-panel--fondo {
+  --relleno: 1.25;
+}
+
+/* ---- PLANO TENUE ----
+   Entre el fondo y el lejano. Para las losas que solo tienen que
+   dar profundidad: se intuyen, tienen su canto, participan en la
+   secuencia de encendido, pero no compiten con las que llevan
+   contenido. */
+.hb--dentro .hb-panel--tenue {
+  opacity: calc(0.4 * var(--op, 1));
+  filter: blur(calc(2.2px * var(--des, 1))) saturate(0.7);
+}
+
+/* su filo también baja: si el canto sigue a plena potencia, el
+   panel se atenúa pero su contorno no, y se lee peor que antes */
+.hb-panel--tenue .hb-panel__cara {
+  box-shadow:
+    0 0 3px rgba(206, 232, 255, calc(0.4 * var(--hb-glow))),
+    0 0 20px rgba(140, 70, 235, calc(0.25 * var(--hb-glow))),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* El plano más lejano de todos: casi solo se intuye. Sirve para
+   que el centro tenga estructura sin invadirlo de verdad.
+
+   ---- SIN HALO EXTERIOR ----
+   Los demás paneles llevan un box-shadow de 70px que se derrama
+   fuera de su caja. Estos terminan justo encima de la franja del
+   titular, así que ese halo caía DENTRO y subía su percentil 95
+   a 0.203: el texto blanco se quedaba en 4.15:1.
+
+   No basta con sacar la geometría de la zona reservada; hay que
+   sacar también lo que la geometría irradia. */
+.hb-panel--lejano .hb-panel__cara {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 40px rgba(216, 190, 255, 0.12);
+}
+
+.hb--dentro .hb-panel--lejano {
+  opacity: calc(0.28 * var(--op, 1));
+  filter: blur(calc(5px * var(--des, 1))) saturate(0.55);
+}
+
+/* ---- EL DESENFOQUE DEL FONDO TIENE UN TOPE ----
+   Estaba en 2.5px y se comía los filos, que miden 1px: la
+   profundidad se ganaba a costa de borrar justo lo que hace que
+   un panel se lea como cristal. A 1.2px el canto sobrevive y la
+   sensación de lejanía la sostienen la opacidad y la
+   desaturación. */
+.hb--dentro .hb-panel--fondo {
+  /* ---- SIN DESENFOQUE EN ESTE PLANO ----
+     Iba a 1,2px, que sobre un panel de 300px de alto es
+     imperceptible, y a cambio convertía cada losa en una capa
+     filtrada propia. La lejanía la sostienen la opacidad y la
+     desaturación, que no cuestan capa. El desenfoque se queda solo
+     en los dos planos del fondo, donde sí es visible. */
+  opacity: calc(0.82 * var(--op, 1));
+  filter: saturate(0.88);
+}
+
+.hb--dentro .hb-panel--medio {
+  opacity: calc(0.9 * var(--op, 1));
+}
+
+.hb--dentro .hb-panel--frente {
+  opacity: 1;
+  filter: none;
+}
+
+/* ---- SIN backdrop-filter ----
+   Los paneles del frente refractaban lo de detrás con
+   `backdrop-filter: blur(7px) saturate(1.4)`. Es el efecto más
+   caro que hay en CSS: obliga al compositor a LEER DE VUELTA lo
+   ya pintado debajo, desenfocarlo y recomponerlo. Y estos paneles
+   se mueven con el paralaje, así que esa lectura se repetía en
+   cada fotograma.
+
+   A cambio no aportaba casi nada: lo que tienen detrás es niebla
+   lisa, y desenfocar algo liso no cambia nada. El aspecto de
+   vidrio ya lo da el relleno de la cara y su filo variable.
+   Medido, quitarlo mueve la imagen 1,00 sobre 255. */
+
+/* solo el marco: el relleno desaparece y queda el filo */
+.hb-panel--marco .hb-panel__cara {
+  background: none;
+}
+
+/* ---- CUÁNTO SE MUEVE CADA PLANO ----
+   El paralaje lo aplica GlassPanel dentro de su `transform` en
+   línea; aquí solo se declara la cantidad, que es lo que cambia
+   de un plano a otro.
+
+   Aquí había una regla que aplicaba el paralaje desde la hoja de
+   estilos, y no funcionaba: el componente escribe `transform` en
+   línea, y eso gana a cualquier selector. Los paneles eran la
+   única capa de la escena que se quedaba clavada al mover el
+   ratón — comprobado en el navegador leyendo la matriz
+   computada. */
+.hb-panel--lejano {
+  --hb-par: var(--hb-par-fondo);
+}
+
+.hb-panel--fondo,
+.hb-panel--tenue {
+  --hb-par: var(--hb-par-fondo);
+}
+
+.hb-panel--medio {
+  --hb-par: var(--hb-par-medio);
+}
+
+.hb-panel--frente {
+  --hb-par: var(--hb-par-frente);
+}
+
+/* ---- CONTENIDO DE LOS PANELES ---- */
+
+.hb-panel__etiqueta {
+  position: absolute;
+  top: 8%;
+  left: 8%;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: #f0ebff;
+  text-shadow:
+    0 1px 3px rgba(8, 2, 20, 0.9),
+    0 0 12px rgba(150, 170, 255, 0.7);
+}
+
+.hb-panel__barras {
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+
+  height: 22%;
+}
+
+.hb-panel__barras i {
+  width: 4px;
+  height: calc(var(--b) * 100%);
+
+  border-radius: 1px;
+
+  background: linear-gradient(to top, var(--hb-core), var(--hb-edge-hot));
+
+  opacity: 0.65;
+}
+
+/* ============================================================
+   z4 · IMÁGENES
+   ============================================================ */
+
+.hb-imagenes {
+  z-index: 40;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-frente) * -1),
+    calc(var(--hb-py) * var(--hb-par-frente) * -1),
+    0
+  );
+}
+
+/* ---- QUIÉN SE DESVANECE ----
+   La escultura entra por su ENVOLTORIO, no por la imagen. Si la
+   imagen llevara `position: absolute`, dejaría de contar para el
+   ancho `fit-content` del envoltorio y este colapsaría a cero,
+   llevándose por delante el halo y el contraluz, que están
+   anclados a él. */
+.hb-logo,
+.hb-escultura {
+  position: absolute;
+
+  display: block;
+
+  opacity: 0;
+
+  /* entran cuando ya hay tres o cuatro paneles encendidos: si
+     llegan antes, la escena se completa de golpe y el encendido
+     posterior no se percibe como secuencia */
+  transition: opacity 1.3s ease-out calc(var(--hb-espera) + 3.2 * var(--hb-ritmo));
+}
+
+.hb--dentro .hb-logo,
+.hb--dentro .hb-escultura {
+  opacity: 1;
+}
+
+/* ---- EL LOGO NO PUEDE ENTRAR EN LA ZONA DEL TITULAR ----
+   Iba a left 2% / width 26%, o sea que su filo derecho llegaba
+   al 28%: seis puntos dentro de la franja reservada, que empieza
+   en el 22%.
+
+   Y no era un roce: el mapa de luminancia daba percentil 95 de
+   0.726 en esa celda —el logo es lo más brillante de toda la
+   escena— contra un techo de 0.183. Un titular blanco encima
+   sería ilegible justo ahí.
+
+   Al 21% de ancho el filo queda en el 21,5% y despeja. Es
+   además el tamaño que tiene en la referencia. */
+/* ---- LA PROPORCIÓN CAMBIÓ CON EL ARCHIVO ----
+   El render anterior era vertical (664x782, ratio 0.85). Este es
+   apaisado (760x525, ratio 1.45): con la misma anchura queda
+   casi la mitad de alto.
+
+   Está al 29%. La franja reservada al titular empieza en el
+   22%, así que el filo derecho se mete dentro — pero el logo es
+   apaisado y bajo, y a esta altura solo pisa la esquina
+   superior izquierda de esa franja. Medido después: el texto
+   blanco sigue por encima del AA con mucho margen, así que el
+   tamaño gana.
+
+   Si algún día el titular crece hacia la izquierda, esto es lo
+   primero que hay que volver a medir. */
+.hb-logo {
+  /* ---- 50px A LA DERECHA, EN PÍXELES Y NO EN PORCENTAJE ----
+     El encargo pide un desplazamiento concreto (40-60px). En
+     porcentaje ese desplazamiento crecería con la ventana: 3,5%
+     son 50px a 1440 pero 134px en un monitor de 3840, y la
+     composición dejaría de ser la misma. */
+  left: calc(0.5% + 50px);
+  top: 12%;
+
+  /* ---- 10% MÁS ANCHO DE LO QUE MIDE EL LOGO ----
+     El shader reserva un 6% de margen transparente por cada lado
+     para que el resplandor tenga dónde derramarse. Si el lienzo
+     midiera justo el logo, el glow se cortaría contra su borde.
+     Este ensanchado compensa ese margen: el logo se ve del mismo
+     tamaño que antes. */
+  /* Del 32% original bajó al 28% (el -12,5% que pedía el
+     encargo) y de ahí al 24%. Con el giro en Y la pieza ya no se
+     ve de frente, así que su presencia en pantalla es menor que
+     su anchura declarada: al 24% ocupa lo que ocupaba al 28% de
+     frente. */
+  width: 24%;
+
+  /* la proporción la marca el archivo (900x756). Un canvas sin
+     altura declarada colapsa a cero. */
+  aspect-ratio: 900 / 756;
+
+  /* ---- FLOTACIÓN Y RESPIRACIÓN ----
+     La rotación en Y vive DENTRO de la animación y no aparte:
+     una segunda declaración de `transform` sustituiría a la
+     primera en vez de sumarse, y el logo se pondría de frente en
+     cuanto arrancara el bucle.
+
+     5px de recorrido —el encargo pide 4-6— y 14s de ciclo, que
+     es lento de sobra para leerse como flotar y no como rebotar.
+     La escala va desacompasada a propósito (19s): con el mismo
+     periodo los dos efectos suben y bajan juntos y se percibe un
+     único movimiento, no una pieza que respira mientras flota. */
+  /* ---- INCLINACIÓN ----
+     El giro en Z va en una variable porque aparece en tres
+     sitios —aquí, en los fotogramas de la flotación y, con el
+     signo cambiado, en la sombra— y tenerlo escrito tres veces
+     garantiza que tarde o temprano se ajuste uno y se olviden los
+     otros dos.
+
+     Negativo levanta el lado derecho, que es la misma dirección
+     en la que ya sube el texto dentro de la propia imagen: seguir
+     su inclinación se lee como intención, y contrariarla habría
+     aplanado el logo. */
+  --giro: -8deg;
+
+  /* ---- Y CUÁNTO SE VA DE FRENTE ----
+     Estaba en -6deg, que en CSS empuja el lado derecho HACIA
+     DELANTE: el signo positivo de rotateY lleva el borde derecho
+     hacia -Z, o sea al fondo. Ahora va a +26 para que ese lado se
+     hunda en la escena en vez de asomarse.
+
+     Con la perspectiva de la sala (1400px, origen al 50%/42%) y
+     el logo a la izquierda del encuadre, el giro se lee de
+     verdad: es la misma orientación que tienen los paneles de esa
+     torre, así que el logo deja de ser la única pieza plana de su
+     lado. */
+  --alejar: 26deg;
+
+  transform: rotateY(var(--alejar)) rotateZ(var(--giro));
+  animation:
+    hbFlota 14s ease-in-out infinite,
+    hbRespira 19s ease-in-out infinite;
+
+  /* SIN drop-shadow sobre el canvas: es un filtro encima de una
+     superficie que se repinta a 60fps, y obligaría a rasterizarla
+     y desenfocarla en cada fotograma. La sombra de contacto y el
+     resplandor van en pseudoelementos, que son estáticos. */
+}
+
+@keyframes hbFlota {
+  0%,
+  100% {
+    transform: rotateY(var(--alejar)) rotateZ(var(--giro)) translateY(0);
+  }
+  50% {
+    transform: rotateY(var(--alejar)) rotateZ(var(--giro)) translateY(-5px);
+  }
+}
+
+/* la respiración es de ESCALA, y mínima: medio punto porcentual.
+   Más que eso deja de leerse como que el objeto respira y empieza
+   a leerse como que la página hace zoom. */
+@keyframes hbRespira {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.005;
+  }
+}
+
+/* ---- EL LOGO SE APOYA EN ALGO ----
+   Sin sombra de contacto, un objeto recortado flota en el vacío y
+   el ojo lo lee como una calcomanía pegada encima. Basta una
+   elipse muy difusa por debajo: no se percibe como sombra, se
+   percibe como que el logo ocupa un sitio.
+
+   Va muy achatada y desplazada hacia abajo porque la luz de esta
+   sala viene del techo. */
+.hb-logo::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  bottom: -4%;
+
+  width: 76%;
+  height: 22%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    rgba(8, 2, 20, 0.5) 0%,
+    rgba(8, 2, 20, 0.22) 55%,
+    transparent 100%
+  );
+
+  filter: blur(18px);
+
+  /* ---- LA SOMBRA NO SE INCLINA ----
+     Es un pseudoelemento del logo, así que hereda su giro. Pero
+     esta sombra está tumbada en el suelo, y el suelo no se
+     inclina porque el objeto lo haga: se contrarresta el giro
+     para que siga horizontal. Sin esto, inclinar el logo delata
+     que la sombra es parte del mismo recorte. */
+  transform: rotateZ(calc(var(--giro) * -1));
+
+  /* detrás del canvas */
+  z-index: 0;
+}
+
+/* ---- RESPLANDOR VIOLETA DEL ENTORNO ----
+   La sala es violeta y el logo tiene que recibir ese ambiente por
+   fuera, no solo por dentro. El shader ya lo baña internamente;
+   esto es el halo que derrama sobre el aire de alrededor, que es
+   lo que lo cose a la escena.
+
+   Se apaga con --hb-glow, igual que el resto de la iluminación:
+   si el resplandor del logo no obedeciera al mismo mando, sería
+   la pieza que delata que está pegada. */
+.hb-logo::after {
+  content: "";
+  position: absolute;
+  inset: -14%;
+
+  background:
+    radial-gradient(
+      ellipse 46% 40% at 50% 46%,
+      rgba(168, 85, 247, calc(0.34 * var(--hb-glow))) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 34% 30% at 46% 38%,
+      rgb(var(--rgb-magenta) / calc(0.2 * var(--hb-glow))) 0%,
+      transparent 100%
+    );
+
+  filter: blur(22px);
+
+  z-index: 0;
+}
+
+/* el canvas por encima de sus dos pseudoelementos */
+.hb-logo .logo-shader__lienzo {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-logo {
+    animation: none;
+  }
+}
+
+/* ---- EL RETRATO SE MIDE POR ALTURA ----
+   Es una figura vertical (662x1305, casi 1:2) y lo que tiene
+   que cuadrar es que su base llegue al suelo, que empieza al
+   78%. Fijando la anchura, en una ventana apaisada la figura se
+   salía por abajo; fijando la altura cuadra en cualquier
+   proporción y la anchura sale sola. */
+.hb-escultura {
+  /* ---- TODO SOBRE UN MISMO EJE ----
+     El encargo manda una sola cosa por encima de las demás:
+     cabeza, cristal y peana comparten la vertical del 82%. Medido
+     sobre la imagen, el centroide de su cabeza cae en el 50,7% del
+     ancho del archivo, o sea que centrar la caja centra la cabeza
+     — no hace falta corregir el desfase.
+
+     Con alto 54% y arranque en el 8%, ocupa de 8% a 62%, que es la
+     franja que le asigna el encargo. Su anchura sale de ahí:
+     486px de alto sobre la proporción 662/1305 dan 247, y
+     centrados en el 82% de 1440 el margen derecho queda en 9,4%.
+     Ese margen es lo que le da aire respecto al borde, que antes
+     no tenía. */
+  /* ---- PROPORCIONES TOMADAS DE LA REFERENCIA ----
+     Todo lo de esta esquina está medido CONTRA LA FIGURA, no
+     contra el encuadre, porque el encuadre de la referencia es
+     casi cuadrado y este es 16:9: escalar contra el marco daba
+     piezas del tamaño equivocado.
+
+     Ella baja hasta el 76% para que su cuerpo llegue a la altura
+     del cristal. Sin eso no hay solape posible, y el solape es lo
+     que hace que las dos piezas se lean como un grupo y no como
+     dos objetos apilados. */
+  right: 7.2%;
+  top: 13%;
+  height: 68%;
+
+  /* La anchura la pone la figura. `fit-content` hace que la caja
+     se encoja hasta la imagen, que es lo que permite que el halo
+     y el contraluz —anclados a esta caja— caigan sobre la figura
+     y no sobre media pantalla. */
+  width: fit-content;
+}
+
+.hb-chica {
+  position: relative;
+
+  display: block;
+
+  height: 100%;
+
+  /* por encima del halo (0) y por debajo de los reflejos (2) */
+  z-index: 1;
+
+  /* ---- LA PROPORCIÓN, DECLARADA ----
+     Esto era un <img> y ahora es un <span> que lo envuelve. Al
+     cambiar, la caja perdió la proporción intrínseca del archivo y
+     se fue a su ancho natural: 662px en vez de 324. No lo arregla
+     ni `auto` ni `fit-content`, porque el cálculo del ancho
+     intrínseco no sabe resolver una altura en porcentaje y cae al
+     tamaño natural de la imagen.
+
+     Escrita la proporción del retrato, el ancho sale de la altura,
+     que es lo que aquí manda. */
+  width: auto;
+  aspect-ratio: 662 / 1305;
+
+  /* ---- LUZ DE HOLOGRAMA, NO CONTORNO ----
+     Aquí había un contraluz hecho con una sombra clara desplazada
+     2px y con 1px de desenfoque. Eso no es luz: es un filo duro
+     pegado a la silueta, y se leía exactamente como lo que era,
+     el borde de un recorte.
+
+     La diferencia entre un contorno y una emisión está en el
+     desplazamiento. Una luz que sale de un objeto no está
+     desplazada hacia ningún lado: sale en todas las direcciones a
+     la vez y cae con la distancia. Por eso estos tres resplandores
+     van con desplazamiento CERO y radios crecientes (5, 18 y 46):
+     el ojo suma los tres y lee una figura que emite, no una
+     recortada.
+
+     El primer par sí lleva desplazamiento, pero de un píxel y en
+     sentidos opuestos, uno cian y otro magenta: es el
+     desdoblamiento cromático que tiene cualquier proyección
+     holográfica, y es lo que dice "esto es luz proyectada" en vez
+     de "esto es una figura iluminada". Con más de un píxel deja
+     de leerse como aberración y empieza a leerse como una imagen
+     mal registrada.
+
+     ---- Y NO PUEDEN SER MUCHAS ----
+     Las sombras se ENCADENAN: cada una no se aplica sobre la
+     imagen sino sobre el resultado de la anterior. Así que la
+     quinta estaba proyectando la sombra de un borrón enorme, y
+     ese borrón sí se recorta contra la región del filtro. El
+     resultado era un rectángulo claro alrededor de la figura —el
+     "cuadrado" que se le veía.
+
+     Medido, el salto de luminancia al cruzar ese borde:
+
+       3 sombras   +0.2   invisible
+       4 sombras   +3.4
+       5 sombras  +16.6   el cuadrado
+
+     Así que aquí se quedan tres: el desdoblamiento cromático y un
+     resplandor ceñido. El halo ancho lo pone ::before, que es un
+     degradado radial y no encadena nada. */
+  filter:
+    drop-shadow(-1px 0 2px rgba(120, 232, 255, calc(0.4 * var(--hb-glow))))
+    drop-shadow(1px 0 2px rgba(255, 122, 232, calc(0.34 * var(--hb-glow))))
+    drop-shadow(0 0 12px rgba(178, 214, 255, calc(0.5 * var(--hb-glow))));
+
+}
+
+/* ---- LA MÁSCARA VA EN LA IMAGEN, EL RESPLANDOR EN SU CAJA ----
+   Los dos en el mismo elemento se recortan el uno al otro: la
+   máscara es un degradado que mide la caja y por defecto SE REPITE
+   fuera de ella, así que el halo que se derrama por los lados
+   quedaba cortado contra esas repeticiones. Ése era el rectángulo
+   claro alrededor de la figura, y no el número de sombras — que
+   ya se había bajado dos veces sin que desapareciera.
+
+   Comprobado aislando la figura sobre negro: con filtro salía el
+   cuadro, sin filtro no. Separados, el filtro trabaja sobre una
+   imagen ya enmascarada y su halo no vuelve a pasar por la
+   máscara. */
+.hb-chica img {
+  display: block;
+
+  height: 100%;
+  width: auto;
+
+  /* el desvanecido del borde inferior: 34% para que la transición
+     al suelo sea gradual y no un corte */
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 34%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 34%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* ---- HALO DE DETRÁS ----
+   Separa la figura del fondo sin recurrir a un contorno. Va
+   detrás y muy difuso: lo que se percibe no es el halo sino que
+   la escultura tiene aire alrededor.
+
+   Es más alto que ancho y está centrado en el torso, no en la
+   caja: un halo centrado geométricamente ilumina tanto los pies
+   como la cabeza y se lee como un óvalo pintado. */
+.hb-escultura::before {
+  content: "";
+  position: absolute;
+  /* ---- CEÑIDO, Y CORRIDO AL LADO CONTRARIO DEL CRISTAL ----
+     Con -30% a los lados el halo medía 380px de ancho contra los
+     308 de la figura, y ese exceso caía sobre el cristal, que
+     ahora está delante y a su izquierda: lo lavaba por detrás y le
+     quitaba el contraste que necesita para leerse como vidrio.
+
+     A -16% envuelve a la figura con margen suficiente y deja
+     limpio el hueco del cristal. */
+  inset: -14% -16%;
+
+  /* ---- LA ELIPSE TIENE QUE CABER EN SU CAJA ----
+     Iba centrada al 36% con radio vertical del 46%, o sea que se
+     extendía hasta el -10%: por encima del borde de la caja. Un
+     degradado se recorta contra su elemento, así que ahí quedaba
+     un corte recto que el desenfoque solo suavizaba. Centrada al
+     44% con radio 40% va de 4% a 84% y muere dentro.
+
+     Ahora carga además con el resplandor ancho de la figura, que
+     antes ponía la quinta sombra encadenada: por eso sube de 0.32
+     a 0.44 y crece. */
+  /* El foco va al 58% horizontal y al 38% vertical: detrás de la
+     cabeza y los hombros, que es donde está su masa visible —su
+     centro de gravedad medido cae en el tercio superior, porque el
+     cuerpo se disuelve en la niebla— y desplazado a la derecha,
+     lejos del cristal. */
+  background: radial-gradient(
+    ellipse 44% 42% at 58% 38%,
+    rgba(178, 110, 250, calc(0.5 * var(--hb-glow))) 0%,
+    rgba(120, 52, 224, calc(0.22 * var(--hb-glow))) 44%,
+    transparent 100%
+  );
+
+  filter: blur(30px);
+
+  z-index: 0;
+}
+
+/* ---- REFLEJOS DEL ENTORNO SOBRE LA FIGURA ----
+   La sala tiene que verse EN la escultura, no solo alrededor. Un
+   degradado frío bajando desde arriba a la derecha, en `screen`
+   para que sume luz, y recortado contra la silueta con la propia
+   imagen como máscara: sin ese recorte sería un rectángulo
+   luminoso flotando sobre el hombro.
+
+   Se detiene al 62% porque un reflejo de fuente alta no llega a
+   los pies; que muriera abajo por igual delataría el degradado. */
+.hb-escultura::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  /* Dos fuentes, no una: la torre de paneles desde arriba a la
+     derecha, y el rebote del suelo desde abajo.
+
+     La segunda estaba puesta para la GEMA, que iba delante de
+     ella y era lo más luminoso de ese lado. Al quitarla se queda
+     igual pero mucho más floja y desplazada al centro: ya no es
+     el reflejo de un objeto concreto sino la luz que sube del
+     suelo pulido, que es lo único que hay ahí abajo. Dejarla como
+     estaba habría sido iluminarla con una fuente que ya no
+     existe. */
+  background:
+    linear-gradient(
+      198deg,
+      rgba(226, 214, 255, calc(0.3 * var(--hb-glow))) 0%,
+      rgb(var(--rgb-primary-light) / calc(0.12 * var(--hb-glow))) 34%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 70% 30% at 46% 100%,
+      rgba(178, 128, 246, calc(0.2 * var(--hb-glow))) 0%,
+      transparent 100%
+    ),
+    /* ---- LÍNEAS DE BARRIDO ----
+       La firma de un holograma proyectado. Van muy flojas (4%) y
+       cada 3px: lo justo para que se intuyan al mirar de cerca sin
+       convertir una escultura fotorrealista en un efecto de
+       ciencia ficción de los ochenta. Como toda esta capa va en
+       `screen`, solo SUMAN luz: son líneas de brillo, no rayas
+       oscuras pintadas encima. */
+    repeating-linear-gradient(
+      to bottom,
+      rgba(200, 230, 255, 0.04) 0 1px,
+      transparent 1px 3px
+    );
+
+  mix-blend-mode: screen;
+
+  -webkit-mask-image: var(--retrato);
+  mask-image: var(--retrato);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  z-index: 2;
+
+  pointer-events: none;
+}
+
+/* ============================================================
+   z5 · DIAMANTE Y PEDESTAL
+   ============================================================ */
+
+.hb-cristal {
+  z-index: 50;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-frente) * -1),
+    calc(var(--hb-py) * var(--hb-par-frente) * -1),
+    0
+  );
+}
+
+/* Los estilos base de las piezas de cristal se han ido a
+   Crystal.css, junto al componente: los usa también el fondo de
+   casos de uso, y tenerlos aquí obligaba a importar toda esta
+   escena para poder dibujar una piedra. Aquí se quedan solo las
+   colocaciones propias de este fondo.
+
+   ---- Y LA ENTRADA TAMBIÉN SE QUEDA AQUÍ ----
+   La pieza arrancaba en opacidad cero esperando a que la escena se
+   marcara como entrada. Eso vale dentro del hero, donde todo se va
+   encendiendo por turnos, y fuera deja la piedra invisible para
+   siempre: fue exactamente lo que pasó al usarla en casos de uso.
+
+   El componente sale visible; es esta escena la que lo apaga
+   mientras dura su coreografía. */
+.hb .hb-cristal-pieza {
+  opacity: 0;
+
+  transition: opacity 1.4s ease-out calc(var(--hb-espera) + 9 * var(--hb-ritmo));
+}
+
+.hb--dentro .hb-cristal-pieza {
+  opacity: 1;
+}
+
+/* ---- EL CRISTAL, A PLOMO ----
+   Sobre el mismo eje del 82%, de y 64% a 86%, y SIN rotación: el
+   encargo pide que su diagonal vertical esté aplomada y apoyada
+   en el vértice inferior. Por eso pierde la animación de giro que
+   tenía —cualquier grado lo saca de plomo— y conserva solo la
+   flotación, que es vertical y no lo inclina.
+
+   Flota con holgura sobre la cara de la peana en vez de tocarla:
+   es la columna de luz la que salva ese hueco. */
+.hb-cristal-pieza--principal {
+  /* `left/right: 0` con `margin-inline: auto` centra sin usar
+     `transform` — importante, porque el transform de esta pieza
+     está ocupado por el giro y una traslación lo pisaría. */
+  left: 0;
+  right: 0;
+  bottom: 21%;
+  margin-inline: auto;
+
+  /* 61% del grupo. La proporción con la peana —que va al 89%—
+     es la 1,46 medida en la referencia. */
+  width: 61%;
+
+  /* ---- GIRA DE VERDAD, PERO POCO ----
+     Es una imagen, o sea una lámina plana: girarla en Y la
+     escorza. Barridos cuatro ángulos y mirados: a 14° el escorzo
+     es del 3% y no se percibe NADA —medido, 0.9 de diferencia
+     sobre 255 entre fotogramas—; a 20° se lee como un octaedro
+     sólido algo más estrecho; a 35° aguanta; a 50° ya delata que
+     es una lámina.
+
+     22° es el techo útil: el máximo que se nota sin que se note
+     que es plana. Y ése es el límite del método — no puede
+     parecerse a un giro de vídeo, porque para eso harían falta
+     24-36 renders del octaedro y hay 4.
+
+     18s el giro y 17s la flotación: periodos casi iguales pero no
+     idénticos, así que nunca coinciden en el extremo y el
+     movimiento no se vuelve previsible. */
+  animation:
+    hbCristalGira 18s ease-in-out infinite,
+    hbGemaFlota 17s ease-in-out infinite;
+
+  filter: drop-shadow(0 0 26px rgba(192, 132, 252, calc(0.55 * var(--hb-glow))))
+    drop-shadow(0 0 70px rgb(var(--rgb-magenta) / calc(0.25 * var(--hb-glow))));
+}
+
+/* ============================================================
+   LOS MOVIMIENTOS DE LAS PIEZAS DE CRISTAL
+
+   Estos tres bloques estuvieron ausentes un tiempo: se fueron por
+   delante al retirar el CSS del octaedro SVG, y como una animación
+   que apunta a un nombre inexistente el navegador la ignora EN
+   SILENCIO, las tres piezas se quedaron quietas sin que nada
+   fallara. Solo salió midiendo: el cristal daba 0.9 de diferencia
+   sobre 255 entre fotogramas separados cinco segundos.
+   ============================================================ */
+
+/* ---- EL GIRO DE LA PIEZA PRINCIPAL ----
+   Es una imagen, o sea una lámina plana: girarla en Y la escorza.
+   Barridos cuatro ángulos y mirados: a 14° el escorzo es del 3% y
+   no se percibe nada; a 20° se lee como un octaedro sólido algo
+   más estrecho; a 35° aguanta; a 50° ya delata que es una lámina.
+
+   22° es el techo útil — el máximo que se nota sin que se note que
+   es plana. Y ése es el límite del método: no puede parecerse a un
+   giro de vídeo, porque para eso harían falta 24 o 36 renders del
+   octaedro y hay cuatro. Encadenar esos cuatro con fundido se
+   probó y tampoco vale: entre ángulos separados 90° no se ve una
+   piedra girando, se ven dos piedras superpuestas. */
+@keyframes hbCristalGira {
+  0%,
+  100% {
+    transform: perspective(900px) rotateY(-22deg);
+  }
+  50% {
+    transform: perspective(900px) rotateY(22deg);
+  }
+}
+
+/* La flotación va en `translate`, propiedad aparte, para que no
+   pise al `transform` del giro: dos animaciones sobre la misma
+   propiedad no se suman, gana la última declarada. */
+@keyframes hbGemaFlota {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
+
+/* el vaivén de los dos acentos del fondo, que sí pueden bascular
+   en el plano porque están lejos y no tienen peana que respetar */
+@keyframes hbGemaGira {
+  0%,
+  100% {
+    transform: rotateZ(-3deg);
+  }
+  50% {
+    transform: rotateZ(3deg);
+  }
+}
+
+/* ---- LOS DOS ACENTOS ----
+   En las dos bandas que la franja del titular deja libres: por
+   encima del 18% y por debajo del 68%. Van desenfocados y con más
+   niebla, y sus ciclos son más lentos y desfasados: tres piezas
+   girando al mismo compás se leerían como una animación repetida
+   en vez de como tres objetos sueltos en el aire. */
+.hb-cristal-pieza--alto {
+  left: 40%;
+  top: 1%;
+
+  width: 6.5%;
+  max-width: 92px;
+
+  filter: blur(1.6px) saturate(0.8);
+
+  animation:
+    hbGemaGira 41s ease-in-out infinite -12s,
+    hbGemaFlota 29s ease-in-out infinite -7s;
+}
+
+.hb-cristal-pieza--bajo {
+  left: 30%;
+  bottom: 12%;
+
+  width: 8%;
+  max-width: 112px;
+
+  filter: blur(0.9px) saturate(0.9);
+
+  animation:
+    hbGemaGira 34s ease-in-out infinite -20s,
+    hbGemaFlota 23s ease-in-out infinite -14s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-cristal-pieza {
+    animation: none;
+  }
+}
+
+/* ---- EL PUNTO DE CONTACTO ----
+   El vértice inferior de la gema se apoya en el escalón de
+   arriba, y es el único apoyo real que hay en toda la escena: la
+   escultura se disuelve en niebla y el logo flota. Si ese punto no
+   se resuelve, la gema queda posada como una calcomanía.
+
+   Lo que hace un cristal iluminado tocando una superficie es
+   DERRAMAR luz en el contacto: la que le atraviesa sale por el
+   vértice y se dispersa contra la piedra. De ahí el resplandor
+   apretado y muy brillante, y la sombra corta y dura que lo
+   rodea. Es la combinación de los dos —luz que se derrama y
+   sombra que la ciñe— lo que se lee como contacto; cualquiera de
+   los dos por separado se lee como un adorno pegado. */
+/* el derrame de luz donde el vértice toca la cara de la peana */
+.hb-cristal__contacto {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 17%;
+  margin-inline: auto;
+
+  width: 50%;
+  height: 6%;
+
+  /* ---- LA POSICIÓN SALE DE LA GEOMETRÍA, NO DEL OJO ----
+     El vértice inferior de la gema es el punto (110,240) del
+     viewBox de 220x250. Con la gema en right 3% / bottom 3% y
+     ancho 390px sobre 1440, eso cae en el 83,5% horizontal y el
+     95% vertical del encuadre. La primera versión la puse a ojo y
+     quedó arriba y a la izquierda del vértice, iluminando aire.
+
+     Si se mueve la gema, esto se recalcula: no es un adorno
+     colocado donde quedaba bien, es dónde se tocan dos cosas. */
+  /* centrado en el eje real del podio (x1114 medido en pantalla)
+     y a la altura de su cara superior: había quedado 90px a la
+     derecha y por debajo del disco cuando el podio se movió */
+  right: 15.5%;
+  bottom: 18.5%;
+
+  width: 14%;
+  height: 7%;
+
+  background:
+    radial-gradient(
+      ellipse closest-side at 50% 50%,
+      rgba(255, 250, 255, calc(0.85 * var(--hb-glow))) 0%,
+      rgba(226, 168, 255, calc(0.45 * var(--hb-glow))) 34%,
+      transparent 100%
+    );
+
+  filter: blur(9px);
+
+  mix-blend-mode: screen;
+
+  opacity: 0;
+
+  transition: opacity 1.4s ease-out calc(var(--hb-espera) + 9 * var(--hb-ritmo));
+}
+
+.hb--dentro .hb-cristal__contacto {
+  opacity: 1;
+}
+
+/* la sombra corta va DEBAJO del resplandor y sin `screen`: si
+   sumara luz como él, no habría sombra que ceñir nada */
+.hb-cristal__sombra {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1%;
+  margin-inline: auto;
+
+  width: 80%;
+  height: 5%;
+
+  width: 18%;
+  height: 6%;
+
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    rgba(10, 2, 24, 0.55) 0%,
+    rgba(10, 2, 24, 0.2) 52%,
+    transparent 100%
+  );
+
+  filter: blur(11px);
+}
+
+/* ============================================================
+   LA PEANA
+
+   De y 85% a 97% y centrada en el eje del 82%. Escalones
+   cilíndricos en escorzo: la cara superior se ve como elipse
+   porque el suelo de la escena está rotado 72°, y su aplastamiento
+   tiene que coincidir con el de ese suelo o la peana flotaría en
+   otra perspectiva distinta a la de la sala.
+
+   No es un adorno: es lo que convierte el cristal en una pieza
+   EXPUESTA. Sin ella, un octaedro suspendido en el aire no tiene
+   por qué estar ahí.
+   ============================================================ */
+.hb-podio {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-inline: auto;
+
+  /* 89% del grupo: 1,46 veces el cristal, la proporción medida en
+     la referencia. La 2,8 entre ancho y alto se mantiene — por
+     debajo de ahí la cara superior se aplasta tanto que vuelve a
+     leerse como un aro pintado en el suelo. */
+  width: 89%;
+  aspect-ratio: 346 / 124;
+
+  /* ---- CONTEXTO DE APILAMIENTO PROPIO ----
+     Sus piezas llevan z-index para ordenarse entre ellas (la cara
+     sobre el canto). Sin `isolation`, `.hb-podio` no crea contexto
+     propio y esos z-index se escapan al de `.hb-cristal`, donde
+     compiten con el cristal —que no lleva ninguno— y le ganan: el
+     cristal quedaba DETRÁS de la peana.
+
+     Con esto, los z-index de dentro se quedan dentro y la peana
+     entera se ordena en su capa como un solo objeto, que es lo que
+     debe ser. */
+  isolation: isolate;
+}
+
+/* ---- DOS DISCOS SÓLIDOS CON EL CANTO DE NEÓN ----
+   Dos intentos fallidos antes de dar con esto, y los dos por
+   quedarse en un extremo:
+
+     · un cilindro opaco de cristal ahumado — cuerpo, sí, pero sin
+       luz: se leía como un mueble, no como parte de la escena;
+     · anillos de luz sueltos sobre el suelo — luz, sí, pero sin
+       cuerpo: se leía como ondas en el agua.
+
+   La referencia hace LAS DOS COSAS a la vez: cuerpo oscuro que
+   tapa el suelo y aros encendidos en cada canto. El contraste
+   entre esas dos cosas es lo que lo hace leer como objeto y como
+   proyección al mismo tiempo.
+
+   Cada disco es un cuerpo y una cara. El cuerpo lleva
+   `border-radius: 50% / 38%`, que le da arco elíptico ARRIBA Y
+   ABAJO: eso es la silueta de un cilindro en perspectiva de una
+   sola pieza, y evita el fallo de las tres elipses sueltas que no
+   compartían contorno. */
+
+/* ---- DISCO SUPERIOR ---- */
+.hb-podio__canto {
+  position: absolute;
+  inset: 6% 13% 42% 13%;
+
+  border-radius: 50% / 38%;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(52, 22, 104, 0.95) 0%,
+    rgba(28, 9, 62, 0.96) 60%,
+    rgba(14, 3, 34, 0.97) 100%
+  );
+
+  box-shadow:
+    inset 0 -2px 0 rgba(236, 212, 255, calc(0.55 * var(--hb-glow))),
+    0 5px 24px rgba(150, 92, 238, calc(0.5 * var(--hb-glow)));
+}
+
+/* su cara, con el aro de neón */
+.hb-podio__tapa {
+  position: absolute;
+  inset: 0 13% 72% 13%;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(244, 228, 255, calc(0.95 * var(--hb-glow)));
+
+  background: radial-gradient(
+    ellipse 68% 76% at 50% 46%,
+    rgba(44, 16, 90, 0.92) 0%,
+    rgba(24, 7, 56, 0.95) 70%,
+    rgba(70, 32, 130, 0.9) 100%
+  );
+
+  /* el aro de neón del canto superior: es el filo más brillante
+     de toda la peana, y el que la referencia usa para decir que
+     esto está encendido */
+  box-shadow:
+    0 0 6px rgba(255, 250, 255, calc(0.9 * var(--hb-glow))),
+    0 0 22px rgb(var(--rgb-secondary) / calc(0.8 * var(--hb-glow))),
+    0 0 48px rgba(168, 100, 250, calc(0.4 * var(--hb-glow))),
+    inset 0 0 14px rgba(196, 138, 252, calc(0.5 * var(--hb-glow)));
+}
+
+/* ---- LOS ANILLOS DE LA CARA ----
+   Se encienden HACIA DENTRO: el foco está en el centro, justo bajo
+   el cristal, que es de donde sale el haz. Con el brillo cayendo
+   hacia fuera el disco se leía como un plato con borde. */
+.hb-podio__tapa i {
+  position: absolute;
+  inset: calc(10% + var(--r) * 8%) calc(10% + var(--r) * 8%);
+
+  border-radius: 50%;
+
+  border: 1px solid
+    rgba(240, 224, 255, calc((0.14 + var(--r) * 0.17) * var(--hb-glow)));
+
+  box-shadow: 0 0 6px rgb(var(--rgb-secondary) / calc((0.1 + var(--r) * 0.14) * var(--hb-glow)));
+}
+
+/* ---- DISCO INFERIOR ----
+   Más ancho y más apagado: da la segunda altura y asienta el
+   conjunto en el suelo. */
+.hb-podio__base {
+  position: absolute;
+  /* Sube al 34% para meterse DEBAJO del disco de arriba. A 44%
+     los arcos de los dos se curvaban en el mismo sentido y dejaban
+     una media luna oscura entre ellos: parecían dos piezas
+     separadas en vez de dos escalones. */
+  inset: 34% 0 4% 0;
+
+  border-radius: 50% / 34%;
+
+  border-top: 1px solid rgba(236, 212, 255, calc(0.85 * var(--hb-glow)));
+
+  background: linear-gradient(
+    to bottom,
+    rgba(40, 15, 84, 0.9) 0%,
+    rgba(20, 5, 46, 0.93) 55%,
+    rgba(10, 2, 26, 0.95) 100%
+  );
+
+  box-shadow:
+    0 0 20px rgba(186, 132, 255, calc(0.5 * var(--hb-glow))),
+    0 6px 26px rgba(140, 86, 226, calc(0.4 * var(--hb-glow)));
+}
+
+/* lo que la peana derrama en el suelo */
+.hb-podio__brillo {
+  position: absolute;
+  inset: 36% -16% -70% -16%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    rgba(186, 132, 255, calc(0.42 * var(--hb-glow))) 0%,
+    transparent 100%
+  );
+
+  filter: blur(24px);
+}
+
+/* ---- LA NOCHE ALREDEDOR DEL GRUPO ----
+   En la referencia el grupo está en un foco: todo lo que lo rodea
+   —el aire, el suelo lejano, los bordes de los paneles— cae a casi
+   negro. Esta capa lo hace SIN tocar al grupo: va en z32, por
+   debajo de la escultura (40), el cristal (50) y las órbitas, así
+   que solo oscurece lo que está detrás — paneles, suelo y niebla.
+
+   El centro transparente de la elipse cubre a la figura y al
+   cristal; la máscara lateral la apaga hacia la izquierda para que
+   no haya costura con el resto de la escena. De propina oscurece
+   la franja derecha de la zona del titular, que es donde el
+   contraste andaba justo. */
+.hb-noche {
+  z-index: 32;
+
+  background: radial-gradient(
+    ellipse 48% 56% at 80% 42%,
+    transparent 44%,
+    rgba(10, 3, 24, 0.26) 64%,
+    rgba(7, 2, 18, 0.5) 82%,
+    rgba(5, 1, 14, 0.68) 100%
+  );
+
+  -webkit-mask-image: linear-gradient(to right, transparent 40%, #000 62%);
+  mask-image: linear-gradient(to right, transparent 40%, #000 62%);
+}
+
+/* ---- ANILLOS ORBITALES ----
+   Las dos mitades comparten posición y tamaño: lo único que las
+   distingue es a qué altura del apilamiento se pintan. Cualquier
+   diferencia aquí partiría el aro por el punto de corte. */
+.hb-orbitas {
+  position: absolute;
+
+  /* ---- HAY QUE ANULAR `top` Y `left` A MANO ----
+     La regla base de las capas (.hb > *) pone `inset: 0`. Con
+     left, right y width declarados a la vez, el navegador ignora
+     `right`: el elemento se quedaba anclado arriba a la izquierda
+     y los aros aparecían en la esquina contraria de la escena.
+     Poniendo `auto` en los dos lados que no se usan, manda el
+     par que sí. */
+  /* Centrado en el TORSO de la figura, no en el podio: es lo que
+     hace que el arco de arriba cruce por detrás de su cabeza. Con
+     el centro abajo, los aros rodeaban únicamente al cristal. */
+  /* ---- ENCUADRA AL GRUPO ENTERO, DE LA CABEZA A LA PEANA ----
+     Centrada en el eje del 82% y en el centro vertical del grupo
+     (y≈472 de 900). Con la caja a 50% del ancho, el aro más ancho
+     llega a x965 por la izquierda: se queda dentro de la región
+     editable y no cruza la línea del 62% que hay que respetar. */
+  /* acompaña al grupo cuando este se desplaza: si se quedara
+     donde estaba, envolvería aire a la derecha del cristal */
+  inset: auto 3% 10% auto;
+
+  width: 54%;
+  max-width: 780px;
+  aspect-ratio: 1;
+
+  overflow: visible;
+
+  opacity: 0;
+
+  transition: opacity 1.6s ease-out calc(var(--hb-espera) + 8 * var(--hb-ritmo));
+
+  /* giran muy despacio y en sentidos opuestos según la mitad, que
+     es lo que impide que se lean como un dibujo quieto */
+  animation: hbOrbitaGira 64s linear infinite;
+}
+
+.hb-orbitas--atras {
+  z-index: 35;
+}
+
+.hb-orbitas--delante {
+  z-index: 55;
+
+  /* SIN animation-direction: reverse. Con las mitades en
+     direcciones opuestas, en mitad del ciclo llegaban a estar 6°
+     separadas y la cinta aparecía partida justo donde una mitad
+     releva a la otra. Tienen que girar en fase exacta: son el
+     mismo objeto. */
+}
+
+.hb--dentro .hb-orbitas {
+  opacity: 1;
+}
+
+/* ---- INCLINADO, Y RESPIRANDO ALREDEDOR DE ESA INCLINACIÓN ----
+   El vaivén ya no oscila alrededor de cero sino de -10°: en la
+   referencia el remolino entero está echado en diagonal —sube
+   hacia la derecha— y con las elipses horizontales se leía como
+   aros de juguete apilados. Es un giro de pantalla, así que las
+   dos mitades lo comparten y la oclusión no se descuadra. */
+@keyframes hbOrbitaGira {
+  0%,
+  100% {
+    transform: rotate(-13deg);
+  }
+  50% {
+    transform: rotate(-7deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-orbitas {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   z6 · HUD
+   ============================================================ */
+
+.hb-hud {
+  z-index: 60;
+
+  transform: translate3d(
+    calc(var(--hb-px) * var(--hb-par-frente) * -1),
+    calc(var(--hb-py) * var(--hb-par-frente) * -1),
+    0
+  );
+}
+
+/* ---- EL TOPE VA EN PÍXELES, NO EN PORCENTAJE ----
+   Iban al 24% y al 20% del ancho. En una ventana de 1920 eso
+   son 460px de caja para tres líneas de texto de 11px: el panel
+   sale ancho y achatado, nada que ver con las cajas compactas
+   de la referencia.
+
+   Una etiqueta de interfaz tiene un tamaño natural que no
+   depende de la ventana — igual que un botón no crece con la
+   pantalla. Por eso el ancho se limita en píxeles. */
+.hb-hud__caja {
+  max-width: 268px;
+  min-height: 116px;
+  max-height: 150px;
+  /* retícula de puntos de fondo, muy tenue: le da textura de
+     interfaz sin meter ni una línea más */
+  background-image: radial-gradient(
+    rgb(var(--rgb-secondary) / 0.16) 1px,
+    transparent 1px
+  );
+  background-size: 9px 9px;
+}
+
+/* ---- EL TEXTO DEL HUD ----
+   Iba con el gris de interfaz al 55% de opacidad y sobre el
+   cristal oscuro no se leía. Sube a un lila claro casi opaco y
+   lleva un halo propio: es texto pequeño sobre una superficie
+   translúcida que deja pasar lo que hay detrás, así que
+   necesita separarse del fondo por sí mismo. */
+.hb-hud__texto {
+  position: absolute;
+  left: 10%;
+  top: 18%;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+
+  color: #f4efff;
+
+  /* ---- SOMBRA DOBLE ----
+     Una oscura y pegada, otra de color y ancha. La oscura es la
+     que de verdad hace legible: el texto va sobre cristal
+     translúcido, así que detrás puede pasar cualquier cosa —el
+     suelo, un reflejo, una esquirla— y sin ella el contraste
+     depende de lo que haya debajo en cada momento. La de color
+     es el halo de neón, que es estético.
+
+     Medido antes de esto: "OYSTERS.AI" daba 2.52:1 y "01" 2.38.
+     Es texto decorativo y no le aplica el AA, pero no se leía. */
+  text-shadow:
+    0 1px 3px rgba(8, 2, 20, 0.9),
+    0 0 14px rgba(150, 170, 255, 0.75);
+}
+
+.hb-hud__num {
+  position: absolute;
+  left: 10%;
+  bottom: 16%;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+
+  color: #f9c8ff;
+  text-shadow:
+    0 1px 3px rgba(8, 2, 20, 0.9),
+    0 0 14px rgb(var(--rgb-magenta) / 0.7);
+}
+
+.hb-hud__barras {
+  position: absolute;
+  right: 10%;
+  bottom: 16%;
+
+  display: flex;
+  gap: 4px;
+}
+
+.hb-hud__barras i {
+  width: 4px;
+  height: 16px;
+
+  border-radius: 1px;
+}
+
+.hb-hud__barras i:nth-child(1) {
+  background: var(--hb-core);
+}
+.hb-hud__barras i:nth-child(2) {
+  background: var(--hb-edge-hot);
+}
+.hb-hud__barras i:nth-child(3) {
+  background: #fbbf24;
+}
+
+/* cruces decorativas de las esquinas */
+.hb-cruces i {
+  position: absolute;
+
+  width: 7px;
+  height: 7px;
+
+  opacity: 0.5;
+}
+
+.hb-cruces i::before,
+.hb-cruces i::after {
+  content: "";
+
+  position: absolute;
+
+  background: rgba(216, 190, 255, 0.7);
+}
+
+.hb-cruces i::before {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.hb-cruces i::after {
+  top: 50%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+}
+
+.hb-cruces i:nth-child(1) {
+  left: 6px;
+  top: 6px;
+}
+.hb-cruces i:nth-child(2) {
+  right: 6px;
+  top: 6px;
+}
+.hb-cruces i:nth-child(3) {
+  left: 6px;
+  bottom: 6px;
+}
+.hb-cruces i:nth-child(4) {
+  right: 6px;
+  bottom: 6px;
+}
+
+/* ============================================================
+   z7 · ESQUIRLAS
+   ============================================================ */
+
+.hb-esquirlas {
+  z-index: 70;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================================
+   z8 · POST-PROCESO
+   ============================================================ */
+
+.hb-post {
+  z-index: 80;
+}
+
+.hb-post > span {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- GRANO ----
+   No es un efecto: es el arreglo del banding. Los degradados
+   muy suaves sobre fondos oscuros se ven a bandas en pantallas
+   de 8 bits porque no hay valores intermedios; un ruido de baja
+   amplitud rompe el patrón y el ojo reconstruye el degradado.
+
+   El ruido es un SVG en línea —feTurbulence— y no una imagen:
+   así no hay ningún archivo que cargar. */
+.hb-post__grano {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+
+  opacity: 0.03;
+
+  mix-blend-mode: overlay;
+}
+
+/* ---- ABERRACIÓN CROMÁTICA ----
+   Dos filos de color en los bordes, cian y magenta. Imita la
+   dispersión de una lente real, que solo se nota en las
+   esquinas — por eso va enmascarado al borde. */
+.hb-post__aberracion {
+  box-shadow:
+    inset 2px 0 6px rgba(125, 211, 252, 0.16),
+    inset -2px 0 6px rgba(255, 110, 199, 0.16);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .hb {
+    perspective-origin: 50% 46%;
+  }
+
+  /* backdrop-filter fuera en móvil: es lo más caro de la escena
+     y en pantalla pequeña el desenfoque apenas se aprecia */
+  .hb-panel--frente {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgb(var(--rgb-primary-light) / 0.16);
+  }
+
+  /* el suelo se simplifica: sin tablas, que a este tamaño solo
+     añaden ruido de aliasing */
+  .hb-suelo__tablas {
+    display: none;
+  }
+
+  .hb-logo {
+    width: 40%;
+  }
+
+  }
+
+/* Con movimiento reducido la escena se queda quieta pero
+   COMPLETA: se ve todo, simplemente no respira. Ocultar capas
+   sería castigar a quien pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .hb-panel,
+  .hb-logo,
+  .hb-escultura,
+  .hb-gema {
+    transition: none;
+  }
+}

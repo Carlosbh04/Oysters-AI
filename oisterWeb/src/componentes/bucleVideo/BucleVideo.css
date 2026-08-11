@@ -1,0 +1,52 @@
+/* ============================================================
+   VÍDEO EN BUCLE SIN COSTURA
+   ============================================================ */
+
+.bucle {
+  position: relative;
+
+  display: block;
+
+  /* hereda el tamaño de quien lo coloca: este componente no
+     decide medidas, solo resuelve el bucle */
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- LA ESPECIFICIDAD IMPORTA AQUÍ ----
+   Va con el padre delante a propósito. Quien usa este componente
+   suele tener ya reglas del tipo `.mi-bloque video { ... }`, y una
+   de ellas —en el cristal de "últimos proyectos"— ponía
+   `position: relative`. Con un selector de una sola clase ganaba
+   la del consumidor, las dos pistas dejaban de superponerse y se
+   apilaban una debajo de otra: el vídeo cambiaba de sitio y de
+   tamaño.
+
+   Con `.bucle .bucle__pista` la colocación del componente manda
+   sobre las reglas de elemento del consumidor, que es lo correcto:
+   el apilado de las dos pistas no es decoración, es lo que hace
+   que el relevo funcione. Lo demás —object-fit, transform,
+   filtros— se sigue heredando de quien lo usa. */
+.bucle .bucle__pista {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0;
+
+  /* ---- SIN TRANSICIÓN ----
+     El relevo es un intercambio seco. Una fundida entre dos capas
+     con canal alfa del mismo objeto lo aclararía a mitad del
+     cruce —dos al 50% dan 75% de opacidad, no 100%— y eso se ve
+     más que el corte que venía a tapar. Y no hace falta: entre el
+     último fotograma y el primero la silueta es idéntica. */
+}
+
+.bucle .bucle__pista--activa {
+  opacity: 1;
+}
+

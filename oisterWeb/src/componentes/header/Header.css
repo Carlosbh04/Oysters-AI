@@ -42,17 +42,134 @@
      vertical por el align-items:center del flex */
   padding: 6px 20px;
 
-  background: var(--gradient-primary);
+  /* ---- EL RELLENO, CON MÁS RECORRIDO ----
+     Era `--gradient-primary` a secas, tres paradas. Con cinco y
+     un giro algo más tumbado, el degradado tiene recorrido de
+     sobra para que ningún tramo se vea plano — que era lo que
+     hacía que la píldora pareciese de menos calidad que el resto
+     de la interfaz. Los colores son los mismos: no cambia la
+     identidad, cambia la transición entre ellos. */
+  background: linear-gradient(
+    118deg,
+    var(--color-accent) 0%,
+    var(--color-accent) 26%,
+    #d46bd0 48%,
+    #bd6ae4 74%,
+    #a96af7 100%
+  );
 
   border-radius: 24px;
 
-  /* separación del fondo: filo de luz + sombra con color */
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  /* ---- EL FILO, CONTINUO Y SIN CORTES ----
+     Un `border` de color plano corta en las esquinas: el mismo
+     tono recorre lados y curvas, así que en el arco se ve más
+     grueso y se nota el empalme. Aquí no se pinta borde: lo pone
+     el ::before de abajo con una máscara, que sigue la esquina
+     redondeada sin discontinuidad. */
+  border: 1px solid transparent;
 
   box-shadow:
+    /* reflejo de arriba, como el canto iluminado de una lámina */
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    /* brillo interior muy tenue: separa el relleno del filo */
+    inset 0 0 24px rgba(255, 255, 255, 0.14),
+    /* y una sombra interior abajo, que le da grosor */
+    inset 0 -6px 14px -6px rgba(120, 30, 110, 0.3),
     0 12px 40px rgba(169, 106, 247, 0.22),
-    0 2px 8px rgba(217, 107, 197, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 2px 8px rgb(var(--rgb-accent) / 0.15);
+}
+
+/* ---- EL FILO DEGRADADO ----
+   Va en un ::before con `mask-composite: exclude`, que descuenta
+   el relleno y deja solo el perímetro. Es la única forma de que
+   un borde con degradado siga una esquina redondeada sin
+   cortarse — `border-image` no admite `border-radius`. */
+.header__container::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+  padding: 1px;
+
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 214, 245, 0.55) 30%,
+    rgba(255, 255, 255, 0.85) 55%,
+    rgba(214, 190, 255, 0.5) 80%,
+    rgba(255, 255, 255, 0.75) 100%
+  );
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
+}
+
+/* ---- REFLEJO SUPERIOR ----
+   Una banda clara en la mitad de arriba. Es lo que convierte la
+   píldora en una superficie con volumen en vez de un rectángulo
+   pintado; el mismo recurso que lleva el botón del formulario,
+   para que los dos hablen el mismo idioma. */
+.header__container::after {
+  content: "";
+
+  position: absolute;
+  inset: 1px 1px 48% 1px;
+
+  border-radius: 23px 23px 40% 40% / 23px 23px 100% 100%;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.08) 62%,
+    transparent 100%
+  );
+
+  pointer-events: none;
+}
+
+/* ---- 2 · EL RESPLANDOR DE ABAJO ----
+   Antes era una línea uniforme por debajo de la píldora, y una
+   línea recta bajo una forma con esquinas redondeadas siempre se
+   lee rígida: los extremos no siguen la curva.
+
+   Ahora es un halo elíptico desenfocado, más ancho que la
+   píldora y muy tenue. Se comporta como la luz que devuelve una
+   superficie iluminada, no como un subrayado. */
+.header__container {
+  position: relative;
+}
+
+.header__container .header__resplandor {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: -18px;
+
+  height: 26px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 0%,
+    rgb(var(--rgb-accent) / 0.5) 0%,
+    rgba(190, 106, 228, 0.24) 45%,
+    transparent 100%
+  );
+
+  filter: blur(10px);
+
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* ======= Entrada: la píldora baja desde arriba =======
@@ -66,6 +183,25 @@
    Secuencia (solo con motion permitido):
    1. La píldora cae con squash elástico (headerDropIn)
    2. Logo → tagline → hamburguesa se encienden en cascada */
+
+/* Parpadeo suave: `steps` daría el encendido/apagado seco de una
+   terminal antigua, y aquí el resto de la interfaz es cristal y
+   degradados. Con una curva, el cursor respira. */
+@media (prefers-reduced-motion: no-preference) {
+  .header__cursor {
+    animation: cursorLatido 1.05s ease-in-out infinite;
+  }
+
+  @keyframes cursorLatido {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.18;
+    }
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .header:not(.header--enter) .header__container {
@@ -190,6 +326,42 @@
   white-space: nowrap;
 
   pointer-events: none;
+}
+
+/* ============================================================
+   EL CURSOR DEL RÓTULO
+
+   Barrita de editor que acompaña al tecleado. Solo existe
+   mientras se escribe: el componente la desmonta al terminar
+   (ver HeaderTagline.jsx), así que no hay nada parpadeando de
+   forma permanente en la cabecera.
+
+   ---- POR QUÉ `1ch` Y NO PÍXELES ----
+   El rótulo va en monoespaciada, así que `1ch` es exactamente el
+   ancho de un carácter. Separando el cursor esa distancia queda
+   pegado a la última letra a cualquier tamaño de fuente, sin
+   tener que recalcular nada si algún día cambia el `font-size`.
+
+   El alto en `em` por lo mismo: crece con el texto.
+   ============================================================ */
+.header__cursor {
+  display: inline-block;
+
+  width: 1px;
+  height: 1.05em;
+
+  /* el `letter-spacing` de 0.18em deja un hueco tras la última
+     letra; este margen negativo lo recupera para que el cursor
+     no quede flotando */
+  margin-left: -0.09em;
+
+  vertical-align: text-bottom;
+
+  background: currentColor;
+
+  /* sin él, el cursor arrastraría el subrayado o el
+     letter-spacing del texto */
+  pointer-events: none;
 
   user-select: none;
 }
@@ -233,7 +405,7 @@
        mantiene la suya, se proyecta sobre el panel y marca
        una costura */
     box-shadow:
-      0 2px 8px rgba(217, 107, 197, 0.1),
+      0 2px 8px rgb(var(--rgb-accent) / 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 }
@@ -277,6 +449,17 @@
   .header.is-open .hamburger {
     pointer-events: auto;
   }
+}
+
+/* ======= Oculta durante skeleton de página =======
+   App.jsx activa .header--hidden mientras se muestra el
+   skeleton de una ruta (fase "transitioning"). No usa
+   display:none para no desmontar nada ni perder el estado
+   del menú; solo fade + pointer-events off. */
+.header.header--hidden .header__container {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 
 /*==========================

@@ -9,20 +9,53 @@ const COLORS = {
   p3: "#efc3f8",
 };
 
-const DURATION = 3800; // duración total de la animación (ms)
-const TEXT = "Oysters AI";
+/* --- tiempos de la secuencia ---
+   PARTICLE_DURATION calza con useDeferredMount de Home.jsx
+   (2600): la escena 3D monta justo cuando el rAF de partículas
+   se detiene, en la ventana de calma del tipeo (que es DOM
+   barato), sin robarle frames. No bajar la una sin revalidar
+   la otra. */
+const PARTICLE_DURATION = 2600; // partículas: ensamblaje + disolución
+const ASSEMBLE_END = 0.62;
+const DISSOLVE_END = 0.82;
+
+const TOTAL_CHARS = 9; // "OISTER" (6) + espacio (1) + "AI" (2)
+const TYPE_MS = 110; // ms por letra del tipeo
+/* Pausa con el logo completo antes de salir.
+
+   Estaba en 600ms y se leía como que la intro SE COLGABA, no
+   como una pausa. El motivo: en ese tramo no se mueve nada de
+   nada — las partículas ya se han disuelto, el tipeo ha
+   terminado y el cursor ni siquiera se renderiza. Pantalla
+   totalmente estática justo después de tres segundos de
+   movimiento continuo. Medido con capturas seguidas: 636ms con
+   la imagen idéntica píxel a píxel.
+
+   Por encima de ~400ms, una pantalla quieta deja de leerse como
+   un silencio y pasa a leerse como una avería. 260ms sigue
+   dando el respiro para que el logo aterrice, y por debajo del
+   umbral en que se percibe como parón. Detrás va el fundido de
+   800ms, que SÍ está animado, así que la salida no queda seca. */
+const HOLD_MS = 260;
+const FADE_MS = 800; // fundido de salida (coincide con .is-leaving)
+
+const TEXT = "OISTER AI";
 
 /* Muestrea el texto en un canvas temporal y devuelve las
-   coordenadas de los píxeles encendidos → targets de partículas */
+   coordenadas de los píxeles encendidos → targets de partículas.
+   El tamaño y peso deben calzar con .logo-overlay__text de
+   LogoOverlay.css (clamp(44px, 9vw, 128px) / peso 600): así las
+   partículas forman el texto EXACTAMENTE donde luego se teclea
+   el logo, sin salto de tamaño entre fase y fase. */
 function sampleText(dpr) {
   const tmp = document.createElement("canvas");
   const tctx = tmp.getContext("2d");
   tmp.width = window.innerWidth;
   tmp.height = window.innerHeight;
 
-  const fontSize = Math.min(window.innerWidth * 0.11, 140);
+  const fontSize = Math.max(44, Math.min(window.innerWidth * 0.09, 128));
   tctx.fillStyle = "#fff";
-  tctx.font = `500 ${fontSize}px "Space Grotesk", sans-serif`;
+  tctx.font = `600 ${fontSize}px "Outfit", sans-serif`;
   tctx.textAlign = "center";
   tctx.textBaseline = "middle";
   tctx.fillText(TEXT, window.innerWidth / 2, window.innerHeight / 2);
@@ -44,7 +77,22 @@ function sampleText(dpr) {
 function IntroAnimation({ onFinish }) {
   const canvasRef = useRef(null);
   const [logoOpacity, setLogoOpacity] = useState(0);
+  const [charsShown, setCharsShown] = useState(0);
   const [fadeOut, setFadeOut] = useState(false);
+  /* el callback más reciente en un ref: el efecto de arranque
+     queda desacoplado de su identidad — un re-render del padre
+     NO vuelve a disparar el intro desde cero */
+  const onFinishRef = useRef(onFinish);
+
+  /* temporizadores del tipeo: en refs para poder limpiarlos
+     si el componente se desmonta a mitad de secuencia */
+  const typeTimerRef = useRef(null);
+  const holdTimerRef = useRef(null);
+  const fadeTimerRef = useRef(null);
+
+  useEffect(() => {
+    onFinishRef.current = onFinish;
+  }, [onFinish]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -106,16 +154,14 @@ function IntroAnimation({ onFinish }) {
 
     const draw = (t) => {
       const elapsed = t - startTime;
-      const progress = Math.min(elapsed / DURATION, 1);
+      const progress = Math.min(elapsed / PARTICLE_DURATION, 1);
 
-      // fases: 0→0.55 ensamblaje · 0.55→0.75 disolución · resto salida
-      const assembleEnd = 0.55;
-      const dissolveEnd = 0.75;
+      // fases: 0→0.62 ensamblaje · 0.62→0.82 disolución · resto salida
       let dissolve = 0;
 
-      if (progress > assembleEnd && progress < dissolveEnd) {
-        dissolve = (progress - assembleEnd) / (dissolveEnd - assembleEnd);
-      } else if (progress >= dissolveEnd) {
+      if (progress > ASSEMBLE_END && progress < DISSOLVE_END) {
+        dissolve = (progress - ASSEMBLE_END) / (DISSOLVE_END - ASSEMBLE_END);
+      } else if (progress >= DISSOLVE_END) {
         dissolve = 1;
       }
 
@@ -202,26 +248,41 @@ function IntroAnimation({ onFinish }) {
 
       ctx.globalAlpha = 1;
 
-      // aparición del logo tipográfico tras la disolución
-      if (progress > 0.7 && progress <= 0.85) {
-        setLogoOpacity((progress - 0.7) / 0.15);
-      } else if (progress > 0.85) {
-        setLogoOpacity(1);
-      }
-
-      if (progress >= 1) {
-        // salida: fade del conjunto y aviso al padre
+      if (elapsed >= PARTICLE_DURATION) {
+        /* las partículas terminaron: se detiene el rAF (la escena
+           3D puede montar en calma) y arranca el tipeo del logo */
         if (!finished) {
           finished = true;
-          setFadeOut(true);
-          setTimeout(() => {
-            if (typeof onFinish === "function") onFinish();
-          }, 800); // coincide con la transición de .is-leaving en CSS
+          cancelAnimationFrame(rafId);
+          startTypewriter();
         }
-        return; // detener bucle
+        return;
       }
 
       rafId = requestAnimationFrame(draw);
+    };
+
+    /* tipeo del logo: aparece letra a letra (con cursor), y al
+       completar se mantiene un instante, funde el intro y avisa
+       al padre (→ revela el home) */
+    const startTypewriter = () => {
+      setLogoOpacity(1);
+      let count = 0;
+      typeTimerRef.current = setInterval(() => {
+        count += 1;
+        setCharsShown(count);
+        if (count >= TOTAL_CHARS) {
+          clearInterval(typeTimerRef.current);
+          holdTimerRef.current = setTimeout(() => {
+            setFadeOut(true);
+            fadeTimerRef.current = setTimeout(() => {
+              if (typeof onFinishRef.current === "function") {
+                onFinishRef.current();
+              }
+            }, FADE_MS);
+          }, HOLD_MS);
+        }
+      }, TYPE_MS);
     };
 
     const start = () => {
@@ -240,24 +301,48 @@ function IntroAnimation({ onFinish }) {
 
     window.addEventListener("resize", handleResize);
 
-    // arrancar cuando la fuente esté lista (si no, el muestreo
-    // del texto se hace con la fuente fallback y sale deforme)
+    /* arrancar cuando la fuente esté lista (si no, el muestreo
+       del texto se hace con la fuente fallback y sale deforme).
+       Con watchdog: si `document.fonts.ready` nunca resuelve
+       (fuente de Google bloqueada/lenta), el intro arranca igual
+       a los 2500ms con la fuente fallback — nunca se queda
+       colgado en negro sin hacer nada. */
     let cancelled = false;
-    document.fonts.ready.then(() => {
-      if (!cancelled) start();
-    });
+    let started = false;
+    let watchdog = null;
+
+    const kickoff = () => {
+      if (cancelled || started) return;
+      started = true;
+      clearTimeout(watchdog);
+      start();
+    };
+
+    document.fonts.ready.then(kickoff);
+    watchdog = setTimeout(kickoff, 2500);
 
     return () => {
       cancelled = true;
+      clearTimeout(watchdog);
       if (rafId) cancelAnimationFrame(rafId);
+      clearInterval(typeTimerRef.current);
+      clearTimeout(holdTimerRef.current);
+      clearTimeout(fadeTimerRef.current);
       window.removeEventListener("resize", handleResize);
     };
-  }, [onFinish]);
+  }, []);
 
   return (
     <section className={`intro-animation ${fadeOut ? "is-leaving" : ""}`}>
       <canvas ref={canvasRef} />
-      <LogoOverlay opacity={logoOpacity} />
+      {/* cursorApagado va atado al FUNDIDO, no al fin del tipeo:
+          así el cursor sigue parpadeando durante la pausa y hay
+          algo vivo en pantalla hasta que la intro se va */}
+      <LogoOverlay
+        opacity={logoOpacity}
+        charsShown={charsShown}
+        cursorApagado={fadeOut}
+      />
     </section>
   );
 }

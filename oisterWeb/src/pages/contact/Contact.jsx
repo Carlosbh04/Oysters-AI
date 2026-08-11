@@ -13,8 +13,16 @@ import {
 
 import { PiSparkleFill } from "react-icons/pi";
 
+/* Tope del mensaje. El contador de debajo lo lee de aquí, así que
+   cambiar este número cambia las dos cosas a la vez y no pueden
+   discrepar. `maxLength` en el <textarea> es lo que de verdad
+   impide pasarse; el contador solo lo cuenta. */
+const TOPE_MENSAJE = 500;
+
 import { sendContact } from "../../services/contactService.js";
 import PageSection from "../../componentes/layout/PageSection.jsx";
+import EscenaSynthwave from "../../componentes/escenaSynthwave/EscenaSynthwave.jsx";
+import Escaneo from "../../componentes/escaneo/Escaneo.jsx";
 
 function ContactSection({ introDone = true }) {
   const [formData, setFormData] = useState({
@@ -66,11 +74,15 @@ function ContactSection({ introDone = true }) {
 
   return (
     <PageSection className="contact-page">
+      {/* paisaje synthwave de fondo */}
+      <EscenaSynthwave />
+
+      {/* líneas holográficas que lo cruzan */}
+      <Escaneo />
+
       <div className={`contact ${introDone ? "contact--enter" : ""}`}>
         {/* CABECERA: eyebrow + titular + intro */}
         <div className="contact-header">
-          <p className="contact-eyebrow">Contacto</p>
-
           <h2>Hablemos</h2>
 
           <p className="contact-text">
@@ -237,12 +249,28 @@ function ContactSection({ introDone = true }) {
                 }))
               }
               rows={6}
+              maxLength={TOPE_MENSAJE}
               required
             />
 
             <label htmlFor="comentarios">
               Cuéntanos tu proyecto <span>*</span>
             </label>
+
+            {/* Contador. `aria-live="polite"` para que un lector de
+                pantalla avise al acercarse al tope en vez de dejar
+                que el campo deje de aceptar letras sin explicación,
+                pero SIN interrumpir en cada tecla. */}
+            <span
+              className={`input-group__contador ${
+                formData.comentarios.length >= TOPE_MENSAJE * 0.9
+                  ? "input-group__contador--cerca"
+                  : ""
+              }`}
+              aria-live="polite"
+            >
+              {formData.comentarios.length} / {TOPE_MENSAJE}
+            </span>
           </div>
 
           <button type="submit">Enviar</button>

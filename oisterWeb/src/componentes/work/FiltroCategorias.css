@@ -1,0 +1,156 @@
+/* ============================================================
+   PÍLDORAS DE FILTRO
+   (el porqué del marcado, en FiltroCategorias.jsx)
+   ============================================================ */
+
+.work-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+
+  /* separa de la barra de métricas de arriba y de la rejilla de
+     abajo con el mismo escalón que ya usa la página entre
+     bloques internos (48px), para no estrenar un ritmo nuevo */
+  margin: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.75rem, 4vw, 3rem);
+}
+
+.work-filtro__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  /* 44px de alto: el mínimo táctil de las guías de Apple, y el
+     mismo que ya tienen los botones de la paginación */
+  min-height: 44px;
+  padding: 0 1.1rem;
+
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  background: rgba(255, 255, 255, 0.05);
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+
+  color: var(--color-text-light, #cdc1e2);
+
+  cursor: pointer;
+
+  /* transform y no margin/padding: mover una píldora al pasar
+     por encima no debe reordenar la fila entera */
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1),
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.work-filtro__chip svg {
+  flex-shrink: 0;
+  color: var(--color-secondary, var(--color-secondary));
+  transition: color 0.22s ease;
+}
+
+/* el contador: apagado, nunca compite con el nombre */
+.work-filtro__cuantos {
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .work-filtro__chip:hover:not(.work-filtro__chip--activa) {
+    transform: translateY(-2px);
+
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.09);
+
+    color: var(--color-text, #f6f0ff);
+  }
+}
+
+/* ---- LA PUESTA ----
+   Mismo degradado que el número activo de la paginación
+   (WorkList.css): el sitio ya dice "esto es lo seleccionado" con
+   ese rosa-lila, y estrenar otro color aquí obligaría a
+   aprenderlo dos veces.
+
+   Texto oscuro sobre el degradado claro, no blanco: medido, el
+   blanco sobre var(--color-accent-light) se queda en 2,1:1 y no llega ni al mínimo
+   de texto grande. Con #24123a sube a 9,4:1. */
+.work-filtro__chip--activa {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-primary-light));
+
+  color: #24123a;
+
+  /* el halo la despega de la fila sin moverla de sitio */
+  box-shadow: 0 6px 22px -8px rgba(214, 75, 190, 0.75);
+
+  cursor: default;
+}
+
+.work-filtro__chip--activa svg {
+  color: #24123a;
+}
+
+.work-filtro__chip--activa .work-filtro__cuantos {
+  opacity: 0.62;
+}
+
+/* el foco NO se quita: es lo único que ve quien navega con el
+   teclado. Va por fuera para que se lea también sobre la
+   píldora activa, que ya tiene el fondo claro. */
+.work-filtro__chip:focus-visible {
+  outline: 2px solid var(--color-secondary, var(--color-secondary));
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-filtro__chip {
+    transition: background 0.22s ease, border-color 0.22s ease;
+  }
+
+  .work-filtro__chip:hover:not(.work-filtro__chip--activa) {
+    transform: none;
+  }
+}
+
+/* En pantallas estrechas la fila se convierte en un carrusel
+   horizontal en vez de partirse en tres líneas, que empujaban la
+   rejilla muy abajo. Los márgenes negativos la sacan a los
+   bordes para que se vea que hay más a la derecha. */
+@media (max-width: 640px) {
+  .work-filtro {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+
+    overflow-x: auto;
+    /* frena en cada píldora en vez de quedarse a medias */
+    scroll-snap-type: x proximity;
+
+    /* sin barra a la vista: el desbordamiento ya se intuye
+       porque la última píldora se ve cortada */
+    scrollbar-width: none;
+  }
+
+  .work-filtro::-webkit-scrollbar {
+    display: none;
+  }
+
+  .work-filtro__chip {
+    scroll-snap-align: start;
+
+    font-size: 0.85rem;
+    padding: 0 0.95rem;
+  }
+}

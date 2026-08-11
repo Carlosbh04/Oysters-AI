@@ -1,0 +1,174 @@
+/* ============================================================
+   CARRUSEL DEL DETALLE
+
+   Geometría propia, porque es lo único de la página que tiene
+   piezas montadas unas encima de otras: las flechas sobresalen
+   del marco y las miniaturas se apoyan en su borde inferior.
+   ============================================================ */
+
+.wd-carrusel {
+  position: relative;
+
+  /* Las flechas salen fuera del marco, así que el contenedor
+     necesita ese margen o se recortarían contra el borde de la
+     página en pantallas justas. */
+  padding-inline: 26px;
+}
+
+.wd-carrusel__marco {
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid var(--wd-borde-activo);
+  border-radius: 16px;
+
+  background: #05030f;
+
+  /* ---- FORMATO FIJO ----
+     Antes lo ponía el JSX leyendo la proporción real de cada
+     archivo, y por eso el marco cambiaba de forma entre proyectos
+     y entre diapositivas. Fijo aquí, todas las fichas tienen la
+     misma silueta y además el hueco queda reservado desde el
+     primer pintado, sin salto de maquetación al cargar. */
+  width: 100%;
+  aspect-ratio: 16 / 9;
+
+  box-shadow:
+    0 0 30px rgba(217, 70, 239, 0.22),
+    0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* ---- LOS MEDIOS SE APILAN, NO SE SUSTITUYEN ----
+   Todos ocupan la misma casilla y solo cambia la opacidad. Es
+   lo que permite el crossfade: si se desmontara el anterior no
+   habría nada con lo que fundir, y el cambio sería un corte. */
+.wd-carrusel__medio {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  /* `contain` y no `cover`: con el marco fijo, recortar dejaría
+     un vertical reducido a su franja central —medido en su día,
+     el 68% del encuadre fuera—. Contenido se ve entero, con banda
+     a los lados, que es lo que hace cualquier reproductor. */
+  object-fit: contain;
+
+  opacity: 0;
+
+  transition: opacity 0.35s ease-out;
+
+  /* el que no se ve no debe interceptar clics ni recibir foco */
+  pointer-events: none;
+}
+
+.wd-carrusel__medio--activo {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-carrusel__medio {
+    transition: none;
+  }
+}
+
+/* ---- FLECHAS ---- */
+
+.wd-carrusel__flecha {
+  position: absolute;
+  top: 50%;
+
+  display: grid;
+  place-items: center;
+
+  width: 40px;
+  height: 40px;
+
+  transform: translateY(-50%);
+
+  border: 1px solid var(--wd-borde);
+  border-radius: 50%;
+
+  background: rgba(20, 12, 40, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  color: var(--wd-texto);
+
+  cursor: pointer;
+
+  z-index: 3;
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.wd-carrusel__flecha:hover {
+  border-color: var(--wd-borde-activo);
+  background: var(--wd-superficie-alta);
+  box-shadow: var(--wd-glow);
+}
+
+.wd-carrusel__flecha:focus-visible {
+  outline: 2px solid var(--wd-magenta);
+  outline-offset: 3px;
+}
+
+.wd-carrusel__flecha svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* a caballo sobre el filo del marco */
+.wd-carrusel__flecha--prev {
+  left: 6px;
+}
+
+.wd-carrusel__flecha--next {
+  right: 6px;
+}
+
+/* Aquí vivían las miniaturas: una tira apoyada sobre el borde
+   inferior del marco, con su fondo difuminado y una marca de
+   reproducción para los vídeos. Quitadas — tapaban el filo de la
+   propia imagen y obligaban a cargar una copia de cada medio,
+   vídeos incluidos, solo para navegar lo que ya resuelven las
+   flechas y el contador. */
+
+/* ---- CONTADOR ---- */
+
+.wd-carrusel__contador {
+  display: block;
+
+  margin-top: 10px;
+
+  text-align: right;
+
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+
+  color: var(--wd-texto-suave);
+}
+
+@media (max-width: 768px) {
+  .wd-carrusel {
+    padding-inline: 0;
+  }
+
+  /* dentro del marco en móvil: fuera no hay sitio */
+  .wd-carrusel__flecha--prev {
+    left: 8px;
+  }
+
+  .wd-carrusel__flecha--next {
+    right: 8px;
+  }
+
+}

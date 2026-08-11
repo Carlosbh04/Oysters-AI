@@ -1,0 +1,1541 @@
+/* ======= LatestProjects =======
+   Los últimos proyectos del home. Tercer eslabón de la cadena
+   de color (ver --sec-deep/--sec-lift en variables.css): aquí
+   el viaje se INVIERTE. Recoge el tono CLARO donde lo dejó
+   HowWeWork y baja al OSCURO — de ahí sale la alternancia que
+   impide que el home se vaya aclarando sin freno. About recoge
+   ese oscuro y vuelve a subir. */
+
+.latest-projects {
+  /* ---- ONDA DE ENTRADA: color de la sección anterior ----
+     El tono en que TERMINA "Qué hacemos", para que la curva se
+     funda con esa sección sin costura. */
+  --lp-wave-color: var(--sec-lift, #56336b);
+
+  position: relative;
+
+  /* arriba: aire para que la onda no pise la cabecera. Bajado
+     respecto al original (era 6-8.5rem): con la cabecera ya
+     compacta, ese colchón dejaba la sección medio vacía. */
+  /* ---- ABAJO: DE 3.5-5rem A 2-3rem ----
+     Bajo las tarjetas no hay nada más, así que este relleno se
+     sumaba entero al de "Nosotros" (hasta 8.5rem) y dejaba unos
+     216px de morado vacío entre las dos secciones. La sección
+     termina en las tarjetas: no necesita despedirse tan largo. */
+  padding: clamp(4.5rem, 9vh, 6.5rem) 0 clamp(2rem, 4vh, 3rem);
+
+  overflow: hidden; /* el LightDust no debe generar scroll extra */
+
+  background: linear-gradient(
+    180deg,
+    var(--sec-lift, #56336b) 0%,
+    var(--sec-mid, #4e3069) 55%,
+    var(--sec-deep, #442f65) 100%
+  );
+}
+
+/* la curva orgánica de entrada (el SVG vive en el JSX; aquí
+   solo posición y color) — misma receta que la onda del hero */
+.latest-projects__wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px; /* -1px: mata la línea de subpíxel en zoom */
+  height: clamp(56px, 9vh, 120px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.latest-projects__wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.latest-projects__wave path {
+  fill: var(--lp-wave-color);
+}
+
+/* ---- ANCHOS ----
+   El CONTENEDOR es fijo: lo manda el bloque de arriba (texto +
+   cristal), que va de borde a borde como en las secciones
+   vecinas.
+   La FILA DE CARDS, en cambio, se ciñe a los proyectos que hay
+   de verdad y se centra dentro de él: con 3 se compacta, con 5
+   llena el contenedor. Antes esa medida la llevaba el
+   contenedor entero, y con 3 proyectos encogía también la
+   cabecera — que no tiene por qué. */
+.latest-projects {
+  /* 304px: el ancho al que aspira cada card. Es el DIAL de esta
+     sección. Bajado desde 24rem (384px): a ese tamaño tres
+     cards ocupaban ~1190px y se leían como tres pósters; el
+     bloque son "casos de éxito", un aperitivo que lleva a
+     /works, no la galería completa. */
+  --lp-card: 24rem;
+  --lp-gap: clamp(1rem, 1.4vw, 1.5rem);
+
+  /* lo que mide la fila con los proyectos que HAY de verdad
+     (--lp-count lo publica el JSX): n cards + los huecos */
+  --lp-row: calc(
+    var(--lp-count, 5) * var(--lp-card) + (var(--lp-count, 5) - 1) *
+      var(--lp-gap)
+  );
+}
+
+/* 1240px y no 1440px: en el mockup las cards llegan justo a los
+   bordes del bloque de arriba, y a 1440 tres cards topadas a
+   --lp-card dejaban 136px de aire a cada lado — la fila se leía
+   flotando bajo una cabecera más ancha que ella. A 1240, tres
+   cards llenan el contenedor y las cuatro verticales (titular,
+   cristal, primera card, última card) cuadran. */
+/* ---- LA TRAMA ----
+   Detrás de todo. z-index 0 la deja por debajo de la onda de
+   entrada (que se dibuja encima para tapar la costura con la
+   sección anterior) y del contenido, que ya va en z-index 2. */
+/* selector doble por lo mismo que en HowWeWork: `.ft` trae
+   `position: relative` y su hoja se carga después de esta */
+.latest-projects .latest-projects__trama {
+  /* mismos valores apagados que en "Qué hacemos", para que las
+     dos secciones se lean con la misma fuerza de trama */
+  --ft-linea: rgba(255, 255, 255, 0.18);
+  --ft-punto: rgba(255, 255, 255, 0.12);
+  --ft-hex: rgba(255, 255, 255, 0.09);
+
+  position: absolute;
+  inset: 0;
+
+  /* ---- POR ENCIMA DE LA ONDA ----
+     La onda de entrada (z-index 1) es opaca y tapaba los primeros
+     ~120px de trama. Sumado al desvanecido, dejaba un vacío de
+     dibujo en la juntura con "Qué hacemos". Subiendo la trama a 2
+     el circuito cruza por encima de la curva y sigue de una
+     sección a la otra; la onda conserva su trabajo, que es poner
+     el color, no tapar. */
+  z-index: 2;
+
+  pointer-events: none;
+
+  /* espejo de la de "Qué hacemos": ARRIBA a tope, para que el
+     dibujo entre desde la sección anterior sin corte, y solo se
+     desvanece abajo, que es donde la trama muere de verdad. */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+}
+
+.latest-projects__container {
+  width: min(1240px, 92%);
+
+  margin: 0 auto;
+
+  position: relative;
+  z-index: 3; /* por encima del polvo de luz, la onda y la trama */
+}
+
+/* ======= ACTO 1 · manifiesto + cristal =======
+   Rejilla asimétrica: el texto pesa algo más que la imagen para
+   que la frase mande. align-items:center alinea por el centro
+   óptico — el texto es más corto que el cristal y encajado
+   arriba se leería descolgado. */
+
+.latest-projects__intro {
+  display: grid;
+
+  /* ---- LA COLUMNA DEL CRISTAL MANDA MÁS QUE EL TEXTO ----
+     Iba a 1.05 / .95 y el cristal se quedaba en 568px: su tope de
+     42rem no llegaba a aplicarse nunca porque el limitante era la
+     columna, no el `max-width`. Subir el tope sin tocar esto no
+     habría hecho nada — de ahí que el primer intento de agrandarlo
+     no cambiara ni un píxel.
+
+     A .88 / 1.12 el texto sigue teniendo sitio de sobra —su
+     párrafo está limitado a medida de lectura, no llena su
+     columna— y el cristal gana los 100px que le faltaban. */
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  align-items: center;
+
+  gap: clamp(1.5rem, 3vw, 4rem);
+
+  /* casi nada: en el mockup el remolino del cristal muere justo
+     encima de las cards. El aire que se ve entre el botón y los
+     proyectos no es este margen — es que el cristal es más alto
+     que el bloque de texto y este va centrado contra él. */
+  margin-bottom: clamp(.5rem, 1.2vw, 1.25rem);
+}
+
+.latest-projects__intro-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* mientras el render del cristal no exista (404), el bloque se
+   queda a una columna en vez de dejar media rejilla desierta.
+   La clase la pone el onError del JSX. */
+.latest-projects__intro--sin-cristal {
+  grid-template-columns: 1fr;
+}
+
+.latest-projects__intro--sin-cristal .latest-projects__crystal {
+  display: none;
+}
+
+/* ---- EL CRISTAL ----
+   DIALES (todos aquí arriba):
+   · --lp-crystal-size  cuánto ocupa de su columna
+   · --lp-crystal-zoom  cuánto se amplía DENTRO de esa caja
+   · --lp-crystal-fade  dónde empieza a disolverse el borde
+   · --lp-crystal-glow  intensidad del aura de detrás
+   (el recorte del fondo NO se dosifica aquí: lo hace el filtro
+   alfa propio del vídeo; ver la nota en el JSX)
+
+   POR QUÉ CAJA PEQUEÑA + ZOOM, y no una caja grande:
+   la caja es lo que OCUPA en el layout; el cristal visible es
+   bastante más pequeño que ella, porque el render trae aire
+   alrededor y la máscara disuelve todo el borde. Con la caja
+   al tamaño del cristal, ese aire invisible empujaba el bloque
+   ~175px hacia abajo y dejaba un vacío enorme entre el botón y
+   los proyectos. Ahora la caja se ciñe a lo que SE VE y la
+   imagen la desborda con `scale`, que no afecta al layout.
+
+   Por eso la máscara va en la IMAGEN y no en el contenedor: en
+   el contenedor recortaría justo el desbordamiento.
+
+   El AURA (::before) es el halo que rodea al cristal. Va con
+   inset negativo para cubrir también la parte desbordada por el
+   zoom. Antes hacía además de lienzo para un mix-blend-mode que
+   se quitó — ver el comentario del filtro en el JSX. */
+.latest-projects__crystal {
+  --lp-crystal-size: 100%;
+  /* ---- 0.88, NO 1.3 ----
+     El zoom de 1.3 se calibró para el render anterior, donde el
+     cristal ocupaba poca parte de su cuadro. El vídeo nuevo lo
+     llena al 91% del ancho, así que ampliarlo un 30% lo sacaba
+     de la caja: los anillos se cortaban a izquierda y derecha y
+     el charco por abajo. Medido el alfa del vídeo: el sujeto va
+     de x=86 a x=1398 en un cuadro de 1440. */
+  --lp-crystal-zoom: 0.88;
+  /* dónde empieza a disolverse el borde. Termina siempre en el
+     lado más cercano de la caja (ver la máscara abajo), así que
+     este número es cuánto del radio va a plena opacidad: 70% deja
+     un desvanecido del 30% final, suficiente para que no se
+     perciba dónde acaba. */
+  /* 86% y no 70%: con el sujeto llenando casi el cuadro, un
+     desvanecido que empieza al 70% del radio se comía los
+     anillos exteriores. Ahora empieza justo por fuera de ellos. */
+  /* 94% y no 86%: sin el aura detrás, el desvanecido es lo único
+     que disimula el borde de la caja, y a 86% se comía la punta
+     de los anillos exteriores. Empujado casi al filo, disuelve
+     solo el último tramo — lo justo para que no se vea dónde
+     acaba el vídeo. */
+  --lp-crystal-fade: 94%;
+
+  /* ---- SIN AURA ----
+     Era un halo de tres capas detrás del cristal. Se veía como
+     una mancha rosa alrededor, y sobraba: el render ya trae su
+     propia luz —el núcleo, los anillos, el charco— y añadirle un
+     resplandor de CSS encima solo emborronaba el contorno de las
+     facetas, que es lo que hace que se lea como cristal.
+
+     Se queda la variable en cero en vez de borrar el bloque: si
+     algún día se cambia el render por uno más apagado, es una
+     línea. */
+  --lp-crystal-glow: 0;
+
+  /* ---- REALCE ----
+     El render es morado de luminosidad media y la sección también:
+     compuesto tal cual, el cristal se funde con el fondo por falta
+     de contraste, no por falta de opacidad. Estos dos multiplican
+     el color DESPUÉS del recorte (el alfa no se toca, así que el
+     fondo sigue transparente).
+     · --lp-crystal-luz    1 = sin tocar · 1.3 ya es mucho
+     · --lp-crystal-color  saturación; sube el morado y el rosa */
+  --lp-crystal-luz: 1.26;
+  --lp-crystal-color: 1.42;
+
+  /* cuánto baja respecto al centro de su columna: sin esto, con
+     la caja más grande queda demasiado aire por debajo y el
+     conjunto se ve suelto en la sección */
+  --lp-crystal-baja: 3rem;
+
+  position: relative;
+  justify-self: center;
+
+  width: var(--lp-crystal-size);
+  /* ---- CRECE POR LA CAJA, NO POR EL ZOOM ----
+     30rem → 36rem. Es la forma correcta de agrandarlo: subir
+     `--lp-crystal-zoom` amplía el vídeo DENTRO de una caja que
+     no cambia, así que lo único que consigue es recortarlo
+     contra sus propios bordes —ya pasó con el 1.3 heredado—.
+     Agrandando la caja, el cristal crece entero y las
+     proporciones internas se mantienen. */
+  /* 36rem → 42rem. La caja es la que manda: subir el zoom amplía
+     el vídeo DENTRO de una caja que no cambia y solo consigue
+     recortarlo contra sus propios bordes. */
+  max-width: 42rem;
+  aspect-ratio: 1;
+
+  /* ---- ESTADO DE PARTIDA DE LA ENTRADA ----
+     El translateY del reposo YA existía (--lp-crystal-baja, lo que
+     el cristal baja respecto al centro de su columna). La entrada
+     no puede pisarlo con otro transform: se sumaría y el cristal
+     quedaría descolocado al terminar. Por eso el desplazamiento de
+     entrada se SUMA dentro del mismo translateY.
+
+     Sube 34px mientras aparece y crece del 92% al 100%: se
+     materializa acercándose, que es como se comporta una pieza
+     flotante. Un simple fundido lo dejaría plano. */
+  opacity: 0;
+  transform: translateY(calc(var(--lp-crystal-baja) + 34px)) scale(0.92);
+
+  transition:
+    opacity 900ms ease,
+    transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  pointer-events: none;
+}
+
+.latest-projects__crystal--in {
+  opacity: 1;
+  transform: translateY(var(--lp-crystal-baja)) scale(1);
+}
+
+/* ---- QUIEN PIDE NO VER MOVIMIENTO ----
+   Se le da el cristal ya colocado. El estado final es idéntico:
+   no pierde nada, solo el recorrido. */
+@media (prefers-reduced-motion: reduce) {
+  .latest-projects__crystal {
+    opacity: 1;
+    transform: translateY(var(--lp-crystal-baja));
+
+    transition: none;
+  }
+}
+
+/* El aura. `closest-side` por el mismo motivo que la máscara del
+   vídeo: sin tamaño, un radial-gradient mide hasta la ESQUINA, y
+   con el centro desplazado al 46% el degradado llegaba a
+   transparente antes del borde de abajo (54% de recorrido) pero
+   NO antes del de arriba (46%) — o sea que el aura se cortaba en
+   seco por arriba y se veía la caja. Por eso el borde se notaba
+   arriba y no abajo.
+   Con closest-side el radio lo marca el lado más cercano, así que
+   el degradado cierra dentro de la caja por los cuatro costados. */
+.latest-projects__crystal::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+
+  /* ---- TRES CAPAS, NO UNA ----
+     El aura era un solo radial violeta muy tenue y el cristal se
+     apoyaba en el fondo sin despegarse. Tres capas de distinto
+     alcance sí construyen profundidad, y cada una hace algo que
+     las otras no:
+
+     · NÚCLEO   — pequeño y caliente, justo detrás de la gema.
+                  Es lo que hace que parezca que la luz sale de
+                  DENTRO del cristal y no de un foco pegado.
+     · CUERPO   — el halo reconocible, en el rosa de marca.
+     · ATMÓSFERA— muy ancha y casi transparente; su trabajo es
+                  que el aura no termine en ningún sitio.
+
+     `closest-side` en las tres: sin tamaño, un radial-gradient
+     mide hasta la ESQUINA, y con el centro desplazado llegaba a
+     transparente antes por un lado que por otro — el aura se
+     cortaba en seco arriba y no abajo. Con closest-side el radio
+     lo marca el lado más cercano y cierra por los cuatro
+     costados. */
+  background:
+    radial-gradient(
+      circle closest-side at 50% 44%,
+      rgba(255, 214, 250, calc(var(--lp-crystal-glow) * 0.5)) 0%,
+      rgba(214, 140, 255, calc(var(--lp-crystal-glow) * 0.34)) 26%,
+      transparent 58%
+    ),
+    radial-gradient(
+      circle closest-side at 50% 46%,
+      rgb(var(--rgb-accent) / calc(var(--lp-crystal-glow) * 0.62)) 0%,
+      rgba(169, 106, 247, calc(var(--lp-crystal-glow) * 0.4)) 46%,
+      transparent 82%
+    ),
+    radial-gradient(
+      circle closest-side at 50% 50%,
+      rgb(var(--rgb-primary) / calc(var(--lp-crystal-glow) * 0.3)) 0%,
+      rgb(var(--rgb-accent) / calc(var(--lp-crystal-glow) * 0.12)) 55%,
+      transparent 100%
+    );
+
+  /* el desenfoque funde las tres entre sí: sin él se distinguen
+     los tres bordes y se lee como diana */
+  filter: blur(14px);
+
+  /* ---- EL AURA ENCIENDE DESPUÉS ----
+     Arranca apagada y algo encogida, y entra con 350ms de retraso:
+     para entonces el cristal ya casi ha aterrizado. Encendiéndola
+     a la vez, el conjunto aparecía como un bloque; escalonada, se
+     lee en dos tiempos — primero llega la pieza y luego prende su
+     luz, que es lo que hace pensar que la luz sale de ella.
+
+     Es más lenta que el cristal (1,3s frente a 1,1s) a propósito:
+     un resplandor que aparece de golpe se lee como un flash. */
+  opacity: 0;
+  transform: scale(0.82);
+
+  transition:
+    opacity 1300ms ease 350ms,
+    transform 1300ms cubic-bezier(0.22, 1, 0.36, 1) 350ms;
+}
+
+.latest-projects__crystal--in::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .latest-projects__crystal::before {
+    opacity: 1;
+    transform: scale(1);
+
+    transition: none;
+  }
+}
+
+
+/* el <svg> solo aporta la definición del filtro: no debe ocupar
+   ni pintar nada */
+.latest-projects__luma {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* mismas reglas para la imagen y para el vídeo: son
+   intercambiables (el vídeo cae a la imagen si no hay archivo o
+   con movimiento reducido) y tienen que ocupar el hueco igual.
+   El póster se generó DESDE el vídeo ya recortado, así que los
+   dos llegan sobre negro y comparten el mismo luma key. */
+.latest-projects__crystal img,
+.latest-projects__crystal video {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+
+  transform: scale(var(--lp-crystal-zoom));
+
+  /* 1º el recorte (ver el <filter> en el JSX), 2º el realce.
+     EN ESE ORDEN: brightness/saturate multiplican el color pero no
+     el alfa, así que aplicados después del recorte suben la luz
+     del cristal sin devolverle nada al fondo, que ya es
+     transparente. Al revés subirían también el fondo y el umbral
+     del recorte dejaría de cuadrar. */
+  /* ---- SIN LUMA KEY ----
+     Aquí había `url(#lp-cristal-luma)` delante, un filtro que
+     fabricaba la transparencia a partir del brillo de cada
+     píxel. Hacía falta cuando el vídeo llegaba opaco sobre
+     negro.
+
+     El vídeo nuevo trae ALFA DE VERDAD (comprobado:
+     `alpha_mode=1`, y el canal va de 0 a 255). Aplicarle encima
+     el luma key no solo sobraba: lo estropeaba, porque volvía
+     transparentes las caras oscuras del cristal —que deben ser
+     opacas— por el simple hecho de ser oscuras.
+
+     Queda solo el realce, que multiplica color y no alfa. */
+  filter: brightness(var(--lp-crystal-luz))
+    saturate(var(--lp-crystal-color));
+
+  /* `closest-side` NO es un detalle: es lo que quita el borde recto.
+     Un radial-gradient sin tamaño usa `farthest-corner`, así que el
+     100% cae en la ESQUINA de la caja — y el punto medio de cada
+     lado se queda al 70,7%, o sea todavía dentro de la zona opaca.
+     Resultado: la máscara nunca llegaba a cerrar por arriba, abajo
+     ni por los lados, y el fotograma se cortaba en seco ahí.
+     Con closest-side el 100% cae en el lado más cercano: el
+     desvanecido termina antes de tocar cualquier borde, por los
+     cuatro costados. */
+  -webkit-mask-image: radial-gradient(circle closest-side at 50% 48%, #000 var(--lp-crystal-fade), transparent 100%);
+  mask-image: radial-gradient(circle closest-side at 50% 48%, #000 var(--lp-crystal-fade), transparent 100%);
+}
+
+/* (Aquí vivía un rótulo intermedio "Casos de éxito · Nuestros
+   últimos proyectos". Fuera: el titular de arriba ya dice qué
+   son las cards, y ese bloque solo metía 100px de separación
+   entre el botón y los proyectos.) */
+
+/* Sin regla propia: la forma la pone el componente Rotulo.
+   Antes esta iba en rosa y la de "Qué hacemos" en violeta; esa
+   diferencia no la decidió nadie, se acumuló de copiar el
+   bloque. La clase se queda porque de ella cuelga la animación
+   de entrada, más abajo. */
+
+/* Crece: ya no es un rótulo sobre una fila de cards, es el
+   TITULAR de la sección. El término fijo + vw hace que la
+   interpolación sea real en todo el rango (con solo `2.4vw` el
+   suelo no se alcanzaría hasta pasados los 1300px y el título
+   se quedaría clavado en su tamaño mínimo en casi todo
+   portátil). 18ch para que rompa en dos líneas como el mockup. */
+.latest-projects__title {
+  max-width: 18ch;
+
+  font-size: clamp(2rem, 1.25rem + 2.35vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+
+  color: var(--color-text, #f6f0ff);
+
+  /* ---- SOMBRA DE APOYO ----
+     El titular cae justo donde pasa una de las cintas de luz de
+     la trama, y ahí el fondo se aclara lo suficiente como para
+     comerse el blanco del texto.
+
+     Dos sombras: una pegada y corta que dibuja el filo de la
+     letra, y otra muy abierta y difusa que hace de halo oscuro
+     por detrás. La segunda es la que de verdad separa — apaga el
+     fondo alrededor del texto sin que se vea ninguna caja. */
+  text-shadow:
+    0 1px 2px rgba(18, 9, 32, 0.4),
+    0 6px 28px rgba(18, 9, 32, 0.55);
+}
+
+/* "5 proyectos" en itálica con gradiente violeta → rosa:
+   el puente entre el sistema de la web y el rosa del mockup */
+.latest-projects__title span {
+  font-style: italic;
+
+  background: linear-gradient(110deg, #b76df0, #ff5fce);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  /* SIN sombra, y no es un olvido: la letra es transparente para
+     dejar ver el gradiente de detrás, así que una text-shadow no
+     quedaría detrás del texto — se vería a través de él, como una
+     mancha borrosa dentro de cada letra. */
+  text-shadow: none;
+}
+
+.latest-projects__description {
+  /* 46ch: el párrafo ya no compite con un CTA a su derecha, pero
+     sigue debiendo leerse como bloque compacto bajo el titular
+     — no como una banda de borde a borde */
+  max-width: 46ch;
+
+  margin-top: 1.15rem;
+
+  font-size: clamp(.92rem, .88rem + .15vw, 1.02rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+
+  /* más suave que la del titular: el cuerpo es más pequeño y una
+     sombra fuerte lo emborronaría en vez de separarlo */
+  text-shadow: 0 2px 14px rgba(18, 9, 32, 0.5);
+
+  color: var(--color-text-light, #cdc1e2);
+}
+
+/* el CTA ya no vive a la derecha del titular, sino al final de
+   la columna: necesita su propio aire por arriba */
+.latest-projects__intro-text .latest-projects__all {
+  margin-top: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+/* ---- "Ver todos los proyectos": el CTA estrella ----
+   Receta del hero adaptada al magenta de la sección:
+   · píldora con gradiente rosa→violeta y sombra en capas
+   · FILAMENTO ORBITAL: un hilo de luz recorre el borde en
+     loop (el mismo truco del CTA del hero: conic-gradient
+     rotando + máscara xor que deja solo el aro) — imposible
+     no mirarlo
+   · pulso de resplandor en reposo: la sombra respira
+   · hover: se eleva, destello de brillo barre la píldora y
+     la flecha empuja hacia delante */
+
+/* ángulo animable del filamento (registro propio de la
+   sección: no depende del @property del hero) */
+@property --lp-spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ---- AGUA del hover: la receta del CTA del hero ----
+   Dos propiedades registradas y separadas:
+   · --lpw-l    (nivel del agua)  → la maneja la TRANSICIÓN
+     del hover: sube a cámara lenta
+   · --lpw-tilt (inclinación de la cresta) → la maneja una
+     ANIMACIÓN infinita: oleaje constante
+   Al vivir en el mismo transform pero ser variables distintas,
+   el agua ONDULA MIENTRAS SUBE. */
+@property --lpw-l {
+  syntax: "<percentage>";
+  initial-value: 104%;
+  inherits: false;
+}
+
+@property --lpw-tilt {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.latest-projects__all {
+  position: relative;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.85rem 1.6rem;
+
+  border-radius: 999px;
+
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+
+  color: #fff;
+
+  /* ---- EL DEGRADADO, BAJADO DE LUMINOSIDAD ----
+     Era #ff7ad9 → #e35bd0 → #b76df0: rosas muy claros. Con texto
+     blanco encima el contraste ya era justo, y sobre la trama
+     —que le mete claridad por detrás— la etiqueta dejaba de
+     leerse: se veía la píldora, no lo que ponía.
+
+     Bajan los tres tonos y se cierra el recorrido del degradado.
+     Sigue siendo la misma píldora rosa-violeta de marca, pero con
+     cuerpo suficiente para que el blanco se despegue. */
+  background: linear-gradient(
+    160deg,
+    #e0489f 0%,
+    #c23bab 48%,
+    #8e46cc 100%
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 2px rgba(23, 18, 43, 0.2),
+    /* halo oscuro pegado: separa la píldora del fondo claro de la
+       cinta de luz, que era lo que la difuminaba */
+    0 2px 10px rgba(18, 9, 32, 0.4),
+    0 8px 16px -4px rgba(214, 75, 190, 0.25),
+    0 24px 48px -12px rgba(183, 109, 240, 0.3);
+
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow 0.3s ease;
+
+  will-change: transform;
+}
+
+/* EL FILAMENTO: hilo de luz de 1.5px corriendo por el borde */
+.latest-projects__all::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--lp-spin),
+    transparent 0turn 0.55turn,
+    rgba(183, 109, 240, 0.45) 0.66turn,
+    #b76df0 0.76turn,
+    #ffffff 0.84turn,
+    #ff5fce 0.92turn,
+    transparent 1turn
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 6px rgba(255, 95, 206, 0.8));
+  animation: lpRingSpin 2.8s linear infinite;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* en hover el filamento se DETIENE y se oculta (fade rápido,
+   como el CTA del hero): el protagonismo pasa al agua y al tipeo */
+.latest-projects__all:hover::before {
+  opacity: 0;
+}
+
+/* la pecera: recorta el agua a la forma de la píldora */
+.latest-projects__all-water {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* cuerpo de agua: más ancho y alto que el botón para que la
+   cresta y el ladeo nunca enseñen los bordes */
+.latest-projects__all-water::before,
+.latest-projects__all-water::after {
+  content: "";
+  position: absolute;
+  left: -30%;
+  top: -8%;
+  width: 160%;
+  height: 220%;
+  border-radius: 46% 44% 0 0 / 44px 38px 0 0; /* la cresta */
+  transform: translateY(var(--lpw-l)) rotate(var(--lpw-tilt));
+  transform-origin: 50% 0;
+  transition: --lpw-l 0.6s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.latest-projects__all-water::before {
+  background: linear-gradient(180deg, #a06fff 0%, #6d49e0 70%);
+  animation: lpSlosh 3.4s ease-in-out infinite;
+}
+
+/* segunda capa: más clara, semitransparente y a contrafase
+   (delay negativo) → profundidad, como agua de verdad */
+.latest-projects__all-water::after {
+  background: rgb(var(--rgb-primary-light) / 0.5);
+  animation: lpSlosh 4.6s ease-in-out -2.1s infinite reverse;
+}
+
+@keyframes lpSlosh {
+  0%,
+  100% {
+    --lpw-tilt: 1.7deg;
+  }
+  50% {
+    --lpw-tilt: -1.7deg;
+  }
+}
+
+/* hover: el agua abre la secuencia — sube fluida en ~0.9s
+   (la capa clara un pelín después: no sube en bloque) y
+   SOLO ENTONCES empiezan a escribirse las letras */
+.latest-projects__all:hover .latest-projects__all-water::before {
+  --lpw-l: -14%;
+  transition: --lpw-l 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.latest-projects__all:hover .latest-projects__all-water::after {
+  --lpw-l: -8%;
+  transition: --lpw-l 1.1s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* texto y flecha POR ENCIMA del agua */
+.latest-projects__all-label,
+.latest-projects__all svg {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes lpRingSpin {
+  to {
+    --lp-spin: 360deg;
+  }
+}
+
+/* pulso de reposo: el resplandor respira para llamar al ojo.
+   Solo fuera del hover (:not(:hover)): al entrar, la animación
+   se suelta y la sombra transiciona limpia al estado hover */
+@media (prefers-reduced-motion: no-preference) {
+  .latest-projects__all:not(:hover) {
+    animation: lpAllPulse 2.6s ease-in-out 1s infinite;
+  }
+}
+
+@keyframes lpAllPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 2px rgba(23, 18, 43, 0.1),
+      0 8px 16px -4px rgba(214, 75, 190, 0.25),
+      0 24px 48px -12px rgba(183, 109, 240, 0.3);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 2px rgba(23, 18, 43, 0.1),
+      0 10px 22px -4px rgba(214, 75, 190, 0.42),
+      0 28px 56px -10px rgba(255, 95, 206, 0.45);
+  }
+}
+
+.latest-projects__all-char {
+  display: inline-block; /* necesario para poder transformarlas */
+  transition: opacity 0.25s ease;
+}
+
+/* el texto del hover: superpuesto y centrado sobre el de
+   reposo (que es quien define el ancho del botón: la píldora
+   no cambia de tamaño ni un píxel) */
+.latest-projects__all-label--hover {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
+.latest-projects__all-label--hover .latest-projects__all-char {
+  opacity: 0; /* invisible hasta que el hover lo teclee */
+}
+
+/* al entrar el hover, el texto de reposo se DISUELVE en onda
+   (izquierda → derecha) mientras el agua sube */
+.latest-projects__all:hover .latest-projects__all-label--rest .latest-projects__all-char {
+  opacity: 0;
+  transition-delay: calc(var(--ch, 0) * 0.015s);
+}
+
+.latest-projects__all:hover {
+  transform: translateY(-3px) scale(1.03);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(23, 18, 43, 0.14),
+    0 14px 28px -6px rgba(214, 75, 190, 0.5),
+    0 30px 60px -12px rgba(183, 109, 240, 0.55);
+}
+
+/* ---- EL TIPEO: las letras se escriben una a una ----
+   Al entrar el hover, todas las letras se vacían y van
+   apareciendo en orden (delay = índice × 0.03s), como si
+   alguien las tecleara a mano. `both` mantiene invisible
+   cada letra hasta que le llega su turno. El hueco de cada
+   letra sigue ocupado (solo animan opacidad/posición): el
+   botón no cambia de tamaño ni un píxel. */
+@media (prefers-reduced-motion: no-preference) {
+  /* SECUENCIA DEL HOVER:
+     0s     → el filamento se apaga y el agua empieza a subir
+     ~0.85s → agua arriba: las letras se teclean una a una
+     ~1.6s  → última letra puesta: la flecha entra y SOBRESALE */
+  .latest-projects__all:hover .latest-projects__all-label--hover .latest-projects__all-char {
+    animation: lpType 0.16s ease both;
+    animation-delay: calc(0.85s + var(--ch, 0) * 0.03s);
+  }
+
+  /* ---- LA FLECHA REMATA ----
+     Invisible durante el llenado y el tipeo (el fill `both`
+     la esconde mientras espera); al terminar la última letra
+     entra deslizando, hace POP y SE QUEDA BRILLANDO — el
+     mismo `both` congela el estado final (halo encendido +
+     un punto más grande) mientras dure el hover */
+  .latest-projects__all:hover svg {
+    animation: lpArrowPop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) 1.6s both;
+  }
+
+  /* ---- REAPARICIÓN al soltar el hover ----
+     La clase --bye la pone el JSX SOLO en el instante de
+     salir el ratón: mientras el agua drena, las letras se
+     reescriben una a una de vuelta a su estado normal. Al
+     volver a entrar el hover, el JSX retira la clase y manda
+     la secuencia de siempre. En reposo y en la entrada de la
+     sección esta regla no existe. */
+  .latest-projects__all--bye .latest-projects__all-label--rest .latest-projects__all-char {
+    animation: lpType 0.16s ease both;
+    animation-delay: calc(0.25s + var(--ch, 0) * 0.03s);
+  }
+}
+
+@keyframes lpType {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lpArrowPop {
+  0% {
+    transform: translateX(-14px) scale(0.6);
+    opacity: 0;
+  }
+  55% {
+    transform: translateX(1px) scale(1);
+    opacity: 1;
+    filter: none;
+  }
+  75% {
+    /* el POP: crece por encima de su tamaño con destello */
+    transform: translateX(0) scale(1.4);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95));
+  }
+  100% {
+    /* se asienta RESALTADA: un punto más grande y con el
+       halo encendido — así se queda mientras dure el hover */
+    transform: translateX(0) scale(1.12);
+    opacity: 1;
+    filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.9));
+  }
+}
+
+.latest-projects__all:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: 0.12s;
+}
+
+.latest-projects__all:focus-visible {
+  outline: 2px solid #d64bbe;
+  outline-offset: 3px;
+}
+
+/* ---- CLIC: splash de despedida ----
+   La clase --go la pone el JSX al hacer clic; ~450ms después
+   navega a /works. El agua inunda la píldora DE GOLPE y el
+   botón se comprime y explota en pop con un fogonazo rosa —
+   el gesto físico de "voy". (Clase doblada para ganar en
+   especificidad a las reglas de :hover.) */
+.latest-projects__all.latest-projects__all--go {
+  animation: lpGo 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.latest-projects__all.latest-projects__all--go .latest-projects__all-water::before {
+  --lpw-l: -26%;
+  transition: --lpw-l 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.latest-projects__all.latest-projects__all--go .latest-projects__all-water::after {
+  --lpw-l: -20%;
+  transition: --lpw-l 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes lpGo {
+  0% {
+    transform: translateY(-3px) scale(1.03);
+    opacity: 1;
+  }
+  30% {
+    /* se comprime: coge impulso */
+    transform: translateY(-2px) scale(0.95);
+  }
+  55% {
+    /* pop SUTIL con destello breve */
+    transform: translateY(-5px) scale(1.06);
+    opacity: 1;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 3px 6px rgba(23, 18, 43, 0.14),
+      0 16px 32px -8px rgba(214, 75, 190, 0.5),
+      0 0 44px 2px rgba(255, 95, 206, 0.45);
+  }
+  100% {
+    /* se DESVANECE elevándose: el splash termina de verdad,
+       sin estados congelados — el skeleton recoge limpio */
+    transform: translateY(-14px) scale(1.02);
+    opacity: 0;
+  }
+}
+
+/* con motion reducido: ni filamento, ni pulso, ni oleaje */
+@media (prefers-reduced-motion: reduce) {
+  .latest-projects__all::before,
+  .latest-projects__all,
+  .latest-projects__all-water::before,
+  .latest-projects__all-water::after {
+    animation: none;
+  }
+}
+
+/* ======= Grid de cards ======= */
+
+/* FLEX en vez de grid: garantiza UNA SOLA FILA en desktop,
+   tengas 3, 4 o 5 proyectos — las cards se reparten el ancho
+   (tope 280px) y se aprietan lo justo si hace falta, nunca
+   saltan de línea. Con menos de 5, quedan centradas. */
+/* La fila LLENA el contenedor: es lo que alinea el borde de la
+   primera y la última card con el titular y con el cristal.
+   Cada card crece hasta --lp-card; con 3 proyectos llegan
+   justas al tope, con 5 se reparten más estrechas. Sin
+   carrusel: los 5 caben en pantalla. */
+.latest-projects__grid {
+  display: flex;
+  justify-content: center;
+
+  width: 100%;
+
+  gap: var(--lp-gap, 1rem);
+}
+
+.latest-projects__reveal {
+  flex: 1 1 0;
+  min-width: 0; /* permite apretarse: sin esto el contenido fuerza el salto */
+  /* el tope sube de 280px a --lp-card (344px): con pocos
+     proyectos las cards CRECEN a llenar la fila en vez de
+     quedarse pequeñas en mitad del vacío */
+  max-width: var(--lp-card, 21.5rem);
+}
+
+/* ======= Card ======= */
+
+.project-card {
+  position: relative; /* ancla del cristal (::after) */
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  border-radius: 18px;
+
+  /* ---- CRISTAL OSCURO, NO VELO BLANCO ----
+     Misma corrección que en ServiceCard. Era un velo blanco al 7%
+     que ACLARA lo de detrás: con la trama puesta, el circuito se
+     leía a través de la card igual de fuerte que fuera de ella.
+
+     Cuerpo oscuro para apagar el fondo y devolverle contraste al
+     texto, más un velo blanco en degradado encima para que siga
+     leyéndose como cristal. */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    ),
+    rgba(28, 15, 46, 0.62);
+
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 10px 28px -12px rgba(0, 0, 0, 0.5);
+
+  overflow: hidden;
+
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1),
+    box-shadow 0.35s ease;
+}
+
+.latest-projects__reveal:hover .project-card {
+  /* la SELECCIONADA: se adelanta con fuerza (sube + crece)
+     y se enciende POR DENTRO — luz de cristal: filo blanco
+     interior + baño de luz cayendo desde arriba */
+  transform: translateY(-10px) scale(1.05);
+
+  background: rgba(255, 255, 255, 0.1);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    inset 0 14px 34px -8px rgba(255, 255, 255, 0.14),
+    inset 0 -18px 34px -18px rgba(255, 168, 228, 0.28),
+    0 3px 6px rgba(0, 0, 0, 0.35),
+    0 28px 56px -14px rgba(214, 75, 190, 0.5);
+}
+
+/* ---- el CRISTAL: destello que barre el interior de la card ----
+   Un reflejo diagonal de vidrio recorre la card entera al
+   entrar el hover (una pasada), como luz sobre una vitrina */
+.project-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* reflejo IRISADO (rosa → blanco → violeta): un glare blanco
+     puro desaparecía sobre el cuerpo blanco de la card y solo
+     se leía en la imagen; con tinte, el barrido se ve en TODA
+     la card, texto incluido */
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 138, 224, 0.35) 45%,
+    rgba(255, 255, 255, 0.65) 51%,
+    rgba(183, 109, 240, 0.3) 57%,
+    transparent 72%
+  );
+  background-size: 250% 100%;
+  background-position: 135% 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.latest-projects__reveal:hover .project-card::after {
+  opacity: 1;
+  /* delay 0.35s + backwards: el barrido ESPERA a que la card
+     recupere su brillo (venía apagada si saltas rápido desde
+     otra card) y solo entonces pasa el cristal */
+  animation: lpCardShine 0.9s ease 0.35s backwards;
+}
+
+@keyframes lpCardShine {
+  from {
+    background-position: 135% 0;
+  }
+  to {
+    background-position: -135% 0;
+  }
+}
+
+/* al crecer, pasa por encima de las vecinas sin recortarse */
+.latest-projects__reveal:hover {
+  z-index: 2;
+}
+
+/* ---- portada ---- */
+
+/* ---- LA PORTADA VA A SANGRE ----
+   Antes llevaba `margin: 0.6rem` y su propio `border-radius:
+   12px`. Con la card en 231px de ancho eso dibujaba DOS
+   rectángulos separados por 11px —el borde de la card y el de la
+   foto—, y ese doble filo es lo que hacía que la card se leyera
+   como "una imagen pegada dentro de una caja" en vez de como una
+   pieza. A este tamaño 11px no son un margen: son una franja.
+
+   Sin margen ni radio propio, la recorta el `overflow: hidden`
+   de la card, así que las esquinas de arriba salen redondeadas
+   solas y con el mismo radio que el resto.
+
+   Y 4/3 en vez de 16/9: apaisada la foto medía 118px de alto, un
+   sello. Con el ancho completo y esta proporción sube a ~173px,
+   que ya es una portada. La card no crece tanto como parece
+   porque a cambio se ha ido la frase descriptiva. */
+.project-card__media {
+  aspect-ratio: 4 / 3;
+
+  overflow: hidden;
+
+  /* mientras carga la imagen (o si falta), fondo de marca */
+  background: linear-gradient(150deg, #2a1a4a 0%, #7a3fd4 55%, #e35bd0 100%);
+}
+
+.project-card__media img,
+.project-card__media video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+
+  transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.latest-projects__reveal:hover .project-card__media img,
+.latest-projects__reveal:hover .project-card__media video {
+  transform: scale(1.05);
+}
+
+.project-card__placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- cuerpo ---- */
+
+.project-card__body {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+
+.project-card__category {
+  margin-bottom: 0.55rem;
+
+  font-size: 0.66rem;
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  /* claro, no saturado: a 0,66rem en versalitas es el texto más
+     pequeño de la sección, y el rosa fuerte da 4,2:1 aquí */
+  color: var(--color-accent-light, #F090D4);
+}
+
+/* la card pasó de 280px a 344px: la tipografía sube con ella,
+   si no el contenido se queda flotando en un cuerpo más grande
+   (que es justo la sensación de vacío que había que corregir) */
+.project-card__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+
+  color: var(--color-text, #f6f0ff);
+}
+
+/* ---- POR QUÉ AQUÍ NO HAY FRASE DESCRIPTIVA ----
+   La card llevaba el `subtitulo` debajo del título. Medido: a
+   231px de ancho la frase salía a 27 caracteres por línea. El
+   mínimo legible es 45, así que cada frase se partía en tres
+   trozos —"Estrategia de contenidos y / fidelización para
+   grandes / marcas"— y eso es lo que llenaba la fila de ruido.
+
+   Cinco cards en un contenedor de 1200px no dan para más ancho,
+   así que la frase no cabía de ninguna manera. Se queda donde sí
+   cabe: en /works, donde la rejilla es de 3 y la card mide el
+   doble (ver WorkCard), y en la ficha del proyecto.
+
+   Aquí la card dice lo que tiene que decir con la foto, la
+   categoría y el nombre del cliente. */
+
+/* ---- "Ver proyecto" ----
+   Antes el hover encendía el texto con un text-shadow de halo.
+   Eso, sobre tipografía pequeña, emborrona los perfiles de las
+   letras y se lee como brillo de plantilla, no como acabado.
+
+   Ahora son dos gestos limpios y sin difuminado:
+   · la flecha vive en un DISCO que se rellena con el gradiente
+     de marca — el mismo lenguaje que el botón de LinkedIn de las
+     tarjetas de equipo, así que el sitio no estrena vocabulario
+   · la etiqueta se subraya con un trazo de 1px que ENTRA por la
+     izquierda y SALE por la derecha (ver el cambio de
+     transform-origin abajo) */
+.project-card__link {
+  position: relative;
+
+  margin-top: auto; /* el link siempre al pie, midan lo que midan los textos */
+  padding-top: 1rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  color: #F072C8;
+
+  transition: color 0.28s ease;
+}
+
+.project-card__link span {
+  position: relative;
+}
+
+/* el subrayado: nace plegado y se despliega en X */
+.project-card__link span::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.28em;
+  height: 1px;
+
+  background: linear-gradient(90deg, var(--color-accent-light), var(--color-primary-light));
+
+  transform: scaleX(0);
+  /* EN REPOSO el ancla está a la DERECHA: al soltar el hover el
+     trazo se repliega hacia ese lado, en vez de deshacerse por
+     donde vino. Ese pequeño gesto asimétrico —entra por un lado,
+     sale por el otro— es lo que distingue el detalle cuidado del
+     efecto por defecto. */
+  transform-origin: right;
+
+  transition: transform 0.4s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+/* el disco de la flecha */
+.project-card__link svg {
+  box-sizing: content-box;
+
+  width: 0.78rem;
+  height: 0.78rem;
+  padding: 0.34rem;
+
+  border: 1px solid rgba(240, 114, 200, 0.4);
+  border-radius: var(--radius-full, 999px);
+
+  transition:
+    transform 0.34s cubic-bezier(0.34, 1.35, 0.64, 1),
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+/* :focus-visible comparte TODO el estado: quien navega con
+   teclado ve exactamente lo mismo que quien usa el ratón */
+.project-card__link:hover,
+.project-card__link:focus-visible {
+  color: #ff9ce0;
+}
+
+.project-card__link:hover span::after,
+.project-card__link:focus-visible span::after {
+  transform: scaleX(1);
+  transform-origin: left; /* al ENTRAR, crece desde la izquierda */
+}
+
+.project-card__link:hover svg,
+.project-card__link:focus-visible svg {
+  transform: translateX(3px);
+
+  border-color: transparent;
+  /* la flecha se oscurece para leerse sobre el disco encendido */
+  color: #24123a;
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-primary-light));
+  box-shadow:
+    0 4px 14px rgb(var(--rgb-accent) / 0.45),
+    0 0 20px rgb(var(--rgb-primary-light) / 0.3);
+}
+
+.project-card__link:focus-visible {
+  outline: 2px solid #f7c8e8;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* con movimiento reducido cambian los colores, pero nada se
+   desplaza ni se despliega */
+@media (prefers-reduced-motion: reduce) {
+  .project-card__link svg,
+  .project-card__link:hover svg,
+  .project-card__link:focus-visible svg { transform: none; }
+
+  .project-card__link span::after,
+  .project-card__link:hover span::after,
+  .project-card__link:focus-visible span::after { transition: none; }
+}
+
+/* ======= Coreografía de scroll (reversible) =======
+   Mismo sistema que HowWeWork: TRANSICIONES colgadas de
+   .latest-projects--landed (el IntersectionObserver la pone
+   al entrar y la quita al salir). Los delays viven SOLO en el
+   estado revelado → aparición en cascada, desaparición toda a
+   la vez. El stagger de las cards sale de --lp-i (la pone el
+   JSX): da igual cuántas cards haya, no hay que añadir
+   nth-child nuevos. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* estados ocultos */
+  .latest-projects__eyebrow {
+    opacity: 0;
+    transform: translateX(-18px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .latest-projects__title {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(7px);
+    transition:
+      opacity 0.65s ease,
+      transform 0.65s cubic-bezier(0.22, 0.8, 0.36, 1),
+      filter 0.65s ease;
+  }
+
+  .latest-projects__description {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .latest-projects__all {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
+      box-shadow 0.3s ease,
+      opacity 0.6s ease;
+  }
+
+  .latest-projects__reveal {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+    transition:
+      opacity 0.55s ease,
+      transform 0.55s cubic-bezier(0.34, 1.3, 0.64, 1);
+  }
+
+  /* estados revelados, con su cascada */
+  .latest-projects--landed .latest-projects__eyebrow {
+    opacity: 1;
+    transform: translateX(0);
+    transition-delay: 0.05s;
+  }
+
+  .latest-projects--landed .latest-projects__title {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    transition-delay: 0.15s;
+  }
+
+  .latest-projects--landed .latest-projects__description {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.3s;
+  }
+
+  .latest-projects--landed .latest-projects__all {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.35s;
+  }
+
+  .latest-projects__grid--in .latest-projects__reveal {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    /* base corta: las cards ya tienen su propio disparador,
+       no esperan a la cabecera */
+    transition-delay: calc(0.05s + var(--lp-i, 0) * 0.12s);
+  }
+}
+
+/* ======= Las vecinas se apartan =======
+   El mismo gesto que las cards de HowWeWork: al hacer hover
+   en una card, las de al lado le dan aire. Sobre los wrappers
+   __reveal para no pisar el transform del hover de la card.
+   transition-delay 0: responde al instante, sin heredar los
+   delays de la cascada. */
+
+/* la card que RECIBE el hover recupera su opacidad al instante
+   y rápido (0.25s): sin esto heredaba el transition-delay de la
+   cascada de entrada y se quedaba apagada con el hover encima */
+.latest-projects__grid--in .latest-projects__reveal:hover {
+  opacity: 1;
+  transition-delay: 0s;
+  transition-duration: 0.25s;
+}
+
+/* ---- y las demás se APAGAN ----
+   Cuando el grid tiene una card en hover, todas las que NO lo
+   están bajan su opacidad: la seleccionada queda inconfundible.
+   transition-delay 0: el apagado responde al instante, sin
+   heredar los delays de la cascada de entrada. */
+.latest-projects__grid--in:has(.latest-projects__reveal:hover)
+  .latest-projects__reveal:not(:hover) {
+  opacity: 0.45;
+  transition-delay: 0s;
+}
+
+.latest-projects__grid--in .latest-projects__reveal:hover + .latest-projects__reveal {
+  transform: translateX(12px);
+  transition-delay: 0s;
+}
+
+.latest-projects__grid--in
+  .latest-projects__reveal:has(+ .latest-projects__reveal:hover) {
+  transform: translateX(-12px);
+  transition-delay: 0s;
+}
+
+/*==========================
+  RESPONSIVE
+==========================*/
+
+/* ---- PORTÁTIL ----
+   El cristal cede espacio antes que el texto: es atmósfera, y
+   el titular es lo que tiene que seguir mandando. */
+@media (max-width: 1280px) {
+  .latest-projects__intro {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  }
+
+  .latest-projects__crystal {
+    max-width: 31rem;
+  }
+}
+
+/* ---- TABLETA APAISADA ----
+   Las cards envuelven: cinco en una fila a este ancho quedarían
+   minúsculas. El flex-basis de 15rem es el que decide cuántas
+   caben por fila antes de saltar. */
+@media (max-width: 1100px) {
+  .latest-projects__grid {
+    flex-wrap: wrap;
+  }
+
+  .latest-projects__reveal {
+    flex: 1 1 15rem;
+    max-width: var(--lp-card);
+  }
+}
+
+/* ---- TABLETA VERTICAL ----
+   El manifiesto se apila y el cristal baja debajo del texto,
+   centrado y más pequeño: a ancho completo se comía la pantalla
+   entera antes de llegar a las cards. El rótulo del bloque
+   sigue centrado, así que la composición se lee simétrica. */
+@media (max-width: 900px) {
+  .latest-projects__intro {
+    grid-template-columns: 1fr;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .latest-projects__intro-text {
+    align-items: center;
+    text-align: center;
+  }
+
+  .latest-projects__title,
+  .latest-projects__description {
+    max-width: 34ch;
+  }
+
+  /* el cristal va PRIMERO en la columna apilada: es lo que
+     ancla la sección visualmente al entrar, y debajo del CTA
+     quedaba huérfano, separando el botón de las cards */
+  .latest-projects__crystal {
+    order: -1;
+    max-width: 25rem;
+  }
+}
+
+/* ---- MÓVIL ----
+   Una card por fila, a ancho completo pero con tope para que en
+   móviles grandes no se estire de más. */
+@media (max-width: 640px) {
+  .latest-projects__grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .latest-projects__reveal {
+    flex: none;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .latest-projects__crystal {
+    max-width: 18.5rem;
+    /* en móvil el zoom heredado seguía siendo el del render
+       viejo: con el nuevo también recortaba */
+    --lp-crystal-zoom: 0.92;
+  }
+
+  /* en columna única ni el apartarse ni el apagado tienen
+     sentido (el hover táctil se queda pegado) */
+  .latest-projects__grid--in .latest-projects__reveal:hover + .latest-projects__reveal,
+  .latest-projects__grid--in
+    .latest-projects__reveal:has(+ .latest-projects__reveal:hover) {
+    transform: none;
+  }
+
+  .latest-projects__grid--in:has(.latest-projects__reveal:hover)
+    .latest-projects__reveal:not(:hover) {
+    opacity: 1;
+  }
+}

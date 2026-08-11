@@ -1,14 +1,52 @@
-/* ======= WorkCard: tarjeta vertical ======= */
+/* ======= WorkCard: tarjeta de cristal OSCURO =======
+   Imagen enmarcada con esquinas redondeadas dentro de la card, y
+   el brillo barriéndola ENTERA al hover — no solo la imagen. El
+   hover lo dispara .work-reveal (el wrapper del grid), igual que
+   .latest-projects__reveal.
+
+   ---- POR QUÉ DEJÓ DE SER BLANCA ----
+   Lo era, y con ella el título resultaba ILEGIBLE: usa
+   --color-text (#f6f0ff, casi blanco) porque es el token de
+   texto del sitio... que está pensado para fondo oscuro. Blanco
+   sobre blanco da 1,06:1 de contraste. Lo mismo la descripción,
+   en --color-text-light.
+
+   Se podía arreglar de dos formas: cambiar los colores de texto
+   solo aquí —y quedarse con una isla clara en un sitio oscuro,
+   con sus propios tokens— o poner la card oscura y que los
+   tokens del sitio funcionen como en el resto. La segunda, que
+   además es lo que pide el diseño de referencia. */
 
 .work-card {
   position: relative;
 
+  height: 100%;
+
   display: flex;
   flex-direction: column;
 
-  height: 100%;
+  border-radius: 18px;
 
-  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  /* 0.94 y no 0.66. A dos tercios de opacidad, los dos orbes
+     difuminados del fondo (.work-list::before/::after, rosa y
+     violeta a blur(70px)) ATRAVESABAN la card y le subían el
+     tono: en vez de una superficie oscura y limpia quedaba un
+     morado lavado, distinto además en cada card según qué orbe
+     le tocara detrás. Casi opaca, la card es una superficie de
+     verdad y los orbes hacen lo suyo alrededor, que es donde
+     tienen sentido.
+
+     Sin `backdrop-filter`: a esta opacidad no se vería, y
+     desenfocar el fondo de tres cards a la vez es de lo más caro
+     que puede pedirle un efecto al compositor. */
+  background: rgba(18, 11, 31, 0.94);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 18px 44px -18px rgba(0, 0, 0, 0.6);
 
   overflow: hidden;
 
@@ -16,252 +54,400 @@
 
   color: inherit;
 
-  /* mismo lenguaje que la píldora del header:
-     glass + filo de luz + sombra con color */
-  background: rgba(255, 255, 255, 0.6);
-
-  border: 1px solid rgba(255, 255, 255, 0.65);
-
-  box-shadow:
-    0 12px 40px rgba(169, 106, 247, 0.14),
-    0 2px 8px rgba(217, 107, 197, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-
   transition:
-    transform 0.35s cubic-bezier(0.22, 0.8, 0.36, 1),
+    transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1),
     box-shadow 0.35s ease;
 }
 
-.work-card:hover {
-  transform: translateY(-6px);
+.work-reveal:hover .work-card {
+  /* la SELECCIONADA: se adelanta con fuerza (sube + crece)
+     y se enciende POR DENTRO — luz de cristal: filo blanco
+     interior + baño de luz cayendo desde arriba */
+  transform: translateY(-10px) scale(1.05);
 
   box-shadow:
-    0 20px 55px rgba(169, 106, 247, 0.24),
-    0 4px 14px rgba(217, 107, 197, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    inset 0 14px 34px -8px rgba(255, 255, 255, 0.55),
+    inset 0 -18px 34px -18px rgba(255, 168, 228, 0.35),
+    0 3px 6px rgba(23, 18, 43, 0.1),
+    0 28px 56px -14px rgba(214, 75, 190, 0.42);
 }
 
-/* filo de gradiente que se enciende en hover */
+/* ---- el CRISTAL: destello que barre el interior de la card ----
+   Un reflejo diagonal de vidrio recorre la card ENTERA al
+   entrar el hover (una pasada), como en el home — no solo la
+   imagen */
 
 .work-card::after {
   content: "";
-
   position: absolute;
   inset: 0;
-
   border-radius: inherit;
-
-  padding: 1px;
-
   background: linear-gradient(
-    135deg,
-    rgba(244, 155, 228, 0.9),
-    rgba(217, 123, 243, 0.9)
+    115deg,
+    transparent 30%,
+    rgba(255, 138, 224, 0.35) 45%,
+    rgba(255, 255, 255, 0.65) 51%,
+    rgba(183, 109, 240, 0.3) 57%,
+    transparent 72%
   );
-
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-
+  background-size: 250% 100%;
+  background-position: 135% 0;
   opacity: 0;
-
-  transition: opacity 0.35s ease;
-
   pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
-.work-card:hover::after {
+.work-reveal:hover .work-card::after {
   opacity: 1;
+  /* delay 0.35s + backwards: el barrido ESPERA a que la card
+     recupere su brillo (venía apagada si saltas rápido desde
+     otra card) y solo entonces pasa el cristal */
+  animation: workCardShine 0.9s ease 0.35s backwards;
 }
 
-/* ======= Imagen ======= */
+@keyframes workCardShine {
+  from {
+    background-position: 135% 0;
+  }
+  to {
+    background-position: -135% 0;
+  }
+}
 
-.work-card-image {
-  position: relative;
+/* ======= Portada: imagen enmarcada ======= */
+
+.work-card__media {
+  position: relative; /* ancla de la etiqueta de cliente */
 
   aspect-ratio: 4 / 3;
 
+  margin: 0.6rem 0.6rem 0;
+
+  border-radius: 12px;
+
   overflow: hidden;
 
-  /* si la imagen no carga, se ve este degradado
-     en vez del icono de imagen rota */
-  background: linear-gradient(
-    135deg,
-    rgba(244, 155, 228, 0.35),
-    rgba(198, 137, 214, 0.35)
-  );
+  /* mientras carga la imagen (o si falta), fondo de marca */
+  background: linear-gradient(150deg, #2a1a4a 0%, #7a3fd4 55%, #e35bd0 100%);
 }
 
-.work-card-image img {
+/* la misma regla para imagen y vídeo: son intercambiables (los
+   trabajos sin foto usan su primer clip de portada) */
+.work-card__media img,
+.work-card__media video,
+.work-card__placeholder {
   width: 100%;
   height: 100%;
 
   object-fit: cover;
 
-  transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.36, 1);
+  display: block;
+
+  transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
 
-.work-card:hover .work-card-image img {
-  transform: scale(1.06);
+.work-reveal:hover .work-card__media img,
+.work-reveal:hover .work-card__media video {
+  transform: scale(1.05);
 }
 
-/* badge glass en la esquina de la imagen */
-
-.work-card-badge {
+/* ---- etiqueta de CLIENTE, sobre la portada ----
+   Lleva su propio disco oscuro y desenfoque de fondo porque cae
+   sobre una foto cualquiera: sin él, sobre una portada clara —la
+   de ALSEA es azul brillante— el texto blanco desaparecía. */
+.work-card__cliente {
   position: absolute;
+  bottom: 0.55rem;
+  left: 0.55rem;
+  z-index: 1;
 
-  top: 12px;
-  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 
-  display: grid;
-  place-items: center;
+  padding: 0.34rem 0.6rem;
 
-  width: 38px;
-  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
 
-  border-radius: 12px;
+  background: rgba(20, 12, 34, 0.72);
+  backdrop-filter: blur(0.5rem);
 
-  font-size: 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
 
-  color: #7a3fb3;
-
-  background: rgba(255, 255, 255, 0.75);
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  border: 1px solid rgba(255, 255, 255, 0.7);
-
-  box-shadow:
-    0 4px 12px rgba(169, 106, 247, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-
-  transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
+  color: #f6f0ff;
 }
 
-.work-card:hover .work-card-badge {
-  transform: rotate(12deg) scale(1.08);
-}
+/* ======= Cuerpo ======= */
 
-/* barrido de shine sobre la imagen en hover
-   (misma técnica que el CTA del header) */
-
-.work-card-shine {
-  position: absolute;
-
-  top: 0;
-  left: -130%;
-
-  width: 60%;
-  height: 100%;
-
-  background: linear-gradient(
-    115deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-
-  transform: skewX(-12deg);
-
-  pointer-events: none;
-
-  transition: left 0.65s ease;
-}
-
-.work-card:hover .work-card-shine {
-  left: 170%;
-}
-
-/* ======= Contenido ======= */
-
-.work-card-content {
-  display: flex;
-  flex-direction: column;
-
+.work-card__body {
   flex: 1;
 
-  gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 
-  padding: 20px 22px 24px;
+  padding: 1.1rem 1.2rem 1.2rem;
 }
 
-.work-card-category {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+.work-card__category {
+  margin-bottom: 0.55rem;
+
+  font-size: 0.66rem;
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 
-  color: #7a3fb3;
+  color: #f072c8;
 }
 
-.work-card-content h2 {
-  font-size: 1.15rem;
+.work-card__title {
+  font-size: 1.05rem;
   font-weight: 700;
-  line-height: 1.25;
+  letter-spacing: -0.015em;
 
-  color: var(--color-dark);
+  color: var(--color-text, #f6f0ff);
 }
 
-.work-card-content p {
-  font-size: 0.9rem;
+.work-card__text {
+  margin-top: 0.5rem;
+
+  font-size: 0.82rem;
   line-height: 1.55;
 
-  color: var(--color-dark);
-  opacity: 0.68;
-
-  /* máx. 3 líneas: las tarjetas quedan parejas */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: var(--color-text-light, #cdc1e2);
 }
 
-/* ======= Botón ======= */
+/* ======= El enlace "Ver trabajo" =======
 
-.work-card-button {
-  margin-top: auto;
+   ---- QUÉ FALLABA ----
+   Medidos los tres estados, salía esto:
+     reposo   #F072C8, sin halo, flecha a 0
+     hover    #FFA8E4, con halo, flecha a 4px
+     PULSADO  #FFA8E4, con halo, flecha a 4px   <-- idéntico
+   Al hacer clic no cambiaba nada. Y el hover movía el color
+   entre dos rosas de luminancia parecida, así que lo único que
+   se percibía era que la card entera crecía, no el enlace.
 
-  align-self: flex-start;
+   Y `.work-card__link:focus-visible` no llegó a dibujarse nunca:
+   apunta a un <span>, que no es enfocable. El enlace real es la
+   card entera (<a class="work-card">).
+
+   ---- QUÉ DISPARA CADA COSA ----
+   El hover del enlace lo activa EL ENLACE, no la card. Aunque el
+   <a> sea la card entera, `:hover` en CSS se aplica a cualquier
+   elemento bajo el puntero, así que `.work-card__link:hover`
+   funciona sin que el span tenga que ser interactivo. El gesto
+   responde a donde está el ratón de verdad.
+
+   El `:active`, en cambio, va sobre la CARD: el clic vale en
+   cualquier punto de ella, y así también cubre el Enter del
+   teclado.
+   ============================================================ */
+
+.work-card__link {
+  position: relative;
+
+  margin-top: auto; /* el link siempre al pie, midan lo que midan los textos */
+  padding-top: 1rem;
 
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 
-  padding: 0.5rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
 
+  color: #f072c8;
+
+  transition: color 0.25s ease;
+}
+
+.work-card__link svg {
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* ---- LO QUE LO HACE RESALTAR: un subrayado que se despliega ----
+   Un trazo de 1.5px bajo la etiqueta, que crece de izquierda a
+   derecha al pasar por encima.
+
+   Con `transform: scaleX` sobre un ::after y NO con `width`, por
+   dos motivos: la anchura obliga a recalcular el layout en cada
+   fotograma y el transform lo resuelve el compositor; y
+   `transform-origin` permite que ENTRE por la izquierda —el
+   sentido en que se lee— en vez de crecer desde el centro.
+
+   Va esto y no el halo de `text-shadow` de antes: sobre
+   tipografía de 13px el desenfoque emborrona los perfiles de las
+   letras y se lee como brillo de plantilla, no como acabado. Es
+   el mismo criterio que ya siguen las cards del home. */
+.work-card__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 1.15rem; /* se detiene antes de la flecha: subraya el texto */
+  bottom: -2px;
+
+  height: 1.5px;
   border-radius: 999px;
 
-  font-weight: 600;
-  font-size: 0.86rem;
+  background: linear-gradient(90deg, #f072c8, var(--color-primary-light));
 
-  color: #7a3fb3;
+  transform: scaleX(0);
+  transform-origin: left center;
 
-  background: rgba(232, 199, 255, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-
-  transition:
-    transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
-    background 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
 
-.work-card:hover .work-card-button {
+/* ---- HOVER: SOLO del enlace, no de la card ---- */
+.work-card__link:hover {
+  color: #ffa8e4;
+}
+
+.work-card__link:hover::after {
+  transform: scaleX(1);
+}
+
+.work-card__link:hover svg {
   transform: translateX(4px);
-
-  background: rgba(232, 199, 255, 0.55);
-
-  box-shadow: 0 6px 16px rgba(169, 106, 247, 0.18);
 }
 
-/* espacio entre el texto y el botón cuando la
-   descripción es corta */
+/* ---- PULSADO ----
+   El clic sí vale en toda la card. La flecha vuelve a su sitio y
+   el trazo se recoge: un gesto de "recibido" que no se puede
+   confundir con el hover porque va en dirección CONTRARIA.
+   140ms, porque una respuesta al clic que tarda 300ms deja de
+   sentirse como respuesta. */
+.work-card:active .work-card__link {
+  color: #e264ae;
+}
 
-.work-card-content p + .work-card-button {
-  margin-top: 1rem;
+.work-card:active .work-card__link svg {
+  transform: translateX(0);
+  transition-duration: 0.14s;
+}
+
+.work-card:active .work-card__link::after {
+  transform: scaleX(0.55);
+  transition-duration: 0.14s;
+}
+
+/* ---- FOCO ----
+   Va en la CARD y no en el span, que no es enfocable: la regla
+   anterior no se dibujó nunca y con teclado no se veía nada. */
+.work-card:focus-visible {
+  outline: 2px solid var(--color-accent-light);
+  outline-offset: 4px;
+}
+
+/* con el foco puesto, el enlace se enciende igual que en hover:
+   así el anillo señala la card Y su acción */
+.work-card:focus-visible .work-card__link {
+  color: #ffa8e4;
+}
+
+.work-card:focus-visible .work-card__link::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-card__link svg,
+  .work-card__link::after {
+    transition: none;
+  }
+}
+
+/* ======= Pie: herramientas de IA + enlace =======
+   Un filete lo separa del cuerpo. Las herramientas van a la
+   izquierda y el enlace a la derecha, en la misma línea: el pie
+   cuenta CON QUÉ está hecho el trabajo sin robarle sitio al
+   título, que es lo que se lee primero. */
+
+.work-card__foot {
+  width: 100%;
+
+  margin-top: auto; /* siempre al fondo, midan lo que midan los textos */
+  padding-top: 0.9rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.work-card__ias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  /* min-width 0 + wrap: con nombres largos ("Adobe Premiere") el
+     pie se desbordaría empujando al enlace fuera de la card */
+  min-width: 0;
+}
+
+.work-card__ia {
+  padding: 0.26rem 0.5rem;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  color: var(--color-text-muted, #afa0cc);
+}
+
+.work-card__ia--mas {
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+/* ======= Fila de metadatos: categoría + fecha ======= */
+
+.work-card__meta {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* la categoría ya traía su propio margen inferior; aquí lo pone
+   la fila, así que se lo quitamos para no duplicarlo */
+.work-card__meta .work-card__category {
+  margin-bottom: 0;
+}
+
+.work-card__fecha {
+  flex-shrink: 0;
+
+  padding: 0.22rem 0.5rem;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+
+  color: var(--color-text-light, #cdc1e2);
 }

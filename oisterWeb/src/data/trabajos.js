@@ -5,10 +5,19 @@
    Obligatorios: id, titulo, subtitulo, texto, imagenes
    Opcionales:   categoria, etiquetas, video, ias, servicios,
                  objetivo, resultado, proyectos, cliente,
-                 industria, anio, url
+                 industria, anio, mes, url
+
+   FECHA DE LA TARJETA — dos campos, cada uno con su cometido:
+     anio: "2026"           → el chip dice "2026"
+     anio: "2026", mes: 1   → el chip dice "Ene 2026"
+
+   `mes` es un NÚMERO del 1 al 12 y solo añade el mes: el año lo
+   manda siempre `anio`, haya mes o no. Antes esto era un único
+   campo "2026-01" que se comía al `anio`, y cambiar el año no
+   surtía efecto — parecía que el campo estaba roto.
    ============================================================ */
 
-const trabajos = [
+const catalogo = [
   /* ======= 1. ACCIONA ======= */
   {
     id: 1,
@@ -68,6 +77,9 @@ const trabajos = [
 
     industria: "Infraestructura y Energía Sostenible",
 
+    /* ⚠️ mes inventado — dime el real y lo cambio (1-12) */
+    mes: 12,
+
     anio: "2025",
 
     url: "https://www.acciona.com",
@@ -89,6 +101,33 @@ const trabajos = [
       "El proceso de generación combinó imágenes producidas con IA generativa, cuidadosamente guiadas mediante prompts conceptuales, con una edición que busca un tono didáctico y pausado. La locución de la actriz de voz Elsa Pinillos aporta calidez y credibilidad al mensaje, mientras que la música de librería refuerza el tono reflexivo y armónico de la pieza.",
 
       "Este proceso a su vez dio nacimiento a un banco de imágenes capaz de dar respuesta a las distintas necesidades de comunicación y marketing — TV, RRSS, web, newsletter, CRM — asegurando una línea visual coherente y consistente en todos los puntos de contacto.",
+    ],
+
+    /* ⚠️ TEXTO REDACTADO A PARTIR DE LA DESCRIPCIÓN
+       `objetivo`, `resultado` y `entregables` no venían en el
+       briefing: están deducidos de los tres párrafos de `texto`
+       para que la ficha tenga la misma estructura que ACCIONA.
+       No hay ningún dato ni cifra que no esté ya ahí arriba, pero
+       conviene que lo revise alguien de cuenta antes de publicar. */
+    objetivo:
+      "Comunicar los principios de inversión responsable de la compañía y reforzar su compromiso con la sostenibilidad, mediante una narrativa visual generada con IA que recorra los ámbitos donde esa inversión deja huella: energía, recursos naturales y desarrollo social.",
+
+    resultado:
+      "Además de la pieza audiovisual, el proceso dio lugar a un banco de imágenes propio capaz de cubrir las necesidades de TV, redes sociales, web, newsletter y CRM, asegurando una línea visual coherente en todos los puntos de contacto.",
+
+    proyectos: [
+      "Pieza audiovisual de inversión responsable",
+      "Adaptación para redes en formato vertical",
+      "Banco de imágenes para comunicación y marketing",
+    ],
+
+    servicios: [
+      "Dirección Creativa",
+      "Generación de imágenes",
+      "Edición de vídeo",
+      "Locución",
+      "Música",
+      "Banco de imágenes",
     ],
 
     imagenes: [
@@ -117,7 +156,10 @@ const trabajos = [
 
     industria: "Gestión de Activos",
 
-    anio: "2025",
+    /* ⚠️ mes inventado — dime el real y lo cambio (1-12) */
+    mes: 4,
+
+    anio: "2026",
   },
 
   /* ======= 3. ALSEA ======= */
@@ -138,9 +180,28 @@ const trabajos = [
       "Paralelamente, trabajamos en la evolución de la estrategia de CLUB BY, el programa de fidelización de ALSEA, optimizando contenidos y comunicaciones de CRM para mejorar la personalización de la relación con los usuarios, incrementar la participación y fortalecer la conexión entre las distintas marcas del club y sus usuarios.",
     ],
 
+    /* ⚠️ TEXTO REDACTADO A PARTIR DE LA DESCRIPCIÓN
+       Igual que en BESTINVER: `objetivo`, `resultado` y
+       `entregables` están deducidos de los párrafos de `texto`
+       para igualar la ficha con la de ACCIONA. Pendiente de
+       revisión por cuenta. */
+    objetivo:
+      "Reforzar la relevancia, la consistencia y la capacidad de conversión de las comunicaciones digitales de las marcas del grupo, optimizando su estrategia de contenidos y de CRM.",
+
+    resultado:
+      "Comunicaciones de CRM más personalizadas y una relación más estrecha entre las marcas del club y sus usuarios, con contenidos sociales alineados con el territorio de cada marca: gastronomía, coctelería, deporte, música y entretenimiento.",
+
     proyectos: [
       "Contenidos para TGI Fridays",
       "Evolución de la estrategia de CLUB BY",
+    ],
+
+    servicios: [
+      "Dirección Creativa",
+      "Contenidos para Social Media",
+      "Estrategia de CRM",
+      "Producción visual",
+      "Generación de banco de imágenes",
     ],
 
     imagenes: ["/img/alsea/05_BDAY_EMAIL-BDAY-DAY_PROMO-UNREDEEMED.webp", "/img/alsea/04_BDAY_EMAIL-BDAY-DAY_PROMO-REDEEMED.gif"],
@@ -160,8 +221,53 @@ const trabajos = [
 
     industria: "Restauración",
 
+    /* ⚠️ mes inventado — dime el real y lo cambio (1-12) */
+    mes: 7,
+
     anio: "2025",
   },
 ];
+
+/* ============================================================
+   ⚠️  TRABAJOS DE DEMO — BORRAR ANTES DE PUBLICAR
+   ============================================================
+   Solo sirven para ver cómo se comporta la lista al crecer:
+   3 reales + 4 demos = 7 trabajos, que es justo el umbral donde
+   nace la segunda página en /works.
+
+   NO son proyectos reales:
+     · se llaman "DEMO 01…04", imposibles de confundir;
+     · NO tienen `cliente`, así que no ensucian la cinta de
+       marcas —que se alimenta de ese campo—;
+     · NO tienen imágenes, así que salen con el degradado de
+       relleno y se distinguen de un vistazo.
+
+   Llevan los ids más altos a propósito: con el orden por id
+   descendente, así aparecen los primeros y se ve el rodaje.
+
+   PARA APAGARLOS: MOSTRAR_DEMOS = false   (una línea)
+   PARA BORRARLOS: quita este bloque entero
+   ============================================================ */
+const MOSTRAR_DEMOS = true;
+
+const CUANTOS_DEMOS = 4;
+
+const trabajosDemo = Array.from({ length: CUANTOS_DEMOS }, (_, i) => ({
+  id: 901 + i,
+  titulo: `DEMO 0${i + 1}`,
+  categoria: ["Contenido generativo", "Vídeo con IA", "Automatización", "Marketing con IA"][i % 4],
+  subtitulo: "Trabajo de ejemplo para ver el orden y la paginación",
+  texto: ["Contenido de ejemplo."],
+  imagenes: [],
+  ias: [["Midjourney", "ChatGPT 4.0", "Runway"], ["Runway Gen-3", "ElevenLabs"], ["ChatGPT 4.0", "Zapier"], ["Flux", "Magnific AI"]][i % 4],
+  /* el mes sube con el id para que la fecha del chip concuerde
+     con el orden: DEMO 04 es el más nuevo y es el que dice Dic */
+  mes: 9 + i,
+  anio: "2026",
+}));
+
+const catalogoFinal = MOSTRAR_DEMOS ? [...catalogo, ...trabajosDemo] : catalogo;
+
+const trabajos = [...catalogoFinal].sort((a, b) => b.id - a.id);
 
 export default trabajos;

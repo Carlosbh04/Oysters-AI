@@ -1,0 +1,87 @@
+/* ============================================================
+   PÁGINA DE LA ESCENA ORÁCULO
+   ============================================================ */
+
+.eop {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  /* `height` y no `min-height`: el componente es height:100% y un
+     porcentaje solo resuelve contra una altura DEFINIDA del padre.
+     Con min-height se quedaría en 0px y la página saldría vacía. */
+  height: 100vh;
+}
+
+.eop__fondo {
+  position: absolute;
+  inset: 0;
+
+  z-index: 0;
+}
+
+/* El texto NO lleva sombra propia a propósito: si hiciera falta,
+   significaría que el velo del fondo está mal calibrado. Esta
+   página existe justo para detectar eso. */
+.eop__contenido {
+  position: relative;
+  z-index: 1;
+
+  width: min(1240px, 92%);
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.eop__rotulo {
+  margin: 0 0 1rem;
+
+  color: #e9b8ff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.eop__titulo {
+  max-width: 16ch;
+  margin: 0;
+
+  color: #f6f0ff;
+  font-size: clamp(2.2rem, 1.2rem + 3.4vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.eop__titulo em {
+  font-style: italic;
+
+  background: linear-gradient(110deg, #b76df0, #ff5fce);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.eop__texto {
+  max-width: 46ch;
+  margin: 1.4rem 0 0;
+
+  color: #cdc1e2;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.eop__cta {
+  display: inline-block;
+  margin-top: 2.2rem;
+  padding: 0.85rem 1.7rem;
+
+  border-radius: 999px;
+  background: linear-gradient(160deg, #e0489f, #8e46cc);
+
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

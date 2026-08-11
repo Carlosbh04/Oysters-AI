@@ -1,0 +1,449 @@
+/* ============================================================
+   FONDO DE CASOS DE USO
+
+   Violeta medio, no el casi negro de la primera versión. Aquel
+   venía de la referencia y era correcto para ella, pero deja la
+   sección demasiado apagada dentro de la web.
+
+   El cambio obliga a compensar en dos sitios, y sin eso el fondo
+   claro se lleva por delante lo demás:
+
+     · los contornos de los paneles suben de brillo — sobre negro
+       una línea al 40% se lee como luz, sobre violeta medio
+       desaparece;
+     · las tarjetas se cierran (ver UseCases.css), porque con el
+       fondo claro se transparentaban demasiado y el texto competía
+       con lo que pasaba por detrás.
+   ============================================================ */
+
+.ucb {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      ellipse 55% 70% at 88% 55%,
+      rgba(126, 74, 200, 0.34) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 8% 20%,
+      rgba(96, 58, 156, 0.26) 0%,
+      transparent 72%
+    ),
+    /* el degradado de base va de arriba abajo y no es plano: un
+       color liso a esta escala se ve como una mancha, y basta un
+       punto de caída para que se lea como espacio */
+    /* en la cadena de color del home: About cierra en --sec-lift,
+       así que esta arranca ahí y baja a deep (ver variables.css) */
+    linear-gradient(
+      to bottom,
+      var(--sec-lift, #56336b) 0%,
+      var(--sec-mid, #4e3069) 55%,
+      var(--sec-deep, #442f65) 100%
+    );
+
+  /* la escena no captura nada: encima van las tarjetas */
+  pointer-events: none;
+
+  /* ---- LOS z-index DE DENTRO SE QUEDAN DENTRO ----
+     Sin esto, .ucb es `absolute` con z-index auto y NO crea
+     contexto de apilamiento, así que el z-index:4 del velo de
+     abajo se escapaba a .home-casos y se pintaba por encima de
+     .uc — o sea, por encima del texto de la sección.
+
+     Costó encontrarlo porque el velo lleva `pointer-events:
+     none` y elementsFromPoint no lo ve: el navegador respondía
+     que el rótulo estaba encima de todo mientras se pintaba
+     debajo. Lo delató el píxel: el rótulo se quedaba en
+     rgb(173,119,188) cuando su color es rgb(240,171,252), justo
+     un 43% de fondo por encima. */
+  isolation: isolate;
+}
+
+/* ============================================================
+   LA COSTURA DE ARRIBA — UNA CURVA, NO DOS LÍNEAS
+
+   Los paneles nacen POR ENCIMA del borde de la sección (--y
+   negativo, a propósito: así se leen como estructura que sigue
+   fuera de cuadro) y `overflow: hidden` los corta en seco. Ese
+   corte dibujaba una recta justo debajo de la onda con la que
+   cierra "Nosotros", así que se veían DOS separaciones: la
+   curva y, cuatro dedos más abajo, una línea.
+
+   Medido en la fila del borde, el escalón era de 3,1 puntos de
+   luz a la izquierda y 1,6 a la derecha, y CERO en el centro.
+   Esa asimetría fue la que señaló a los paneles: un degradado
+   de fondo habría saltado igual en todo el ancho. Apagándolos,
+   el escalón caía a 0,6 y 0,0.
+
+   El velo lleva el color con el que arranca la sección y se
+   desvanece hacia abajo: la onda de arriba termina en ese mismo
+   tono, así que el color CONTINÚA a través del empalme y lo
+   único que se ve cruzarlo es la curva. La escena emerge desde
+   dentro en vez de empezar cortada.
+
+   ---- POR QUÉ UN VELO Y NO UNA MÁSCARA ----
+   Lo natural sería enmascarar .ucb__paneles por arriba, y es
+   justo lo que no se puede: `mask` crea agrupación y aplana el
+   `transform-style: preserve-3d`, que es lo único que hace
+   converger los paneles hacia el punto de fuga. Se perdería la
+   sala para arreglar la costura.
+   ============================================================ */
+.ucb::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+
+  height: clamp(95px, 13vh, 170px);
+
+  /* el alto es el de la onda de About (clamp 56-120px) más un
+     margen: el velo tiene que seguir tapando cuando la curva ya
+     ha terminado, o el corte reaparecería justo debajo */
+
+  /* la parada intermedia mantiene el color casi entero durante
+     el primer tercio y concentra el desvanecido en el resto: con
+     un degradado lineal puro, el velo se aclaraba tan pronto que
+     los filos cortados volvían a asomar */
+  background: linear-gradient(
+    to bottom,
+    var(--sec-lift, #56336b) 0%,
+    rgb(var(--rgb-sec-lift, 86 51 107) / 0.82) 34%,
+    rgb(var(--rgb-sec-lift, 86 51 107) / 0) 100%
+  );
+
+  pointer-events: none;
+}
+
+/* ============================================================
+   PANELES
+
+   Marcos, no losas. El giro en Y los hace converger hacia el
+   centro, que es lo que da la sensación de sala sin dibujar
+   ninguna pared.
+   ============================================================ */
+
+.ucb__paneles {
+  position: absolute;
+  inset: 0;
+
+  /* un solo contexto 3D para que todos compartan punto de fuga:
+     con uno por panel, cada uno convergería a un sitio distinto */
+  perspective: 1600px;
+  perspective-origin: 50% 45%;
+
+  transform-style: preserve-3d;
+}
+
+.ucb__panel {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+
+  width: var(--w);
+  height: var(--h);
+
+  transform: rotateY(var(--r));
+
+  border: 1px solid rgba(214, 186, 255, var(--o));
+  border-radius: 3px;
+
+  /* Un relleno mínimo, casi indetectable. No está para verse: está
+     para que el marco no parezca un rectángulo dibujado en el
+     aire, sino un cristal muy limpio. */
+  background: linear-gradient(
+    150deg,
+    rgba(214, 186, 255, 0.07),
+    rgba(160, 120, 230, 0.02)
+  );
+}
+
+/* ============================================================
+   LA FIGURA
+   ============================================================ */
+
+.ucb__figura {
+  position: absolute;
+  right: -4%;
+  bottom: 0;
+
+  display: block;
+
+  height: 88%;
+
+  /* misma razón que en el hero: el envoltorio no hereda la
+     proporción del archivo, hay que declararla */
+  width: auto;
+  aspect-ratio: 662 / 1305;
+
+  /* ---- LUZ DE CONTORNO, Y CORTA ----
+     Dos resplandores sin desplazamiento. Sin desplazamiento porque
+     una sombra desviada se lee como el filo de un recorte y una
+     centrada como una figura que emite.
+
+     Y solo dos, y de radio corto. Los `drop-shadow` se ENCADENAN:
+     cada uno se aplica sobre el resultado del anterior, no sobre
+     la imagen. Aquí había tres con radios de 10, 34 y 80px, y el
+     tercero acababa proyectando la sombra de un borrón enorme que
+     se recortaba contra la región del filtro — ése era el
+     rectángulo claro que se veía alrededor de la figura, y no
+     ningún panel.
+
+     El resplandor ancho lo pone .ucb__halo, que es un degradado
+     radial en su propio elemento y no se recorta contra nada. */
+  filter:
+    drop-shadow(0 0 8px rgba(196, 140, 255, 0.5))
+    drop-shadow(0 0 26px rgba(150, 80, 250, 0.4));
+
+}
+
+/* la máscara va en la imagen y el resplandor en su envoltorio: los
+   dos juntos se recortan el uno al otro */
+.ucb__figura img {
+  display: block;
+
+  height: 100%;
+  width: auto;
+
+  /* se funde por abajo con el negro en vez de cortarse en seco */
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 20%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 20%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* el aire violeta detrás de ella: lo único de la escena que no es
+   contorno, y hace falta — sin él ese lado se queda en negro plano
+   y la figura aparece pegada encima */
+.ucb__halo {
+  position: absolute;
+  right: -8%;
+  bottom: -10%;
+
+  width: 46%;
+  height: 92%;
+
+  border-radius: 50%;
+
+  /* sube de 0.3 a 0.42: ahora carga también con el resplandor
+     ancho que antes ponía el tercer drop-shadow */
+  background: radial-gradient(
+    ellipse 48% 46% at 54% 40%,
+    rgba(158, 92, 246, 0.42) 0%,
+    rgba(100, 44, 196, 0.18) 46%,
+    transparent 100%
+  );
+
+  filter: blur(46px);
+}
+
+/* ============================================================
+   LAS PIEDRAS
+
+   Aquí solo se dice dónde va cada una y cuánto mide. Lo que la
+   pieza ES —su composición y su niebla— lo lleva el propio
+   componente (Crystal.css).
+   ============================================================ */
+
+.ucb__gema {
+  position: absolute;
+
+  /* un resplandor corto por debajo: sobre negro puro, un objeto
+     sin halo se recorta como una pegatina */
+  filter: drop-shadow(0 0 22px rgb(var(--rgb-primary) / 0.45));
+}
+
+/* El giro va en --rot y no directamente en `transform` porque la
+   entrada anima ese mismo `transform`: si el keyframe escribiera
+   solo la traslación, al acabar dejaría la pieza sin girar. Con
+   la variable, la animación compone las dos cosas. */
+.ucb__gema--media {
+  left: 46%;
+  top: 34%;
+
+  width: 8%;
+  max-width: 112px;
+
+  --rot: 14deg;
+  transform: rotate(var(--rot));
+}
+
+/* posada sobre los anillos: su vértice inferior cae en el centro
+   de la diana, que es lo que hace que se lea apoyada y no
+   simplemente cerca */
+.ucb__gema--posada {
+  right: 12%;
+  bottom: 8%;
+
+  width: 12%;
+  max-width: 168px;
+}
+
+.ucb__gema--baja {
+  left: 28%;
+  bottom: 8%;
+
+  width: 7%;
+  max-width: 96px;
+
+  --rot: -18deg;
+  transform: rotate(var(--rot));
+}
+
+/* ============================================================
+   ANILLOS DEL SUELO
+
+   Elipses concéntricas muy aplastadas: es la huella de luz que
+   dejaba la peana, sin la peana. El brillo cae hacia fuera porque
+   el foco está en el centro.
+   ============================================================ */
+
+.ucb__anillos {
+  position: absolute;
+  right: 4%;
+  bottom: 2%;
+
+  width: 26%;
+  max-width: 380px;
+  aspect-ratio: 380 / 110;
+}
+
+.ucb__anillos i {
+  position: absolute;
+  inset: calc(var(--r) * 11%) calc(var(--r) * 11%);
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(232, 208, 255, calc(0.6 - var(--r) * 0.12));
+
+  box-shadow: 0 0 12px rgba(196, 150, 255, calc(0.34 - var(--r) * 0.07));
+}
+
+/* ============================================================
+   DETALLE DE INSTRUMENTACIÓN
+   ============================================================ */
+
+/* retícula de puntos abajo a la izquierda: se dibuja con un
+   degradado repetido en vez de con elementos, así son cero nodos
+   en el DOM */
+.ucb__puntos {
+  position: absolute;
+  left: 2%;
+  bottom: 6%;
+
+  width: 9%;
+  height: 16%;
+
+  background-image: radial-gradient(
+    circle,
+    rgba(226, 204, 255, 0.5) 1px,
+    transparent 1px
+  );
+  background-size: 11px 11px;
+
+  -webkit-mask-image: linear-gradient(to top right, #000, transparent 85%);
+  mask-image: linear-gradient(to top right, #000, transparent 85%);
+}
+
+/* triangulitos sueltos: mismo truco, un degradado cónico repetido
+   sale caro, así que van como cuatro marcas colocadas a mano con
+   sombras — barato y suficiente para el detalle que aportan */
+.ucb__marcas {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    radial-gradient(circle 2px at 6% 22%, rgba(214, 180, 255, 0.5), transparent),
+    radial-gradient(circle 2px at 41% 12%, rgba(214, 180, 255, 0.35), transparent),
+    radial-gradient(circle 2px at 55% 88%, rgb(var(--rgb-magenta) / 0.4), transparent),
+    radial-gradient(circle 2px at 92% 16%, rgba(214, 180, 255, 0.3), transparent),
+    radial-gradient(circle 2px at 24% 76%, rgba(214, 180, 255, 0.28), transparent);
+}
+
+@media (max-width: 1024px) {
+  /* en estrecho la figura se come la mitad del ancho y el texto se
+     le monta encima: se retira y se queda la escenografía */
+  .ucb__figura,
+  .ucb__gema--media {
+    display: none;
+  }
+}
+
+/* ============================================================
+   ENTRADA — FASE 1: SE COLOCA EL DECORADO
+
+   La escena se monta antes que el contenido: primero el aire y
+   la estructura, luego la figura, y al final las piezas sueltas
+   que flotan en ella. Es el orden en que se construiría el
+   plano de verdad, y hace que el texto llegue a un sitio que ya
+   existe en vez de aparecer los dos a la vez.
+
+   El disparo (.ucb--dentro) lo pone el contenedor de la
+   sección, no este componente: ver Home.jsx.
+
+   ---- NADA DE ESCALAR, NI AQUÍ NI EN LA FIGURA ----
+   La figura lleva su máscara y su resplandor en elementos
+   distintos justo para que el halo no se recorte contra las
+   repeticiones del degradado (ver arriba). Escalarla los
+   volvería a enfrentar. Todo lo de abajo es opacidad y
+   traslación, que no tocan la caja que mide la máscara.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  .ucb__paneles,
+  .ucb__figura,
+  .ucb__gema,
+  .ucb__anillos,
+  .ucb__puntos,
+  .ucb__marcas,
+  .ucb__halo {
+    opacity: 0;
+  }
+
+  /* ---- EL DECORADO SE CIERRA EN 0,87s ----
+     La escena es el ESCENARIO: tiene que estar montada pronto
+     para que lo que entra encima se lea sobre algo, pero no
+     tanto que se termine antes de que nadie la mire. Los tiempos
+     de aquí y los de las otras dos fases (UseCases.css) están
+     repartidos juntos: ver la línea de tiempo completa allí. */
+
+  /* el aire y la estructura primero: son el "dónde" */
+  .ucb--dentro .ucb__halo { animation: ucb-aparece .6s ease-out forwards; }
+  .ucb--dentro .ucb__paneles { animation: ucb-sube .6s cubic-bezier(.22,.8,.36,1) .05s forwards; }
+
+  /* la figura, que es la única masa sólida del plano */
+  .ucb--dentro .ucb__figura { animation: ucb-sube .6s cubic-bezier(.22,.8,.36,1) .14s forwards; }
+
+  /* y por último lo que flota: piedras, huella y la
+     instrumentación de las esquinas */
+  /* ucb-gema y no ucb-sube: estas piezas llevan giro propio y el
+     keyframe tiene que arrastrarlo (ver --rot más arriba) */
+  .ucb--dentro .ucb__gema--posada { animation: ucb-gema .52s cubic-bezier(.22,.8,.36,1) .26s forwards; }
+  .ucb--dentro .ucb__gema--media { animation: ucb-gema .52s cubic-bezier(.22,.8,.36,1) .31s forwards; }
+  .ucb--dentro .ucb__gema--baja { animation: ucb-gema .52s cubic-bezier(.22,.8,.36,1) .35s forwards; }
+  .ucb--dentro .ucb__anillos { animation: ucb-anillos .58s cubic-bezier(.22,.8,.36,1) .2s forwards; }
+  .ucb--dentro .ucb__puntos { animation: ucb-aparece .5s ease-out .3s forwards; }
+  .ucb--dentro .ucb__marcas { animation: ucb-aparece .5s ease-out .34s forwards; }
+
+  @keyframes ucb-aparece { to { opacity: 1; } }
+  @keyframes ucb-sube {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  /* --rot por defecto 0deg: así el mismo keyframe sirve para la
+     pieza posada, que no gira, sin escribirle una variable */
+  @keyframes ucb-gema {
+    from { opacity: 0; transform: translateY(22px) rotate(var(--rot, 0deg)); }
+    to { opacity: 1; transform: translateY(0) rotate(var(--rot, 0deg)); }
+  }
+  /* la huella se ABRE en vez de subir: es un charco de luz, y un
+     charco no llega desde abajo, se extiende */
+  @keyframes ucb-anillos {
+    from { opacity: 0; transform: scale(.82); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}

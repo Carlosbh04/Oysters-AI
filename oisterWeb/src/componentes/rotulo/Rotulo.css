@@ -1,0 +1,88 @@
+/* ============================================================
+   RÓTULO DE SECCIÓN — la forma
+
+   Los números vienen de haber medido el que peor se leía. El de
+   "Casos de uso" iba a 12px monoespaciada con 0.26em y "casi no
+   se veía"; comparado con el de proyectos, en una caja igual de
+   ancha:
+
+                      tinta   pico de luz
+     proyectos        21,4%      75,3%
+     casos de uso     13,7%      59,4%   <- no llegaba a su color
+
+   A ese cuerpo, y monoespaciada, los astiles caen por debajo del
+   píxel: todo lo que se pinta es mezcla con el fondo, así que el
+   rótulo se queda a medio tono por mucho que se le suba el
+   color. Subido a 13.5px llega a 82,9% de pico y 19,4% de tinta,
+   por encima del que servía de referencia.
+   ============================================================ */
+
+.rotulo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin: 0 0 1.4rem;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+
+  /* 0.2em: el espaciado ancho es lo que convierte una línea de
+     dos o tres palabras en rótulo, pero pasado un punto deja de
+     agrupar y empieza a dispersar — las letras se leen sueltas y
+     el bloque pierde presencia. El anterior de casos de uso iba
+     a 0.26em y era justo eso. */
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+
+  /* --rotulo-color lo pone quien lo usa, en un ancestro. Así no
+     hace falta una regla por sitio compitiendo con esta. */
+  color: var(--rotulo-color, var(--color-rotulo, #f0abfc));
+}
+
+/* El icono va en su color, distinto del texto: en el pie las
+   versalitas son blancas y el icono magenta, y sin separarlos
+   habría que elegir. */
+.rotulo__icono {
+  display: flex;
+  flex: 0 0 auto;
+
+  color: var(--rotulo-icono, var(--color-magenta, #e879f9));
+}
+
+.rotulo__icono svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* El filete. 3px y no 2px: a un píxel lógico le pasa lo mismo
+   que a la letra fina, se va en antialias y no llega a su color.
+   Un poco más corto y más grueso pesa más sin ocupar más sitio. */
+.rotulo i {
+  width: 32px;
+  height: 3px;
+  flex: 0 0 auto;
+
+  border-radius: 2px;
+
+  /* la cola se apaga hasta 0.3 y no hasta 0.15: por debajo de
+     ahí, dos tercios del filete quedaban casi invisibles */
+  background: linear-gradient(
+    to right,
+    var(--color-magenta),
+    rgb(var(--rgb-magenta) / 0.3)
+  );
+}
+
+@media (max-width: 600px) {
+  .rotulo {
+    gap: 11px;
+    font-size: 12.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .rotulo i {
+    width: 24px;
+  }
+}

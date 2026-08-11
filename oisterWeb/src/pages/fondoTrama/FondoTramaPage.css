@@ -1,0 +1,17 @@
+/* ============================================================
+   PÁGINA DEL FONDO TRAMA
+
+   ---- POR QUÉ height Y NO min-height ----
+   FondoTrama es `height: 100%`, y un porcentaje solo resuelve
+   contra una altura DEFINIDA del padre. Con `min-height: 100vh`
+   el porcentaje no tiene contra qué calcularse, el componente se
+   quedaba en 0px de alto y la página enseñaba el fondo del body:
+   un morado plano, sin trama ni degradado.
+   ============================================================ */
+
+.ftp {
+  position: relative;
+
+  width: 100%;
+  height: 100vh;
+}

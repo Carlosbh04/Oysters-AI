@@ -1,6 +1,10 @@
 /* ======= ServiceCard =======
-   Tarjeta blanca sobre el fondo lila de la sección: icono en
-   pastilla lila, título al lado, texto y "Ver más →" abajo. */
+   Tarjeta de cristal oscuro sobre el fondo morado de la
+   sección: icono en pastilla lila, título al lado, texto y
+   "Ver más →" abajo.
+   En oscuro la card NO es un bloque opaco más claro (se leería
+   como un parche gris): es un velo mínimo de blanco que deja
+   pasar el fondo, y el borde superior claro hace de filo de luz. */
 
 .service-card {
   position: relative; /* ancla del barrido de cristal */
@@ -12,13 +16,40 @@
 
   padding: 1.4rem 1.3rem 1.25rem;
 
-  background: rgba(255, 255, 255, 0.82);
+  /* ---- CRISTAL OSCURO, NO VELO BLANCO ----
+     Era `rgba(255,255,255,.07)`: un velo claro que ACLARA lo que
+     tiene detrás. Sobre el degradado liso de antes funcionaba,
+     porque no había nada que separar. Con la trama detrás dejó de
+     funcionar: la retícula y las trazas se leían a través de la
+     card con casi la misma fuerza que fuera de ella, y el borde
+     de la tarjeta desaparecía.
 
-  border: 1px solid rgba(255, 255, 255, 0.9);
+     Ahora son dos capas: un cuerpo oscuro que APAGA el fondo y le
+     devuelve el contraste al texto, y encima un velo blanco muy
+     tenue en degradado, que es lo que sigue leyéndose como
+     cristal y no como un rectángulo pintado. */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    ),
+    rgba(28, 15, 46, 0.62);
+
+  /* desenfoca el circuito que pasa por detrás: el cristal separa
+     por profundidad, no solo por color */
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+
+  /* el borde sube de 0.13 a 0.18: sobre fondo con dibujo, un filo
+     tenue se confundía con una traza más */
+  border: 1px solid rgba(255, 255, 255, 0.18);
 
   border-radius: 18px;
 
-  box-shadow: 0 10px 30px -14px rgba(109, 73, 224, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 30px -14px rgba(0, 0, 0, 0.5);
 
   /* la card no es clicable: cursor normal (el pointer vive
      solo en "Ver más") */
@@ -33,7 +64,23 @@
 .service-card:hover {
   transform: translateY(-8px) scale(1.03);
 
-  box-shadow: 0 22px 48px -14px rgba(109, 73, 224, 0.32);
+  /* al elevarse SE ENCIENDE: el velo sube un punto y aparece
+     un halo violeta — en oscuro es lo que sustituye a la
+     sombra proyectada, que aquí apenas se vería */
+  /* al elevarse el velo sube y el cuerpo se aclara un punto: la
+     card se enciende sin perder el apagado del fondo */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.06) 100%
+    ),
+    rgba(34, 19, 54, 0.66);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 22px 48px -14px rgba(0, 0, 0, 0.6),
+    0 0 40px -12px rgb(var(--rgb-primary-light) / 0.45);
 }
 
 /* ---- barrido de cristal ----
@@ -52,8 +99,8 @@
   background: linear-gradient(
     115deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.45) 45%,
-    rgba(255, 240, 252, 0.55) 55%,
+    rgba(255, 255, 255, 0.14) 45%,
+    rgba(255, 240, 252, 0.2) 55%,
     transparent 100%
   );
   transform: skewX(-18deg);
@@ -89,11 +136,13 @@
 
   background: linear-gradient(
     150deg,
-    rgba(201, 168, 255, 0.35),
-    rgba(255, 190, 245, 0.3)
+    rgb(var(--rgb-primary-light) / 0.28),
+    rgb(var(--rgb-accent-light) / 0.24)
   );
 
-  color: #6d49e0;
+  /* el icono era violeta oscuro: sobre la pastilla oscura
+     desaparecía. Ahora es la parte MÁS clara de la card. */
+  color: #E4D4FF;
 }
 
 .service-card__title {
@@ -101,7 +150,7 @@
   font-weight: 700;
   line-height: 1.25;
 
-  color: var(--color-text, #17122b);
+  color: var(--color-text, #f6f0ff);
 }
 
 /* ---- texto ---- */
@@ -112,7 +161,7 @@
   font-size: 0.85rem;
   line-height: 1.55;
 
-  color: var(--color-text-light, #5c5673);
+  color: var(--color-text-light, #cdc1e2);
 }
 
 /* ---- link ---- */
@@ -132,7 +181,7 @@
   font-size: 0.88rem;
   font-weight: 600;
 
-  color: #8757f5;
+  color: var(--color-secondary);
 
   text-decoration: none;
 

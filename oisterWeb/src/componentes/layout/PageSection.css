@@ -8,6 +8,12 @@
 .page-section {
   width: 100%;
 
+  /* `clip` y no `hidden`: recorta lo que se sale a los lados —la
+     cinta de marcas se extiende a sangre con márgenes negativos—
+     SIN crear un contenedor de scroll, que es lo que rompería
+     cualquier position:sticky de dentro. */
+  overflow-x: clip;
+
   /* svh: estable en móvil aunque la barra del navegador
      aparezca/desaparezca (mismo criterio que el hero) */
   min-height: 100svh;

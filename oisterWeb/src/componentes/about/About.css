@@ -1,0 +1,329 @@
+/* Último eslabón de la cadena de color del home (ver
+   --sec-deep/--sec-lift en variables.css): recoge el tono
+   OSCURO donde lo dejó LatestProjects y vuelve a subir al
+   claro para cerrar la página. --about-bg sigue siendo un
+   COLOR plano (= el arranque de la sección) porque los
+   fundidos de las fotos lo usan dentro de sus gradientes. */
+.about { position: relative; overflow: hidden; padding: clamp(6rem, 12vh, 8.5rem) 0 clamp(4rem, 9vh, 6.5rem); background: linear-gradient(180deg, var(--sec-deep, #442f65) 0%, var(--sec-mid, #4e3069) 55%, var(--sec-lift, #56336b) 100%); }
+/* bg-glow.svg es un radial rosa pálido pensado para fondo
+   claro: al .72 original lavaba el morado y dejaba la sección
+   plana. Bajado, funciona como lo que era, un halo suave. */
+/* La opacidad la fija la cadena de color, no el gusto: a .3 esta
+   imagen levantaba la sección 7 puntos de luz por encima de sus
+   vecinas, que usaban los mismos tokens de fondo. Ver la segunda
+   regla en variables.css. */
+.about__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: .16; }
+.about__container { position: relative; z-index: 1; width: min(var(--about-container), 92%); margin: 0 auto; }
+.about__wave { position: absolute; left: 0; right: 0; height: clamp(56px, 9vh, 120px); z-index: 1; pointer-events: none; }
+.about__wave svg { display: block; width: 100%; height: 100%; }
+.about__wave--top { top: -1px; }
+.about__wave--top path { fill: var(--about-wave-enter); }
+.about__wave--bottom { bottom: -1px; transform: rotate(180deg); }
+.about__wave--bottom path { fill: var(--about-wave-exit); }
+
+.about-hero { position: relative; min-height: clamp(39rem, 49vw, 47rem); }
+.about-hero__text { position: relative; z-index: 2; width: min(60%, 48rem); padding-top: clamp(1rem, 4vw, 4rem); }
+/* Sin regla propia: la forma la pone el componente Rotulo. Se
+   fue con ella la regleta que este rótulo llevaba DEBAJO — el
+   componente trae su propio filete delante, y dos rayas en una
+   línea de dos palabras es una de más. La clase se queda porque
+   de ella cuelga la animación de entrada. */
+
+/* TIPOGRAFÍA DEL TITULAR
+   El clamp anterior era clamp(2.35rem, 2.8vw, 4rem): 2.8vw no
+   alcanza los 2.35rem del suelo hasta los ~1345px de ventana,
+   así que en casi todo el rango de portátil el título estaba
+   CLAVADO en su tamaño mínimo y solo daba el salto al final.
+   Con el término fijo + vw la interpolación es real y el
+   titular crece de forma continua desde móvil hasta 4rem.
+   text-wrap: balance reparte las líneas para que la última no
+   se quede con una palabra suelta. */
+.about-hero__title { max-width: 25ch; font-size: clamp(2.35rem, 1.15rem + 2.45vw, 4rem); font-weight: 650; line-height: 1.12; letter-spacing: -.035em; text-wrap: balance; color: var(--about-text); }
+.about-hero__title span { color: var(--about-pink); }
+
+/* la medida en ch y no en rem: 39rem daba ~78 caracteres con la
+   fuente actual, por encima del rango legible. 62ch se mantiene
+   dentro pase lo que pase con el tamaño de fuente.
+   pretty evita que el párrafo cierre con una palabra huérfana. */
+.about-hero__desc { max-width: 62ch; margin-top: 1.65rem; font-size: clamp(1rem, .92rem + .3vw, 1.2rem); line-height: 1.62; text-wrap: pretty; color: var(--about-text-muted); }
+
+/* la máscara empieza a disolver mucho antes (opaca solo hasta
+   el 28%, ya transparente al 82%): el borde recto de la foto y
+   su viñeta gris se van del todo en vez de cortar contra el
+   morado. Sin esto se ve el rectángulo. */
+/* SIN overflow:hidden. El recorte lo hace la máscara, que llega
+   a transparente en los bordes: corta en degradado. `overflow`
+   corta en seco, y como dentro vive el halo desenfocado
+   (blur 3rem), ese corte se veía como un borde recto sobre la
+   foto. Quien recorta aquí es la máscara, nadie más. */
+.about-hero__media { position: absolute; z-index: 0; top: -1rem; right: 0; width: min(52%, 42rem); height: calc(100% + 2rem); pointer-events: none; -webkit-mask-image: radial-gradient(ellipse 58% 56% at 54% 47%, #000 42%, rgba(0,0,0,.88) 60%, transparent 80%); mask-image: radial-gradient(ellipse 58% 56% at 54% 47%, #000 42%, rgba(0,0,0,.88) 60%, transparent 80%); }
+/* Aquí había un ::after con un fundido inferior hacia el fondo.
+   Estaba apagado con `display:none` y la regla de móvil que lo
+   pintaba solo cambiaba el `background`, así que ese fundido
+   NUNCA se llegó a ver — y la sección se veía bien igual. No lo
+   revivo: la máscara radial de arriba ya disuelve los cuatro
+   bordes, incluido el de abajo. Encenderlo solo añadiría un
+   velo de color plano sobre una zona que ya es transparente. */
+/* multiply servía para fundir el fondo CLARO de la foto en la
+   página clara. Sobre morado oscuro multiplica contra el fondo
+   y hunde a la persona a negro: el fundido lo hace ya la
+   máscara radial del contenedor, así que el blend sobra. */
+.about-hero__media img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: blur(.45px) saturate(1.1) contrast(1.06); }
+.about-hero__halo { position: absolute; z-index: 0; top: 18%; right: 5%; width: 62%; aspect-ratio: 1; border-radius: var(--radius-full); background: var(--about-glow); filter: blur(3rem); }
+/* el destello grande: era var(--about-highlight), que en oscuro
+   bajó al 14% de blanco (es el velo de los cristales) y aquí
+   desaparecía. Lleva su propio blanco a plena potencia. */
+.about-hero__spark { position: absolute; z-index: 3; top: 14%; right: 28%; width: .55rem; aspect-ratio: 1; border-radius: var(--radius-full); background: #fff; box-shadow: 0 0 .5rem #fff, 0 0 1.6rem rgb(var(--rgb-accent-light) / .9), 0 0 3rem rgb(var(--rgb-primary-light) / .6); }
+
+/* ============================================================
+   AURA Y DESTELLOS DE LA FOTO
+   Van en .about-hero, NO en .about-hero__media: ese contenedor
+   tiene overflow:hidden + máscara radial, así que cualquier luz
+   que naciera dentro se recortaría justo en el borde de la foto
+   — que es exactamente donde queremos que empiece a desbordar.
+   ============================================================ */
+
+/* ---- el aura: tres focos de color fundidos detrás de la foto,
+   recogiendo los tonos de la propia imagen (rosa, violeta y el
+   azul de los trazos de luz) ---- */
+.about-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -8%;
+  right: -8%;
+  width: min(66%, 54rem);
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  background:
+    radial-gradient(circle at 62% 38%, rgba(233, 124, 199, 0.42), transparent 58%),
+    radial-gradient(circle at 34% 62%, rgb(var(--rgb-primary) / 0.40), transparent 60%),
+    radial-gradient(circle at 70% 76%, rgba(96, 148, 255, 0.24), transparent 55%);
+  filter: blur(4.5rem);
+  pointer-events: none;
+}
+
+/* ---- los destellos: cada "partícula" es una sombra de un punto
+   invisible — cero elementos extra, cero JS (el mismo truco del
+   bokeh del hero móvil). Anclado arriba a la derecha; los
+   offsets negativos los reparten hacia la izquierda y abajo,
+   rodeando la foto.
+
+   OJO con los offsets: van en rem, o sea que NO encogen con la
+   ventana. El más lejano cae a -25rem = 400px del ancla, más
+   que un móvil entero de ancho — por eso las media queries de
+   abajo escalan el conjunto en vez de dejarlo salir de pantalla
+   o caer encima del texto. ---- */
+.about-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 7%;
+  right: 5%;
+  width: 4px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-full);
+  background: transparent;
+  pointer-events: none;
+  transform-origin: top right;
+  box-shadow:
+    -2rem 3rem 3px 1px rgba(255, 255, 255, 0.85),
+    -8rem 1rem 4px 1px rgb(var(--rgb-accent-light) / 0.9),
+    -14rem 7rem 3px 0 rgb(var(--rgb-secondary) / 0.85),
+    -5rem 12rem 4px 1px rgba(255, 255, 255, 0.7),
+    -19rem 4rem 3px 0 rgba(233, 124, 199, 0.8),
+    -11rem 18rem 4px 1px rgb(var(--rgb-primary-light) / 0.8),
+    -3rem 23rem 3px 0 rgba(255, 255, 255, 0.6),
+    -22rem 14rem 3px 1px rgb(var(--rgb-accent-light) / 0.7),
+    -16rem 27rem 4px 0 rgb(var(--rgb-secondary) / 0.7),
+    -7rem 32rem 3px 1px rgba(255, 255, 255, 0.5),
+    -25rem 22rem 3px 0 rgb(var(--rgb-primary) / 0.75),
+    -13rem 37rem 4px 1px rgba(233, 124, 199, 0.6),
+    -1rem 16rem 3px 0 rgb(var(--rgb-primary-light) / 0.65),
+    -20rem 34rem 3px 0 rgba(255, 255, 255, 0.45);
+}
+
+
+/* Las tarjetas ROMPEN el tope de 48rem de la columna de texto:
+   esa medida está puesta para que el párrafo no se lea largo,
+   pero a las tarjetas las dejaba angostas y con el nombre
+   partido en dos líneas.
+   El tope en `vw` y no en `rem` es lo que impide que se metan
+   debajo de la cara al estrecharse la ventana: la foto también
+   se mide en % del contenedor, así que el límite tiene que
+   escalar con la ventana, no ser fijo.
+
+   SIN sangría izquierda. Llevaba clamp(2rem,7%,5rem), que a
+   1680px son 54px: suficiente para que el borde de las
+   tarjetas no cuadrara con el del titular ni con el de la
+   banda de valores, y demasiado poco para leerse como un
+   escalonado intencionado — parecía un error de alineación.
+   A ras del titular, las tres cosas comparten vertical. */
+.about-team { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem; margin-top: 2.5rem; width: min(calc(100% + 12rem), 58vw); }
+.about-team .reveal, .about-values .reveal { height: 100%; }
+
+/* La banda estaba en margin-top: -1rem, o sea MONTADA sobre el
+   final del hero. Como lleva backdrop-filter, no tapaba lo de
+   debajo: lo DESENFOCABA. De ahí el corte horizontal en seco a
+   la altura del cuello de la foto (nítido arriba, borroso
+   abajo) y las tarjetas de equipo cortadas por la base.
+   Ahora hay separación real: la banda empieza donde el hero
+   termina y no pisa a nadie. */
+.about-values { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); margin-top: clamp(2rem, 3.5vw, 3.5rem); overflow: hidden; border: 1px solid var(--about-border); border-radius: var(--radius-lg); background: var(--about-surface); box-shadow: var(--about-shadow); backdrop-filter: blur(1rem); }
+
+/* ============================================================
+   MOVIMIENTO
+
+   UNA capa de animación por elemento. Antes había tres sobre
+   los mismos píxeles: cada tarjeta de equipo entraba a la vez
+   con (1) la cascada del bloque .about-team, (2) la transición
+   de su envoltorio .reveal y (3) su propio keyframe
+   about-card-arrive — tres transformaciones anidadas con tres
+   duraciones distintas. Eso no se lee como coreografía, se lee
+   como algo que tiembla.
+
+   Lo que queda:
+   · La CASCADA DEL TITULAR (eyebrow → título → párrafo). Es
+     jerarquía real: dice en qué orden leer. Se queda.
+   · Las TARJETAS entran solo con su .reveal, escalonadas desde
+     el JSX (0,12s equipo · 0,08s valores). Ese escalonado ya
+     informa — te lleva de izquierda a derecha por la fila.
+
+   Lo que se fue, y por qué:
+   · about-spark en bucle infinito. La guía es explícita: las
+     animaciones infinitas son para indicadores de carga, no
+     para decoración. Y esta latía sobre la foto, que es el
+     ancla visual de la sección. El punto de luz sigue ahí,
+     ahora entra una vez y se queda.
+   · about-card-arrive y la cascada del bloque .about-team:
+     redundantes con el .reveal de cada tarjeta.
+   · El barrido de luz de la banda de valores. Competía con el
+     escalonado de las cinco tarjetas por la misma mirada en la
+     misma zona; entre un efecto que informa y uno que solo
+     decora, se queda el que informa.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  /* :not(.about-team) — las tarjetas ya no forman parte de la
+     cascada del texto, así que no deben nacer invisibles
+     esperando un keyframe que ya no existe */
+  .about-hero__text > :not(.about-team) { opacity: 0; transform: translateY(1rem); }
+  .about-hero.reveal--shown .about-hero__eyebrow { animation: about-copy-in .45s ease-out .06s forwards; }
+  .about-hero.reveal--shown .about-hero__title { animation: about-copy-in .56s cubic-bezier(.22,.8,.36,1) .14s forwards; }
+  .about-hero.reveal--shown .about-hero__desc { animation: about-copy-in .48s ease-out .26s forwards; }
+
+  /* la foto va ESTÁTICA: el flotado en bucle (about-portrait-float)
+     la escalaba un 1.5%, y al escalar reaparecía el borde recto
+     por fuera de donde la máscara lo disuelve */
+  /* el halo tampoco late: al escalar 0.92→1.08 arrastraba su
+     propio desenfoque contra el borde de la foto */
+  /* LA FOTO ENTRA DESPUÉS DEL TEXTO
+     Antes viajaba dentro del fundido del envoltorio, así que la
+     sección entera aparecía de una pieza: no se leía como una
+     entrada, se leía como un corte. Ahora primero llega lo que
+     se lee y luego se monta lo que se mira.
+
+     Se traslada el CONTENEDOR, nunca la imagen ni la escala. La
+     máscara radial vive en el contenedor y viaja con él, así que
+     el recorte en degradado sigue cayendo donde debe. Mover la
+     <img> por dentro la deslizaría bajo una máscara quieta, y
+     escalar cualquiera de los dos es exactamente lo que en su
+     día sacó el borde recto por fuera del fundido (ver el
+     comentario de .about-hero__media). */
+  .about-hero__media { opacity: 0; }
+  .about-hero.reveal--shown .about-hero__media {
+    animation: about-media-in .78s cubic-bezier(.22,.8,.36,1) .2s forwards;
+  }
+
+  /* el aura acompaña a la foto, un pelo más tarde y más lenta:
+     es luz, y la luz se enciende, no aterriza */
+  .about-hero::before { opacity: 0; }
+  .about-hero.reveal--shown::before {
+    animation: about-aura-in 1.1s ease-out .3s forwards;
+  }
+
+  /* el destello entra una sola vez, con el párrafo, y se queda */
+  .about-hero__spark { opacity: 0; }
+  .about-hero.reveal--shown .about-hero__spark { animation: about-spark-in .5s ease-out .5s forwards; }
+
+  /* Curva con rebote solo para las tarjetas de esta sección:
+     es el equivalente CSS de back.out(1.4), el easing que la
+     guía recomienda para entradas escalonadas de rejilla. Ese
+     sobrepaso mínimo al final es lo que separa un fundido de
+     una entrada con intención. Va aquí y no en Reveal.css para
+     no cambiarle la curva al resto del sitio. */
+  .about-team > .reveal,
+  .about-values > .reveal { transition-timing-function: cubic-bezier(.34, 1.35, .64, 1); }
+
+  @keyframes about-copy-in { to { opacity: 1; transform: translateY(0); } }
+  @keyframes about-media-in { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes about-aura-in { to { opacity: 1; } }
+  @keyframes about-spark-in { from { opacity: 0; transform: scale(.4); } to { opacity: .9; transform: scale(1); } }
+}
+
+/* ============================================================
+   RESPONSIVE
+
+   La composición de escritorio (texto al 60% + foto al 52%
+   solapada) se mantiene intacta hasta los 1000px. Por debajo
+   deja de funcionar: la foto se come la columna de texto y las
+   tarjetas de equipo se quedan en dos columnas de ~200px con
+   el nombre partido. Los tres saltos de abajo la desmontan por
+   orden — primero se sueltan las tarjetas, luego baja la foto,
+   luego se apila todo.
+   ============================================================ */
+
+/* ---- PORTÁTIL PEQUEÑO ----
+   Solo las tarjetas: 58vw se queda corto cuando la ventana
+   baja de 1200px. Ganan aire sin tocar la composición. */
+@media (max-width: 1200px) {
+  .about-team { width: min(calc(100% + 12rem), 62vw); }
+}
+
+/* ---- TABLETA APAISADA ----
+   La foto sigue a la derecha pero suelta a las tarjetas: pasan
+   a una columna y recuperan el ancho de la caja de texto, que
+   es donde el nombre y el cargo dejan de partirse. */
+@media (max-width: 1000px) {
+  .about-hero { min-height: auto; }
+  .about-hero__text { width: min(66%, 43rem); padding-bottom: 4rem; }
+  .about-hero__media { top: -3rem; right: -14%; width: 62%; height: calc(100% + 6rem); }
+  .about-team { grid-template-columns: 1fr; width: 100%; }
+  .about-values { grid-template-columns: repeat(3, 1fr); }
+  /* los destellos se escalan con el conjunto: en rem seguirían
+     midiendo lo mismo que en escritorio y caerían sobre el texto */
+  .about-hero::after { transform: scale(.78); }
+}
+
+/* ---- TABLETA VERTICAL ----
+   Se acabó el solapamiento: la foto baja debajo del texto, a
+   ancho completo y con proporción fija (aspect-ratio en vez de
+   una altura en rem, que recortaba distinto en cada aparato). */
+@media (max-width: 820px) {
+  .about { padding-top: clamp(4.5rem, 9vh, 6rem); }
+  .about-hero__text { width: 100%; padding-top: 0; padding-bottom: 0; }
+  .about-hero__media { position: relative; top: auto; right: auto; width: 100%; max-width: 34rem; height: auto; aspect-ratio: 4 / 5; margin: 2.5rem auto 0; }
+  .about-values { grid-template-columns: repeat(2, 1fr); }
+
+  /* el aura y los destellos estaban anclados arriba a la
+     derecha, siguiendo a la foto. Ahora la foto está abajo:
+     bajan con ella o se quedarían iluminando el texto. */
+  .about-hero::before { top: auto; bottom: 4%; right: -14%; width: min(110%, 34rem); }
+  .about-hero::after { top: auto; bottom: 34%; right: 10%; transform: scale(.62); }
+}
+
+/* ---- MÓVIL ----
+   Foto más apaisada (en 4/5 a 400px de ancho ocupaba media
+   pantalla de alto), cuerpos de texto más grandes y una sola
+   columna de valores. El texto de las tarjetas sube de 13-14px
+   a ~15px: por debajo de eso el cuerpo se lee mal en mano. */
+@media (max-width: 560px) {
+  .about__container { width: 90%; }
+  .about-hero__media { aspect-ratio: 4 / 3.4; margin-top: 2rem; }
+  .about-hero__desc { margin-top: 1.35rem; }
+  .about-values { grid-template-columns: 1fr; }
+  .about-hero::after { transform: scale(.44); }
+}
+
+@media (max-width: 380px) {
+  .about-hero__media { aspect-ratio: 1; }
+}

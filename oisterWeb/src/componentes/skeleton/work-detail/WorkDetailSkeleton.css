@@ -1,0 +1,310 @@
+/* ============================================================
+   HUECO DE CARGA DEL DETALLE
+
+   La maquetación NO está aquí: el JSX reutiliza las clases de
+   WorkDetail.css (.wd, .wd-tarjeta, .wd-rejilla, .wd-meta…), así
+   que las medidas son las mismas por construcción y no pueden
+   desviarse. Este archivo solo tiene lo propio del hueco: el
+   color de las piezas y los pocos bloques que no existen en la
+   página real (el marco de la galería, el vídeo).
+   ============================================================ */
+
+/* ---- las piezas del shimmer, en oscuro ----
+   SkeletonPiece las pinta claras porque es compartido con el
+   resto de skeletons del sitio, que van sobre fondo claro. Aquí
+   se sobrescribe SOLO dentro de este hueco. */
+.wd-hueco .skeleton {
+  background: rgba(120, 96, 175, 0.26);
+}
+
+/* las tarjetas del hueco no reaccionan al ratón: no hay nada
+   que señalar todavía */
+.wd-hueco .wd-tarjeta {
+  pointer-events: none;
+}
+
+/* ---- hero ---- */
+
+.wd-hueco__volver {
+  margin: 0 auto 28px 0;
+}
+
+.wd-hueco__pildora {
+  margin: 0 auto 18px;
+  border-radius: 999px;
+}
+
+/* Mismo clamp que .wd-hero__titulo, MULTIPLICADO POR SU
+   INTERLINEADO (1.08). Sin el factor el hueco medía el tamaño de
+   la fuente y no el de la caja de línea, y se quedaba 4px corto.
+
+   Es el único número duplicado que queda entre el hueco y la
+   página; si el clamp o el line-height cambian allí, hay que
+   cambiarlos aquí. */
+.wd-hueco__titulo {
+  height: calc(clamp(28px, 4vw, 52px) * 1.08);
+  margin-inline: auto;
+}
+
+.wd-hueco__sub {
+  margin: 14px auto 0;
+}
+
+.wd-hueco__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+
+  margin-top: 22px;
+}
+
+/* ---- galería ---- */
+
+.wd-hueco__marco {
+  aspect-ratio: 16 / 9;
+
+  border: 1px solid rgba(160, 120, 255, 0.18);
+  border-radius: 16px;
+
+  background: rgba(20, 12, 40, 0.55);
+
+  /* el marco real vive dentro de un contenedor con este relleno
+     lateral para que quepan las flechas por fuera */
+  margin-inline: 26px;
+}
+
+.wd-hueco__contador {
+  margin: 10px 26px 0 auto;
+}
+
+/* ---- ficha ---- */
+
+.wd-hueco__icono {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+
+  border-radius: 10px;
+}
+
+/* ---- tarjetas de contenido ---- */
+
+.wd-hueco__rotulo {
+  margin-bottom: 14px;
+}
+
+.wd-hueco__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+
+/* La píldora lleva dentro su texto real, invisible pero
+   ocupando sitio. Una anchura estimada falla por poco, y ese
+   poco basta para que la fila envuelva a dos líneas en el hueco
+   y a una en la página: 30px de salto. Así la mide el navegador
+   con la misma tipografía y no puede desviarse. */
+/* SIN line-height propio: los chips de la página no lo declaran
+   y heredan el del navegador. Ponerle 1.45 aquí los hacía 3px
+   más altos por fila. */
+.wd-hueco__chip {
+  padding: 6px 14px;
+
+  /* el borde de 1px suma altura y los chips reales lo llevan:
+     sin él eran 2px menos por fila */
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  color: transparent;
+}
+
+/* ---- destacado ---- */
+
+.wd-hueco__video {
+  aspect-ratio: 16 / 9;
+
+  border: 1px solid rgba(160, 120, 255, 0.18);
+  border-radius: 14px;
+
+  background: rgba(20, 12, 40, 0.55);
+}
+
+/* ---- tarjeta de cita ----
+   Mismos rellenos y misma tipografía que .wd-destacado__ficha /
+   .wd-destacado__cita. La altura la marca el texto real que va
+   dentro en color transparente, igual que en los párrafos. */
+.wd-hueco__cita-caja {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  height: 100%;
+
+  padding: 30px 32px;
+}
+
+.wd-hueco__comillas {
+  margin-bottom: 6px;
+}
+
+.wd-hueco__cita {
+  margin: 0;
+
+  font-size: clamp(16px, 1.5vw, 19px);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+
+  color: transparent;
+
+  /* bandas al interlineado real: 19 × 1.6 = 30.4px */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(120, 96, 175, 0.26) 0,
+    rgba(120, 96, 175, 0.26) 20px,
+    transparent 20px,
+    transparent 30.4px
+  );
+}
+
+/* ---- cierre ---- */
+
+.wd-hueco__cta-icono {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+.wd-hueco__cta-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wd-hueco__cta-boton {
+  width: 178px;
+  height: 54px;
+  flex-shrink: 0;
+
+  border-radius: 999px;
+}
+
+/* ============================================================
+   PIEZAS QUE LLEVAN SU TEXTO REAL DENTRO
+
+   Todas siguen el mismo principio: el contenido de verdad va
+   dentro pero en `color: transparent`, así que ocupa exactamente
+   el sitio que ocupará y el navegador lo mide con la misma
+   tipografía. Estimar anchos y números de línea fallaba siempre
+   por poco, y ese poco es justo lo que se ve como un salto.
+   ============================================================ */
+
+.wd-hueco__etiqueta {
+  font-size: 13px;
+  line-height: 1.45;
+
+  border-radius: 6px;
+
+  color: transparent;
+}
+
+/* ---- párrafos ----
+   El fondo no es un bloque macizo sino bandas repetidas cada
+   24.5px, que es el interlineado real (14px × 1.75). Así se ve
+   como líneas de texto y no como un ladrillo, pero la ALTURA la
+   marca el texto de verdad que hay dentro. */
+.wd-hueco__parrafo {
+  margin: 0;
+  max-width: 70ch;
+
+  font-size: 14px;
+  line-height: 1.75;
+
+  color: transparent;
+
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(120, 96, 175, 0.26) 0,
+    rgba(120, 96, 175, 0.26) 16px,
+    transparent 16px,
+    transparent 24.5px
+  );
+}
+
+.wd-hueco__parrafo + .wd-hueco__parrafo {
+  margin-top: 1.1em;
+}
+
+/* ---- ítems de lista ---- */
+
+.wd-hueco__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.wd-hueco__caja {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+
+  margin-top: 1px;
+
+  border-radius: 5px;
+}
+
+.wd-hueco__texto-item {
+  font-size: 14px;
+  line-height: 1.45;
+
+  border-radius: 5px;
+
+  color: transparent;
+}
+
+/* ---- celdas de la ficha ----
+   Rótulo y valor con su texto real dentro. El valor es el que
+   importa: hay industrias largas que envuelven a dos líneas, y
+   con una altura fija la barra entera se quedaba 17px corta. */
+.wd-hueco__meta-rotulo {
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  border-radius: 4px;
+
+  color: transparent;
+}
+
+.wd-hueco__meta-valor {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+
+  border-radius: 5px;
+
+  color: transparent;
+}
+
+/* El vídeo cuando rellena la columna derecha. NO lleva
+   `aspect-ratio: auto`: en la página el 16/9 sigue vigente y es
+   quien marca los 258px de partida. Poniéndolo en auto el hueco
+   se quedaba en su mínimo de 200px y salían 94px de salto. */
+.wd-hueco__video--relleno {
+  flex: auto;
+
+  min-height: 200px;
+}
+
+/* en columna única el bloque se estrecha (ver WorkDetail.css) y
+   el tope de 70ch sobra, igual que en la página */
+.wd-rejilla--estrecha .wd-hueco__parrafo {
+  max-width: none;
+}

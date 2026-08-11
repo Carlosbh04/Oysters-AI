@@ -1,0 +1,441 @@
+/* ======= WorksSkeleton =======
+   Eco de WorkList.css + WorkCard.css: mismos max-width,
+   márgenes, altos de línea y paddings. El skeleton va dentro
+   del mismo PageSection que la página real (App.jsx), así el
+   reveal solo cambia shimmer → contenido sin salto de layout.
+   Sin animación de entrada propia (App.jsx puede montarlo
+   dos veces seguidas — transitioning + Suspense fallback). */
+
+.ws-skeleton {
+  /* width 100%: dentro del PageSection (flex column) el
+     margin auto evita el stretch y el skeleton se encoge a su
+     contenido (más estrecho que la página real). Al forzar
+     width 100% + max-width 1200 ocupa exactamente lo mismo
+     que .work-list. */
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 30px 30px 80px;
+}
+
+/* ---- cabecera ----
+   Márgenes idénticos a .work-list-head: badge, título
+   (margin 1.1rem/0.9rem con glow debajo) y subtítulo
+   (margin-top 0.9rem, una línea de 1.05rem×1.6). */
+
+.ws-skeleton__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  max-width: 640px;
+  margin: 0 auto 2.6rem;
+
+  text-align: center;
+}
+
+.ws-skeleton__title {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin: 1.1rem 0 0.9rem;
+}
+
+.ws-skeleton__title-glow {
+  position: absolute;
+
+  left: 50%;
+  bottom: -12px;
+
+  transform: translateX(-50%);
+
+  border-radius: 999px;
+}
+
+/* ---- ALTURAS QUE SIGUEN A LA TIPOGRAFÍA REAL ----
+   Estas piezas llevaban un alto FIJO en píxeles, y el alto real
+   no es fijo: el h1 usa clamp() y los textos parten en dos
+   líneas al estrecharse. Cuadraba a 1440px y se desviaba en
+   cuanto bajabas — medido, 185px a 390px de ancho.
+
+   La regla que se sigue aquí es la misma que en la cinta de
+   marcas: copiar la FÓRMULA, no el resultado. Así el hueco
+   acompaña al contenido a cualquier ancho en vez de acertar solo
+   en el que se midió. */
+
+/* el h1 real: clamp(2.8rem, 7vw, 4.6rem) con line-height 1.02.
+   Los dos números van copiados de WorkList.css a propósito: si
+   allí cambia el tamaño del titular, aquí hay que cambiarlo
+   también o el hueco deja de cuadrar (ya pasó una vez).
+
+   ⚠️ Clase propia, NO `.ws-skeleton__title > .skeleton`. Ese
+   selector parecía equivalente y no lo era: dentro de este
+   contenedor hay DOS piezas, el título y el filete de luz de
+   4px que va debajo. El hijo directo cazaba las dos y dejaba
+   el filete en 64px — una barra gorda donde iba una raya. */
+.ws-skeleton__title-pieza {
+  height: calc(clamp(2.8rem, 7vw, 4.6rem) * 1.02) !important;
+}
+
+/* La línea de apoyo copia la CAJA de la real (.work-list-claim
+   más su chip): mismo tipo, mismo relleno y misma interlínea, y
+   el texto de dentro va oculto pero MIDIENDO. Así el ancho y el
+   alto salen solos y no hay que estimarlos. */
+.ws-skeleton__claim {
+  display: inline-block;
+
+  margin-top: 1.1rem;
+  /* el relleno del chip, que es lo que hace la caja más alta que
+     una línea de texto normal */
+  padding: 0.26em 0.72em;
+
+  font-family: inherit;
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+
+  border-radius: 999px !important;
+
+  /* `visibility: hidden` en el texto y no `display:none`: hace
+     falta que siga midiendo */
+  color: transparent;
+}
+
+/* 0.82rem × 1.2 ≈ 16px, y a dos líneas por debajo de 500px */
+.ws-skeleton__stat-label {
+  height: 16px !important;
+}
+
+@media (max-width: 500px) {
+  .ws-skeleton__stat-label {
+    height: 32px !important;
+  }
+}
+
+/* ---- barra de métricas ----
+   Misma altura que .work-list-stat: icono 44px + valor
+   (1.5rem×1.15 ≈ 27px) + etiqueta (0.82rem ≈ 13px). */
+
+.ws-skeleton__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  margin-bottom: 3rem;
+
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.ws-skeleton__stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+
+  padding: 1.4rem 1rem;
+}
+
+.ws-skeleton__stat + .ws-skeleton__stat {
+  border-left: 1px solid rgba(169, 106, 247, 0.12);
+}
+
+.ws-skeleton__stat-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+
+  border-radius: 14px !important;
+}
+
+.ws-skeleton__stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* ---- grid de cards ----
+   Misma anatomía que la .work-card nueva (eco del home):
+   card blanca, imagen ENMARCADA (margin 0.6rem arriba/lados,
+   radius 12, aspect 4/3) + cuerpo con padding 1.1/1.2/1.2
+   (categoría 12px con margin-bottom 0.55rem, título 20px,
+   texto 2 líneas de 20.5px con margin-top 0.5rem, link 16px
+   con margin-top auto y padding-top 1rem). */
+
+.ws-skeleton__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+
+  margin-bottom: 3rem;
+}
+
+.ws-skeleton__card {
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.ws-skeleton__card-media {
+  aspect-ratio: 4 / 3;
+
+  margin: 0.6rem 0.6rem 0;
+
+  border-radius: 12px;
+
+  background: linear-gradient(150deg, #2a1a4a 0%, #7a3fd4 55%, #e35bd0 100%);
+}
+
+.ws-skeleton__card-image {
+  width: 100%;
+  height: 100%;
+
+  border-radius: 12px !important;
+}
+
+.ws-skeleton__card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  flex: 1;
+
+  padding: 1.1rem 1.2rem 1.2rem;
+}
+
+.ws-skeleton__card-body > .skeleton:nth-child(1) {
+  margin-bottom: 0.55rem;
+}
+
+.ws-skeleton__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  margin-top: 0.5rem;
+}
+
+.ws-skeleton__card-link {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+/* ---- píldoras de filtro ----
+   Eco de .work-filtro: mismos márgenes elásticos, mismo hueco y
+   los mismos 44px de alto, que es lo único que mueve la rejilla. */
+
+.ws-skeleton__filtro {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+
+  margin: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.75rem, 4vw, 3rem);
+}
+
+/* La píldora del hueco copia la CAJA de la real (.work-filtro__chip
+   en FiltroCategorias.css): mismo alto, mismo relleno, mismo hueco
+   y la misma tipografía. Con eso, el texto de dentro mide
+   exactamente lo mismo aquí que allí y el ancho sale solo. */
+.ws-skeleton__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  height: 44px !important;
+  padding: 0 1.1rem;
+  flex-shrink: 0;
+
+  border-radius: 999px !important;
+
+  /* el borde de la real es de 1px y también ocupa */
+  border: 1px solid transparent;
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* el hueco del icono: 16px, como el <svg> de la píldora real */
+.ws-skeleton__chip-icono {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+/* `visibility: hidden` y NO `display: none` ni `opacity: 0`:
+   hace falta que el texto siga MIDIENDO. Con display:none la
+   píldora se encogería y volveríamos al problema; con opacity el
+   texto se leería a través del shimmer. */
+.ws-skeleton__chip-texto,
+.ws-skeleton__chip-num {
+  visibility: hidden;
+}
+
+.ws-skeleton__chip-num {
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .ws-skeleton__filtro {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
+    overflow: hidden;
+  }
+}
+
+/* ---- paginación ----
+   Eco de .work-pag: botones de 44px y el mismo margen negativo
+   de -16px que se come parte del hueco de la rejilla. */
+
+.ws-skeleton__pag {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+
+  margin-top: -16px;
+}
+
+.ws-skeleton__pag-btn {
+  width: 44px !important;
+  height: 44px !important;
+  flex-shrink: 0;
+
+  border-radius: 12px !important;
+}
+
+/* ---- cinta de marcas ----
+   Eco de .marcas (MarcasMarquee.css). Los clamp son LOS MISMOS
+   que los de allí a propósito: copiando valores fijos el hueco
+   solo cuadraría al ancho en que se midió, y a 900px o a 640px
+   volvería el salto. Medido: 327px de alto total a 1440px,
+   234px a 900px y 213px a 640px, cinta y hueco idénticos. */
+
+.ws-skeleton__marcas {
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+  margin-bottom: clamp(3.5rem, 7vw, 6rem);
+
+  /* a sangre, igual que la cinta real */
+  margin-inline: calc(50% - 50vw);
+
+  padding: clamp(1.6rem, 3vw, 2.4rem) 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ws-skeleton__marcas-titulo {
+  /* el rótulo real: 0.72rem × 1.4 de interlínea ≈ 16px */
+  margin-bottom: clamp(1rem, 2vw, 1.4rem);
+}
+
+.ws-skeleton__marcas-pista {
+  display: flex;
+  align-items: center;
+  gap: clamp(2.75rem, 5vw, 6rem);
+
+  /* no se recorta con overflow: al ir a sangre, los extremos
+     se salen de la ventana igual que en la cinta real */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* ---- banda CTA ----
+   Icono 52px + texto (h2 1.25rem ≈ 24px, p 0.95rem ≈ 18px) +
+   botón 44px. */
+
+.ws-skeleton__cta {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+
+  padding: 1.8rem 2.4rem;
+
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.ws-skeleton__cta-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+
+  border-radius: 16px !important;
+}
+
+.ws-skeleton__cta-text {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ws-skeleton__cta-btn {
+  flex-shrink: 0;
+  border-radius: 999px !important;
+}
+
+/* ---- responsive: mismos breakpoints que WorkList ---- */
+
+@media (max-width: 1000px) {
+  .ws-skeleton__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .ws-skeleton__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ws-skeleton__stat + .ws-skeleton__stat {
+    border-left: none;
+  }
+
+  .ws-skeleton__stat:nth-child(even) {
+    border-left: 1px solid rgba(169, 106, 247, 0.12);
+  }
+
+  .ws-skeleton__stat:nth-child(n + 3) {
+    border-top: 1px solid rgba(169, 106, 247, 0.12);
+  }
+}
+
+@media (max-width: 800px) {
+  .ws-skeleton {
+    padding: 20px 20px 60px;
+  }
+
+  .ws-skeleton__grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .ws-skeleton__cta {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.6rem 1.4rem;
+  }
+}

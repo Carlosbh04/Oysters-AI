@@ -1,0 +1,517 @@
+/* ============================================================
+   ORQUESTACIÓN IMPULSADA POR IA
+
+   Sin color de fondo en ninguna regla: debajo va EscenaServicio y
+   lo que se pinte aquí la tapa. Lo único opaco son las fichas,
+   los beneficios y el lavado del bloque de proceso, y siempre por
+   la misma razón que en sus tres hermanas — llevan texto sobre
+   una escena con corredor de luz, y una superficie translúcida
+   ahí no se lee.
+
+   Mismos tokens que ellas (--or-acento, --or-caja...) para que
+   los cuatro apartados de "Cómo lo hacemos" se lean como uno.
+   ============================================================ */
+
+.or {
+  position: relative;
+  z-index: 1;
+
+  width: min(1560px, 92%);
+  margin: 0 auto;
+
+  --or-acento: var(--color-magenta, #e879f9);
+  --or-rgb: var(--rgb-magenta, 232 121 249);
+  --or-filo: rgb(var(--or-rgb) / 0.22);
+  --or-caja: rgba(14, 10, 24, 0.72);
+}
+
+/* ============================================================
+   BLOQUE 1 · EL ARGUMENTO
+   ============================================================ */
+
+.or__cabecera {
+  padding: clamp(5rem, 11vh, 8rem) 0 clamp(3rem, 7vh, 5rem);
+}
+
+/* ---- INTRO: TRES COLUMNAS ----
+   Discurso · diagrama · capacidades. Es el reparto medido en la
+   maqueta (23,5% / 55% / 21%) y NO el de Personalización, donde
+   las fichas van sueltas encima del escenario.
+
+   Aquí pueden ser una columna de verdad porque el diagrama trae
+   sus seis nodos dibujados dentro: no hay nada que superponer, y
+   una rejilla normal es más robusta que cinco posiciones en % —
+   no hay forma de que dos cajas se pisen al cambiar el ancho. */
+.or__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 2fr) minmax(0, 0.78fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: center;
+}
+
+.or__discurso {
+  max-width: 32rem;
+}
+
+/* ---- LA ESCALA DEL TITULAR SE MIDE, NO SE HEREDA ----
+   Mismo asunto que en Personalización: la primera línea es UNA
+   palabra —"Orquestación", doce letras— y una palabra no parte.
+   Con la escala de Aprendizaje y Contenido (que rematan en
+   4,6rem) se saldría de su columna, que además aquí es la más
+   estrecha de las cuatro páginas: la rejilla es de tres
+   columnas, no de dos.
+
+   La palabra mide 5,97 veces el cuerpo de letra —medido sobre la
+   fuente real con su letter-spacing, no estimado: a ojo salía
+   5,5 y con ese número se seguía saliendo entre 15 y 36px— y la
+   columna es una fracción fija del ancho de ventana, así que el
+   máximo que cabe es una recta por el origen: de ahí un vw
+   pelado. El tope de 3,5rem lo impone el `max-width: 32rem` del
+   discurso, que a partir de ~1720px deja de crecer.
+
+   3,25vw deja entre 10 y 15px de aire en todo el rango. Si se
+   cambia el titular, se remide. */
+.or__titulo {
+  margin: 0;
+
+  font-size: clamp(2.1rem, 3.25vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+
+  /* la sombra la pide el corredor de luz del fondo, que cruza
+     justo por detrás y le come el blanco al titular */
+  text-shadow: 0 2px 4px rgba(10, 3, 22, 0.5), 0 8px 34px rgba(10, 3, 22, 0.6);
+}
+
+.or__titulo span {
+  display: block;
+
+  background: linear-gradient(105deg, #ff5fce 0%, #c065ff 55%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* la letra es transparente para dejar ver el degradado: una
+     sombra se vería A TRAVÉS de ella, como una mancha dentro de
+     cada trazo */
+  text-shadow: none;
+}
+
+.or__entradilla {
+  margin: 1.6rem 0 0;
+
+  color: #cdc1e2;
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.08rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+
+  text-shadow: 0 2px 14px rgba(10, 3, 22, 0.55);
+}
+
+.or__entradilla strong {
+  color: #f6f0ff;
+  font-weight: 600;
+}
+
+/* ---- EL DIAGRAMA ----
+   Una imagen y nada más: ni caja de proporción fija ni piezas
+   colocadas encima, porque el diagrama entero —cerebro, líneas y
+   los seis nodos con su rótulo— viene dentro del webp. */
+.or__escena {
+  margin: 0;
+}
+
+.or__diagrama {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  /* Sin mix-blend-mode: el webp trae alfa de verdad, con el
+     resplandor en los píxeles semitransparentes, así que el
+     navegador lo compone solo. */
+}
+
+/* ---- LA COLUMNA DE CAPACIDADES ---- */
+
+.or__capacidades {
+  display: grid;
+  gap: clamp(0.7rem, 1.2vw, 1.1rem);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.or-ficha {
+  padding: clamp(0.8rem, 1vw, 1.15rem);
+
+  border: 1px solid rgb(var(--or-rgb) / 0.22);
+  border-radius: 14px;
+
+  background: rgba(14, 10, 24, 0.82);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  transition: border-color 0.24s ease, transform 0.24s ease;
+}
+
+.or-ficha:hover {
+  border-color: rgb(var(--or-rgb) / 0.5);
+  transform: translateY(-3px);
+}
+
+/* El icono va DENTRO del título y no como columna aparte: en la
+   maqueta comparte renglón con el rótulo y el texto arranca a la
+   izquierda del todo, no sangrado bajo él. */
+.or-ficha__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  margin: 0 0 0.5rem;
+
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* sin marco: en esta maqueta los iconos de las fichas son glifos
+   sueltos, no pastillas. El color los ata igual a la familia. */
+.or-ficha__icono {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+
+  color: #e9b8ff;
+}
+
+.or-ficha__icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.or-ficha__texto {
+  margin: 0;
+
+  color: rgba(226, 218, 244, 0.86);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   BLOQUE 2 · EL PROCEDIMIENTO
+   ============================================================ */
+
+.or__proceso {
+  position: relative;
+
+  padding: clamp(4rem, 9vh, 6.5rem) 0 clamp(4rem, 9vh, 6rem);
+
+  border-top: 1px solid rgb(var(--or-rgb) / 0.14);
+
+  scroll-margin-top: 6rem;
+}
+
+/* ---- UN LAVADO, NO UNA CAJA ----
+   Aquí vive el texto más pequeño de la página y por detrás pasa
+   lo más movido de la escena: la figura de mármol cae justo tras
+   los pasos 04 y 05. Un degradado que se desvanece por arriba y
+   por abajo calma la zona sin dibujar ningún borde: se percibe
+   como que ahí hay menos ruido, no como una tarjeta. Mismo
+   recurso, y mismo motivo, que en las otras tres. */
+.or__proceso::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* se sale por los lados: con `inset: 0` el borde del velo
+     coincidiría con el arranque del titular y se leería como una
+     caja. Cabe en el margen del contenedor. */
+  left: calc(-1 * clamp(1.25rem, 2.8vw, 2.75rem));
+  right: calc(-1 * clamp(1.25rem, 2.8vw, 2.75rem));
+  z-index: -1;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(18, 10, 28, 0.78) 14%,
+    rgba(18, 10, 28, 0.78) 86%,
+    transparent 100%
+  );
+
+  pointer-events: none;
+}
+
+.or__proceso-rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 2.28fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+.or__subtitulo {
+  margin: 0;
+
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  text-shadow: 0 2px 18px rgba(10, 3, 22, 0.55);
+}
+
+.or__proceso-entradilla {
+  margin: 1rem 0 0;
+
+  color: #b8a8d4;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+/* ---- los cinco pasos ---- */
+
+.or__pasos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.or-paso {
+  position: relative;
+
+  padding: 0 clamp(0.5rem, 1.3vw, 1.1rem);
+
+  text-align: center;
+}
+
+.or-paso__num {
+  display: block;
+  margin-bottom: 0.85rem;
+
+  color: rgb(var(--or-rgb) / 0.6);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+/* ---- AQUÍ EL ICONO SÍ VA EN UN ANILLO ----
+   Y no es una incoherencia con las fichas de arriba, que van con
+   el glifo suelto: es lo que hace la maqueta, y tiene sentido —
+   los pasos son la cadena numerada y el círculo es lo que les da
+   peso de "estación" del recorrido. Redondo, no cuadrado como en
+   Aprendizaje y Contenido, porque la línea que los une aquí es
+   una flecha horizontal y el círculo no le opone esquinas. */
+.or-paso__icono {
+  display: inline-grid;
+  place-items: center;
+
+  width: 62px;
+  height: 62px;
+  margin-bottom: 0.9rem;
+
+  border: 1px solid rgb(var(--or-rgb) / 0.4);
+  border-radius: 50%;
+
+  /* el degradado radial finge la luz que en la maqueta sale del
+     centro del círculo; el box-shadow la derrama un poco fuera */
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(var(--or-rgb) / 0.22) 0%,
+    rgb(var(--or-rgb) / 0.05) 60%,
+    transparent 100%
+  );
+  box-shadow: 0 0 18px rgb(var(--or-rgb) / 0.18);
+
+  color: #e9b8ff;
+}
+
+.or-paso__titulo {
+  margin: 0 0 0.5rem;
+
+  color: #f6f0ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.or-paso__texto {
+  margin: 0;
+
+  color: rgba(226, 218, 244, 0.86);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+/* anclada al borde derecho y a la altura del icono, para que
+   encadene con el paso siguiente */
+.or-paso__union {
+  position: absolute;
+  right: 0;
+  top: 3.6rem;
+
+  transform: translateX(50%);
+
+  color: rgb(var(--or-rgb) / 0.45);
+}
+
+/* ============================================================
+   BLOQUE 3 · LOS BENEFICIOS
+   ============================================================ */
+
+.or__beneficios {
+  padding: 0 0 clamp(4.5rem, 10vh, 7.5rem);
+}
+
+.or__beneficios-rejilla {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 1.8vw, 1.5rem);
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.or-beneficio {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding: clamp(1.1rem, 1.6vw, 1.5rem);
+
+  border: 1px solid rgb(var(--or-rgb) / 0.22);
+  border-radius: 16px;
+
+  background: var(--or-caja);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  transition: border-color 0.24s ease, transform 0.24s ease;
+}
+
+.or-beneficio:hover {
+  border-color: rgb(var(--or-rgb) / 0.5);
+  transform: translateY(-3px);
+}
+
+.or-beneficio__icono {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+
+  /* la coloca a la altura de la línea del título, que empieza
+     algo más abajo que el borde de la tarjeta */
+  margin-top: 0.15rem;
+
+  color: #e9b8ff;
+}
+
+.or-beneficio__titulo {
+  margin: 0 0 0.4rem;
+
+  color: #f6f0ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.or-beneficio__texto {
+  margin: 0;
+
+  color: rgba(226, 218, 244, 0.86);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+/* ============================================================
+   PANTALLAS MEDIAS Y ESTRECHAS
+   ============================================================ */
+
+@media (max-width: 1080px) {
+  /* ---- LAS TRES COLUMNAS SE DESHACEN ----
+     El diagrama trae texto DENTRO, así que estrecharlo hasta un
+     tercio lo vuelve ilegible antes que a ninguna otra pieza. Se
+     le da el ancho entero: discurso arriba, diagrama debajo y las
+     capacidades en dos columnas al pie. */
+  .or__intro {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .or__discurso {
+    max-width: 40rem;
+  }
+
+  .or__capacidades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .or__proceso-rejilla {
+    grid-template-columns: 1fr;
+  }
+
+  .or__pasos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.2rem 1rem;
+  }
+
+  /* con dos columnas la cadena se rompe: la flecha del segundo
+     apuntaría al hueco y confundiría el orden */
+  .or-paso__union {
+    display: none;
+  }
+
+  .or__beneficios-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .or__capacidades {
+    grid-template-columns: 1fr;
+  }
+
+  .or__pasos {
+    grid-template-columns: 1fr;
+    gap: 1.7rem;
+  }
+
+  .or-paso {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 1rem;
+    align-items: start;
+
+    padding: 0;
+    text-align: left;
+  }
+
+  .or-paso__num {
+    grid-column: 1 / -1;
+    margin-bottom: 0.4rem;
+  }
+
+  .or-paso__icono {
+    grid-row: span 2;
+    margin-bottom: 0;
+  }
+
+  .or__beneficios-rejilla {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .or-ficha,
+  .or-beneficio {
+    transition: none;
+  }
+}

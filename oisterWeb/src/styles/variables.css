@@ -2,6 +2,12 @@
    VARIABLES GLOBALES — fuente única de verdad
    (fusión de los dos :root anteriores; en tokens duplicados
    se conserva el valor que ya ganaba en cascada)
+
+   TEMA OSCURO — morado profundo + rosa
+   El rosa (--color-accent) es deliberadamente MÁS CLARO que
+   el morado (--color-primary): es el color que "sube" sobre
+   el fondo oscuro y marca acentos, CTA y highlights.
+   Los nombres de token NO cambian: solo sus valores.
 ========================================================== */
 
 :root{
@@ -10,84 +16,188 @@
        BRAND
     ========================== */
 
-    --color-primary:#a96af7;
-    --color-primary-light:#F3BDF1;
-    --color-primary-dark:#D96BC5;
-    --color-secondary:#e7b6ff;
-    --color-accent:#E7B5F5;
+    /* morado: el color base de la marca sobre fondo oscuro */
+    --color-primary:#8B5CF6;
+    --color-primary-light:#B794FF;
+    --color-primary-dark:#6D3FD1;
+
+    /* lila de apoyo (texto sobre oscuro, líneas, iconos) */
+    --color-secondary:#C9A8FF;
+
+    /* rosa: acento, más claro que el morado */
+    --color-accent:#E070BE;
+    --color-accent-light:#F090D4;
+
+    /* magenta de acento fuerte: el más saturado de la paleta, para
+       lo que tiene que llamar (filos encendidos, filetes) */
+    --color-magenta:#E879F9;
+
+    /* el de los rótulos de sección va aparte y MÁS CLARO que el
+       magenta: son versalitas de 13,5px, o sea texto pequeño, y
+       el magenta saturado se queda en 3,9:1 sobre los fondos del
+       home. Este da 5,5:1 y además llega a su color entero al
+       pintarse, que es lo que hace que se lea. */
+    --color-rotulo:#F0ABFC;
+
+    /* ==========================
+       CANALES SUELTOS
+
+       Los mismos colores de arriba pero en canales separados, para
+       poder escribir `rgb(var(--rgb-primary) / .4)` y tener el
+       morado de marca CON transparencia sin repetir sus números.
+
+       Sin esto, cada transparencia obliga a escribir el color a
+       mano, y ahí es donde se cuelan las variantes: medido antes de
+       montarlos, la portada tenía 423 colores escritos a mano y 252
+       distintos, con siete familias que eran el mismo color con
+       desviaciones de dos o tres puntos por canal.
+    ========================== */
+
+    --rgb-primary:139 92 246;
+    --rgb-primary-light:183 148 255;
+    --rgb-primary-dark:109 63 209;
+    --rgb-secondary:201 168 255;
+    --rgb-accent:224 112 190;
+    --rgb-accent-light:240 144 212;
+    --rgb-magenta:232 121 249;
 
     /* ==========================
        NEUTRAL
     ========================== */
 
-    --color-dark:#15161C;
-    --color-surface:#1C1D25;
+    --color-dark:#261A38;
+    --color-surface:#43305F;
 
     --color-white:#ffffff;
 
-    --color-text:#111827;
-    --color-text-light:#5b6172;
-    --color-text-muted:#8D8D8D;
+    --color-text:#F6F0FF;
+    --color-text-light:#CDC1E2;
+    --color-text-muted:#AFA0CC;
 
-    --color-border:#E6E6E6;
+    --color-border:#5B4478;
 
     /* ==========================
        SURFACES / BACKGROUND
+       El morado lleva rojo de más (R>G, R cerca de B): no es
+       un violeta frío, tira a ciruela. De ahí sale el "toque
+       rosado" del fondo sin necesidad de teñir cada sección.
     ========================== */
 
-    --color-bg:#f8edf8;
-    --surface:#FCFCFC;
-    --surface-light:#FAFAFA;
+    --color-bg:#372550;
+    --surface:#43305F;
+    --surface-light:#4F3A6E;
+
+    /* ==========================
+       CADENA DE COLOR DE LAS SECCIONES (HOME)
+       Dos tonos que se ALTERNAN a lo largo del scroll. Cada
+       sección empieza EXACTAMENTE donde terminó la anterior y
+       viaja hacia el otro tono; la siguiente devuelve el viaje.
+       Así los empalmes son invisibles y el home no se va
+       aclarando sin freno: respira (oscuro→claro→oscuro→claro).
+
+       El orden actual del home:
+         Hero        · onda de cierre ....... deep
+         HowWeWork   · deep → lift
+         Latest      · lift → deep
+         About       · deep → lift
+         UseCases    · lift → deep
+
+       Si insertas una sección nueva, mira en qué tono termina
+       su vecina de arriba y arranca ahí: es la única regla.
+
+       ---- Y LA SEGUNDA REGLA: LO QUE VA ENCIMA ----
+       Encadenar las bases no basta. Medido en pantalla, dos
+       secciones que usaban EXACTAMENTE esta cadena daban 25,7%
+       y 32,7% de luz: siete puntos de diferencia que venían de
+       los halos y las imágenes de fondo, no de los tokens.
+
+       Así que lo que decide el salto no es con qué color
+       arranca la sección, sino cuánta luz le echa encima. La
+       banda a respetar es 29-32% de luminosidad HSL medida en
+       los márgenes; si una capa nueva se sale de ahí, hay que
+       bajarle la opacidad, no cambiarle el tono.
+    ========================== */
+
+    --sec-deep:#442F65;   /* el tono OSCURO de la alternancia */
+    --sec-lift:#56336B;   /* el tono CLARO (ciruela) */
+    --sec-mid:#4E3069;    /* punto medio: la parada del 50% */
+
+    /* Los dos extremos también en canales sueltos: los velos de
+       empalme necesitan ESE MISMO color con alfa 0 para
+       desvanecerse sin virar. El claro lo usa .ucb::after y el
+       oscuro el arranque del pie, que es quien recoge el final
+       de la página. */
+    --rgb-sec-lift:86 51 107;
+    --rgb-sec-deep:68 47 101;
+
+    /* ---- ARRANQUE DEL PIE ----
+       El color con el que el pie empalma con la página de encima.
+       Son dos familias, medidas justo sobre la costura: las
+       páginas claras cierran sobre el 30% de luz y las oscuras
+       sobre el 12%. Quién es cada una lo decide App.jsx, que es el
+       único que conoce la ruta antes de pintar. */
+    --pie-claro:#442F65;
+    --rgb-pie-claro:68 47 101;
+    --pie-oscuro:#22152E;
+    --rgb-pie-oscuro:34 21 46;
 
     /* ==========================
        GRADIENTS
     ========================== */
 
+    /* fondo: base morada con tres focos de luz — rosa arriba
+       a la izquierda, violeta a la derecha y un rebote rosa
+       desde abajo que impide que la parte baja se apague */
     --gradient-bg:
-        radial-gradient(circle at 15% 20%,rgba(255,208,232,.8),transparent 35%),
-        radial-gradient(circle at 85% 20%,rgba(174,121,255,.55),transparent 40%),
-        linear-gradient(135deg,#fde8f4 0%,#f4d8fb 50%,#d7c4ff 100%);
+        radial-gradient(circle at 12% 18%,rgba(233,124,199,.23),transparent 45%),
+        radial-gradient(circle at 88% 22%,rgba(150,100,250,.23),transparent 45%),
+        radial-gradient(circle at 50% 100%,rgba(224,112,190,.14),transparent 55%),
+        linear-gradient(135deg,#37254F 0%,#402B5F 50%,#4B3172 100%);
 
+    /* títulos: sube en luminancia para leerse sobre el oscuro */
     --gradient-title:
         linear-gradient(
             90deg,
-            #7d5cff,
-            #9d6cff,
-            #bf82ff
+            #B794FF,
+            #D68CFF,
+            #F090D4
         );
 
     --gradient-primary:
         linear-gradient(
             135deg,
-            #F7B8EB 0%,
-            #F3BDF1 45%,
-            #EFC3F8 100%
+            #E070BE 0%,
+            #D46BD0 45%,
+            #A96AF7 100%
         );
 
     --gradient-button:
         linear-gradient(
             135deg,
-            #F49BE4 0%,
-            #EC8EF0 45%,
-            #D97BF3 100%
+            #F090D4 0%,
+            #D96BC5 45%,
+            #8B5CF6 100%
         );
 
     /* ==========================
        SHADOWS
+       En oscuro la sombra negra casi no se ve: se apoya en
+       negro MÁS denso + un halo de color para dar relieve.
     ========================== */
 
     --shadow-sm:
-        0 6px 20px rgba(0,0,0,.15);
+        0 6px 20px rgba(0,0,0,.45);
 
     --shadow-lg:
-        0 20px 50px rgba(0,0,0,.25);
+        0 20px 50px rgba(0,0,0,.55);
 
     --shadow-card:
-        0 20px 60px rgba(0,0,0,.06),
-        0 4px 12px rgba(0,0,0,.03);
+        0 20px 60px rgba(0,0,0,.45),
+        0 4px 12px rgba(0,0,0,.30);
 
     --shadow-soft:
-        0 30px 80px rgba(80,40,130,.12);
+        0 30px 80px rgba(0,0,0,.45),
+        0 0 60px rgba(139,92,246,.10);
 
     /* ==========================
        LAYOUT
@@ -113,13 +223,40 @@
 
     --transition:.35s ease;
 
+    /* ABOUT
+       Los "cristales" pasan de blanco translúcido sobre claro
+       a blanco MUY tenue sobre oscuro: en dark, un velo del
+       20% de blanco se ve lechoso, no de cristal. */
+    /* color PLANO de arranque de About (= --sec-deep): los
+       fundidos de las fotos lo meten dentro de un gradiente y
+       necesitan un color, no una cadena */
+    --about-bg: #442F65;
+    --about-container: 1700px;
+    /* enter = color EXACTO donde TERMINA LatestProjects (el
+       tono oscuro de la cadena). Si no coincide al píxel
+       aparece una banda recta sobre la curva.
+       exit = donde TERMINA About: la onda de abajo la recorta
+       el body, así que va en el tono claro con el que cierra. */
+    --about-wave-enter: var(--sec-deep, #442f65);
+    --about-wave-exit: var(--sec-lift, #56336b);
+    --about-surface: rgba(255,255,255,.05);
+    --about-surface-strong: rgba(255,255,255,.09);
+    --about-border: rgba(255,255,255,.12);
+    --about-line: rgba(183,148,255,.22);
+    --about-pink: #E070BE;
+    --about-text: var(--color-text);
+    --about-text-muted: var(--color-text-light);
+    --about-highlight: rgba(255,255,255,.14);
+    --about-glow: rgba(224,112,190,.30);
+    --about-shadow: 0 22px 60px rgba(0,0,0,.45);
+
     /* ==========================
        HEADER
     ========================== */
 
-    --header-line:#EBC7F7;
-    --header-line-glow:rgba(235,199,247,.45);
+    --header-line:#C9A8FF;
+    --header-line-glow:rgba(201,168,255,.40);
     --header-spark:#FFF9FE;
-    --header-spark-glow:rgba(247,184,235,.45);
+    --header-spark-glow:rgba(240,144,212,.55);
 
 }

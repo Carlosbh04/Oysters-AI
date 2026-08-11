@@ -1,22 +1,34 @@
 import "./DesktopMenu.css";
 import { NavLink } from "react-router-dom";
+import useIrASeccion from "../../hooks/useIrASeccion";
 import { useEffect, useState } from "react";
 import { ChevronRight, ArrowUpRight } from "lucide-react";
 /* Con react-icons: FiChevronRight / FiArrowUpRight de "react-icons/fi" */
 
+/* `seccion` marca las entradas que no son páginas sino anclas de
+   la portada. Iban a /about y /services, que no existen como
+   rutas: las dos acababan en la página de "no encontrado". */
 const NAV_ITEMS = [
-  { label: "Nosotros", to: "/about" },
-  { label: "Qué hacemos", to: "/services" },
+  { label: "Nosotros", to: "/#nosotros", seccion: "nosotros" },
+  { label: "Qué hacemos", to: "/#que-hacemos", seccion: "que-hacemos" },
   {
     label: "Cómo lo hacemos",
     children: [
-      { label: "Aprendizaje impulsado por IA", to: "/services#aprendizaje" },
-      { label: "Contenido impulsado por IA", to: "/services#contenido" },
-      { label: "Personalización impulsada por IA", to: "/services#personalizacion" },
-      { label: "Orquestación impulsada por IA", to: "/services#orquestacion" },
+      { label: "Aprendizaje impulsado por IA", to: "/services/aprendizaje-ia" },
+      /* Los cuatro tienen ya su página. Los tres de abajo montan
+         de momento solo el fondo compartido y un marcador: el
+         contenido llega después. */
+      { label: "Contenido impulsado por IA", to: "/services/contenido-ia" },
+      { label: "Personalización impulsada por IA", to: "/services/personalizacion-ia" },
+      { label: "Orquestación impulsada por IA", to: "/services/orquestacion-ia" },
     ],
   },
-  { label: "Casos de uso", to: "/use-cases" },
+  /* Ancla de la portada, no página propia: iba a /use-cases, que
+     no existe como ruta y caía en "no encontrado". `seccion`
+     activa el scroll suave, igual que "Nosotros" y "Qué
+     hacemos" — ver useIrASeccion. */
+  { label: "Casos de uso", to: "/#casos-de-uso", seccion: "casos-de-uso" },
+
   { label: "Trabajos", to: "/works" },
   {
     label: "Recursos",
@@ -31,26 +43,50 @@ const NAV_ITEMS = [
 const num = (i) => String(i + 1).padStart(2, "0");
 
 function DesktopMenu({ isOpen, onClose }) {
+  const irASeccion = useIrASeccion();
+
   const [openSubmenu, setOpenSubmenu] = useState(null);
 
-  useEffect(() => {
-    if (!isOpen) setOpenSubmenu(null);
-  }, [isOpen]);
+  const closeMenu = () => {
+    setOpenSubmenu(null);
+    onClose();
+  };
 
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        setOpenSubmenu(null);
+        onClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  /* ---- CERRADO NO PUEDE HABER SUBMENÚ ABIERTO ----
+     `closeMenu` reinicia openSubmenu, pero solo lo llaman el
+     overlay, Escape y los propios enlaces. La HAMBURGUESA no:
+     el Header cambia isMenuOpen por su cuenta. Resultado
+     reproducible: despliegas "Cómo lo hacemos", cierras con la
+     hamburguesa, vuelves a abrir y el acordeón sigue abierto.
+
+     Se ajusta aquí, en el render, y no en un efecto: es el caso
+     que React documenta para corregir estado cuando cambia una
+     prop, y evita el re-render en cascada que provoca un
+     setState dentro de useEffect. La guarda impide el bucle.
+
+     Y se pone en el propio componente y no en el Header porque
+     openSubmenu es suyo: cualquier otra forma de cerrar que se
+     añada mañana queda cubierta sin acordarse de nada. */
+  if (!isOpen) {
+    if (openSubmenu !== null) setOpenSubmenu(null);
+    return null;
+  }
 
   return (
     <>
-      <div className="desktop-menu__overlay" onClick={onClose} />
+      <div className="desktop-menu__overlay" onClick={closeMenu} />
 
       <nav className="desktop-menu" aria-label="Navegación principal">
         <ul className="desktop-menu__list">
@@ -99,7 +135,7 @@ function DesktopMenu({ isOpen, onClose }) {
                         <NavLink
                           to={child.to}
                           className="desktop-menu__sublink"
-                          onClick={onClose}
+                          onClick={closeMenu}
                           tabIndex={openSubmenu === item.label ? 0 : -1}
                         >
                           {child.label}
@@ -124,8 +160,9 @@ function DesktopMenu({ isOpen, onClose }) {
               >
                 <NavLink
                   to={item.to}
+                  onClickCapture={item.seccion ? irASeccion(item.seccion) : undefined}
                   className="desktop-menu__row"
-                  onClick={onClose}
+                  onClick={closeMenu}
                 >
                   <span className="desktop-menu__num" aria-hidden="true">
                     {num(i)}
@@ -147,7 +184,7 @@ function DesktopMenu({ isOpen, onClose }) {
             ES
           </button>
 
-          <NavLink to="/contact" className="desktop-menu__cta" onClick={onClose}>
+          <NavLink to="/contact" className="desktop-menu__cta" onClick={closeMenu}>
             Hablemos
           </NavLink>
         </div>

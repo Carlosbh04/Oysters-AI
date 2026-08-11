@@ -1,0 +1,102 @@
+/* ======= Skeleton =======
+   Placeholder de carga con shimmer en la paleta de marca
+   (base lila pálido, brillo blanco cruzando).
+
+   ---- POR QUÉ EL BRILLO VA EN UN ::after Y NO EN background-position ----
+   Antes el shimmer se hacía moviendo `background-position` de un
+   degradado ancho. Se lee igual, pero cuesta muchísimo más:
+   background-position es una propiedad de PINTADO, así que el
+   navegador tiene que REPINTAR cada pieza en cada fotograma. Con
+   una docena de piezas no se nota; el skeleton de /works tiene
+   73, y ahí sí.
+
+   Medido en /works, con la intro por delante:
+     · con aquel shimmer  → 95 ms por fotograma
+     · sin shimmer        → 57 ms
+     · el home, de referencia → 61 ms
+   O sea, 38 ms por fotograma que se iban solo en repintar.
+
+   Ahora la base es un color fijo (no se repinta nunca) y el
+   brillo es una banda en un ::after que cruza con `transform:
+   translateX`. Transform lo resuelve el compositor: cero
+   repintado, da igual cuántas piezas haya. */
+
+.skeleton {
+  display: block;
+
+  position: relative;
+  /* recorta la banda del ::after a la forma de la pieza, así que
+     las esquinas redondeadas de cada variante siguen valiendo sin
+     tener que repetirlas abajo */
+  overflow: hidden;
+
+  background: rgba(233, 224, 250, 0.9);
+
+  border-radius: 8px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.95) 50%,
+    transparent 65%
+  );
+
+  /* arranca fuera por la izquierda */
+  transform: translateX(-100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton::after {
+    animation: skeletonShimmer 2.6s ease-in-out infinite;
+  }
+}
+
+/* ---- NADA DE ANIMAR LO QUE NO SE VE ----
+   En cualquier ruta que no sea el home, el skeleton se monta
+   DETRÁS de la intro desde el primer render (ver App.jsx), y la
+   intro es opaca y a pantalla completa. Sin esta regla, las 73
+   piezas de /works se animan durante los ~4 s que dura la intro
+   sin que nadie las vea — y le roban fotogramas justo a la
+   animación que sí está mirando el usuario.
+
+   `:not(.is-leaving)`: en cuanto la intro empieza a fundirse ya
+   se transparenta y el skeleton asoma, así que el shimmer tiene
+   que estar corriendo para entonces. */
+.app:has(.intro-animation:not(.is-leaving)) .skeleton::after {
+  animation: none;
+}
+
+@keyframes skeletonShimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---- variantes ---- */
+
+.skeleton--line {
+  width: 100%;
+  height: 0.85rem;
+}
+
+.skeleton--title {
+  width: 55%;
+  height: 1.6rem;
+  border-radius: 10px;
+}
+
+.skeleton--circle {
+  border-radius: 50%;
+}
+
+.skeleton--block {
+  width: 100%;
+  height: 140px;
+  border-radius: 18px;
+}

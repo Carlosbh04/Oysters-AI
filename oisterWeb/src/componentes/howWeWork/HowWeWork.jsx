@@ -1,6 +1,8 @@
 import "./HowWeWork.css";
+import Rotulo from "../rotulo/Rotulo";
 import ServiceCard from "./ServiceCard";
 import LightDust from "../lightDust/LightDust";
+import FondoTrama from "../fondoTrama/FondoTrama";
 import howWeWork from "../../data/howWeWork";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,15 +12,23 @@ function HowWeWork() {
 
   /* La sección detecta por sí misma cuándo está en pantalla
      (≈ cuando la ostra completa su viaje y se acopla) y
-     enciende halo + sombra. Autosuficiente: no depende de
-     variables publicadas por la escena 3D. Reversible: al
-     scrollear de vuelta arriba, las luces se apagan. */
+     enciende halo + sombra.
+     Reset ASIMÉTRICO: solo se apaga si sale del viewport por
+     ABAJO (top > 0 = has vuelto arriba) → al volver a bajar
+     rehace su entrada. Si sale por ARRIBA (top < 0 = sigues
+     bajando), se queda encendida. */
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setLanded(entry.intersectionRatio >= 0.45),
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.45) {
+          setLanded(true);
+        } else if (entry.boundingClientRect.top > 0) {
+          setLanded(false); // salió por abajo: subiste
+        }
+      },
       { threshold: [0, 0.45, 1] }
     );
 
@@ -32,6 +42,12 @@ function HowWeWork() {
       className={`how-we-work ${landed ? "how-we-work--landed" : ""}`}
       id="que-hacemos"
     >
+      {/* trama tecnológica. `ft--sin-base` le quita su degradado
+          propio: aquí manda el de la sección, que es el que enlaza
+          sin costura con el hero de arriba y con "Nuestros
+          trabajos" de abajo. La trama solo pone el dibujo. */}
+      <FondoTrama className="how-we-work__trama ft--sin-base" />
+
       {/* polvo de luz cayendo: llena el aire de la sección */}
       <LightDust />
 
@@ -43,8 +59,7 @@ function HowWeWork() {
             de suelo que la recibe. */}
         <div className="how-we-work__scene" aria-hidden="true">
           {/* halo de luz + sombra de agua: invisibles hasta que
-              la ostra completa el viaje (se revelan con
-              --h-scroll-p, que Oyster.jsx publica en :root) */}
+              la sección entra en pantalla */}
           <div className="how-we-work__halo" />
           <div className="how-we-work__glow" />
           <div className="how-we-work__shadow" />
@@ -52,7 +67,7 @@ function HowWeWork() {
 
         {/* ===== Columna derecha: contenido ===== */}
         <div className="how-we-work__content">
-          <p className="how-we-work__eyebrow">Qué hacemos</p>
+          <Rotulo className="how-we-work__eyebrow">Qué hacemos</Rotulo>
 
           <h2 className="how-we-work__title">
             Soluciones de IA y marketing

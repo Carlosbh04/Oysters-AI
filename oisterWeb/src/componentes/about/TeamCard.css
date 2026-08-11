@@ -1,0 +1,213 @@
+/* ============================================================
+   TARJETA DE EQUIPO
+
+   Dos columnas: retrato a sangre a la izquierda (ocupa el alto
+   completo, sin margen) y cuerpo de texto a la derecha.
+
+   La foto sube de 34% a 42%. Estuvo baja mientras el botón de
+   LinkedIn vivía encima de ella y el recuadro del placeholder
+   flotaba centrado: con la columna estrecha, el retrato salía
+   casi 1:2 y recortaba fatal. Ahora que la columna es más ancha
+   la proporción es la de un retrato de verdad.
+
+   min-height 19rem: la tarjeta es más alta que antes, como en
+   el mockup. Ya no sobra sitio porque el botón de LinkedIn
+   cierra la columna de texto por abajo.
+   ============================================================ */
+/* height:100% es lo que iguala las dos tarjetas. El .reveal que
+   las envuelve sí estira a la altura de la fila (About.css),
+   pero la tarjeta de dentro se quedaba a la altura de SU
+   contenido: con biografías de distinta longitud, una salía
+   más alta que la otra. min-height es el suelo; height:100%
+   las lleva a las dos a la altura de la más alta. */
+.team-card { display: grid; grid-template-columns: 42% 1fr; height: 100%; min-height: 19rem; overflow: hidden; border: 1px solid var(--about-border); border-radius: var(--radius-md); background: var(--about-surface); box-shadow: var(--about-shadow); backdrop-filter: blur(1rem); transition: transform .28s cubic-bezier(.22,.8,.36,1), background .28s ease, box-shadow .28s ease; }
+/* :focus-within iguala a quien navega con teclado: al llegar al
+   botón de LinkedIn la tarjeta se levanta igual que con el ratón */
+.team-card:hover, .team-card:focus-within { transform: translateY(-.35rem); background: var(--about-surface-strong); box-shadow: var(--shadow-soft); }
+
+/* el hueco de la foto era lila SÓLIDO (--color-primary-light →
+   --color-secondary): en tema claro era un pastel más de la
+   paleta, en oscuro es un ladrillo luminoso pegado al lado de
+   la tarjeta. Ahora es el mismo tinte, pero como VELO sobre el
+   cristal: se lee como hueco reservado, no como bloque. */
+.team-card__media { position: relative; display: grid; overflow: hidden; place-items: stretch; min-height: 100%; background: linear-gradient(145deg, rgb(var(--rgb-primary-light) / .16), rgb(var(--rgb-accent-light) / .1)); }
+.team-card__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+/* el placeholder OCUPA la columna con un margen, en vez de ser
+   un recuadro pequeño flotando en el centro: así se lee como
+   "aquí va la foto" y no como un elemento suelto. Se va solo
+   en cuanto data/about.js tenga la imagen. */
+.team-card__placeholder { display: grid; margin: .9rem; place-items: center; padding: .5rem; border: 1px dashed var(--about-border); border-radius: var(--radius-sm); color: var(--about-text-muted); font-size: .72rem; text-align: center; text-transform: uppercase; letter-spacing: .08em; }
+
+/* ------------------------------------------------------------
+   CUERPO
+   Columna flex para que el botón de LinkedIn pueda empujarse al
+   fondo con margin-top:auto. align-items:flex-start impide que
+   el botón se estire a todo el ancho.
+   ------------------------------------------------------------ */
+.team-card__body { display: flex; flex-direction: column; align-items: flex-start; padding: 1.9rem 1.6rem 1.6rem; }
+/* el nombre baja de 1.5rem a 1.4rem: con la foto al 42% la
+   columna de texto es más estrecha y "Carlos Restrepo" a
+   1.5rem se partía en dos líneas */
+.team-card__name { font-size: clamp(1.1rem, .9vw + .7rem, 1.4rem); line-height: 1.15; letter-spacing: -.02em; text-wrap: balance; color: var(--about-text); }
+.team-card__role { margin-top: .5rem; font-size: .9rem; font-weight: 600; line-height: 1.35; text-wrap: balance; color: var(--about-pink); }
+.team-card__role::after { content: ""; display: block; width: 1.8rem; height: 2px; margin-top: .9rem; background: var(--about-pink); }
+/* el margen inferior de la biografía es el hueco MÍNIMO hasta
+   el botón; el margin-top:auto del botón se come el resto */
+.team-card__bio { margin: 1rem 0 1.35rem; font-size: .86rem; line-height: 1.6; text-wrap: pretty; color: var(--about-text-muted); }
+
+/* ------------------------------------------------------------
+   BOTÓN DE LINKEDIN
+   margin-top:auto lo ancla al fondo de la columna: la tarjeta
+   puede crecer con biografías más largas y el botón sigue
+   cerrando abajo, sin dejar hueco muerto.
+   Conserva su disco oscuro: sobre el cristal de la tarjeta se
+   lee como un botón y no como un icono suelto.
+   ------------------------------------------------------------ */
+/* ángulo animable del filamento. Registrarlo con @property es lo
+   que permite INTERPOLARLO: una variable normal no se puede
+   animar, el navegador la trata como texto. Mismo recurso que ya
+   usa el CTA de "Nuestros proyectos" (--lp-spin). */
+@property --lk-giro {
+  syntax: "<angle>";
+  initial-value: 0turn;
+  inherits: false;
+}
+
+.team-card__linkedin {
+  position: relative;
+
+  margin-top: auto;
+  display: grid;
+  place-items: center;
+  /* 2.75rem = 44px: el mínimo táctil. Estaba en 2.3rem (37px),
+     por debajo del umbral en el que el dedo falla el objetivo */
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgb(var(--rgb-accent-light) / .4);
+  border-radius: var(--radius-full);
+  color: #F7C8E8;
+  background: rgba(28, 16, 46, .62);
+  backdrop-filter: blur(.4rem);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+  text-decoration: none;
+  transition:
+    transform .3s cubic-bezier(.22,.8,.36,1),
+    background .3s ease,
+    color .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease;
+}
+
+/* ---- EL FILAMENTO ----
+   Un hilo de luz recorriendo el borde. Antes el hover rellenaba
+   el disco entero de rosa→lila: un botón de 44px convertido en
+   una mancha de color sólido, que es mucho peso visual para un
+   enlace secundario y compite con el retrato de al lado.
+
+   Cómo funciona: un conic-gradient que gira (de ahí el @property
+   de arriba) recortado a un ARO de 1,5px. El recorte lo hace la
+   máscara doble con `exclude`: una capa cubre toda la caja y otra
+   solo la caja de contenido, y al excluir una de la otra
+   sobrevive únicamente el marco. Sin ese truco haría falta un
+   elemento extra o un SVG. */
+.team-card__linkedin::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px; /* grosor del hilo */
+
+  background: conic-gradient(
+    from var(--lk-giro),
+    transparent 0turn,
+    rgb(var(--rgb-accent-light) / .9) .10turn,
+    #fff .16turn,
+    rgb(var(--rgb-primary-light) / .9) .22turn,
+    transparent .34turn
+  );
+
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+
+/* hover: el disco solo se INSINÚA (un velo rosa sobre el oscuro,
+   no un relleno), el icono pasa a blanco, sube 2px y se enciende
+   el filamento girando.
+   :focus-visible comparte el mismo estado: quien navega con
+   teclado ve exactamente lo mismo que quien usa el ratón. */
+.team-card__linkedin:hover,
+.team-card__linkedin:focus-visible {
+  transform: translateY(-2px);
+  color: #fff;
+  border-color: transparent;
+  background: rgb(var(--rgb-accent-light) / .16);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, .4),
+    0 0 22px rgb(var(--rgb-accent) / .28);
+}
+
+.team-card__linkedin:hover::before,
+.team-card__linkedin:focus-visible::before {
+  opacity: 1;
+  animation: lk-orbita 1.5s linear infinite;
+}
+
+@keyframes lk-orbita {
+  to { --lk-giro: 1turn; }
+}
+
+.team-card__linkedin:focus-visible { outline: 2px solid #F7C8E8; outline-offset: 3px; }
+.team-card__linkedin:active { transform: translateY(0); transition-duration: .12s; }
+
+.team-card__linkedin span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.team-card__linkedin svg { width: 1.15rem; height: 1.15rem; }
+
+/* con motion reducido los botones cambian de color, pero no se
+   mueven; la tarjeta tampoco se levanta */
+@media (prefers-reduced-motion: reduce) {
+  .team-card__linkedin,
+  .team-card__linkedin:hover,
+  .team-card__linkedin:focus-visible,
+  .team-card__linkedin:active,
+  .team-card:hover,
+  .team-card:focus-within { transform: none; }
+
+  /* el filamento aparece, pero QUIETO: sigue marcando el estado
+     de hover sin un bucle infinito girando */
+  .team-card__linkedin:hover::before,
+  .team-card__linkedin:focus-visible::before { animation: none; }
+}
+
+/* ------------------------------------------------------------
+   TABLETA · la tarjeta ya no comparte fila con nadie (About.css
+   la pasa a una columna en 1000px), así que se ensancha mucho:
+   el retrato pierde peso relativo y la biografía se acota en ch
+   para no irse a líneas de 100 caracteres.
+   ------------------------------------------------------------ */
+@media (max-width: 1000px) {
+  .team-card { grid-template-columns: 30% 1fr; min-height: 15rem; }
+  .team-card__bio { max-width: 68ch; }
+}
+
+/* ------------------------------------------------------------
+   MÓVIL · el reparto lado a lado deja de funcionar por debajo
+   de ~480px: 30% de 320px son 96px de foto y el texto se queda
+   sin sitio. La tarjeta pasa a vertical — retrato arriba con
+   proporción fija, texto debajo a ancho completo — y el cuerpo
+   sube de 13,8px a 15,2px.
+   ------------------------------------------------------------ */
+@media (max-width: 560px) {
+  .team-card { grid-template-columns: 1fr; min-height: 0; }
+  .team-card__media { aspect-ratio: 3 / 2; min-height: 0; }
+  .team-card__placeholder { margin: 1.1rem; }
+  .team-card__body { padding: 1.5rem 1.35rem 1.5rem; }
+  .team-card__bio { font-size: .95rem; line-height: 1.6; }
+  .team-card__role { font-size: .95rem; }
+}

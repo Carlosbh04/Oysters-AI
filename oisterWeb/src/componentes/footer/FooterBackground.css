@@ -1,0 +1,382 @@
+/* ============================================================
+   FONDO DEL PIE — la escena nocturna
+
+   Los diales están todos en :root de .fb, para poder mover la
+   escena entera sin buscar números por el archivo.
+   ============================================================ */
+
+.fb {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  /* la escena no captura nada: encima va la tarjeta del pie */
+  pointer-events: none;
+
+  /* ---- LOS z-index DE DENTRO SE QUEDAN DENTRO ----
+     Sin esto, .fb es `absolute` con z-index auto y NO crea
+     contexto de apilamiento: cualquier capa de aquí con
+     z-index propio se escaparía al contenedor y podría acabar
+     pintándose por encima del contenido del pie. Ya pasó con la
+     escena de casos de uso, y costó encontrarlo porque estas
+     capas llevan `pointer-events: none` y elementsFromPoint no
+     las ve — el navegador dice que el texto está encima
+     mientras se pinta debajo. */
+  isolation: isolate;
+
+  /* ---- DIALES ---- */
+
+  /* el violeta de los alambres. Uno solo para todos: lo que
+     cambia entre cerca y lejos es la OPACIDAD, no el tono —
+     igual que en la realidad, donde la distancia desatura pero
+     no cambia el color de la fuente */
+  --fb-linea: 196 132 252;
+
+  /* Separación de la trama EN EL PLANO, antes de tumbarlo. Es
+     pequeña a propósito: la perspectiva la estira muchísimo
+     cerca del espectador, así que un paso cómodo sobre el plano
+     da tres o cuatro calles enormes en pantalla. Con 30px salen
+     del orden de veinte líneas visibles, que es lo que hace que
+     se lea como rejilla y no como carretera. */
+  --fb-paso: 112px;
+
+  /* Cuánto se tumba el suelo. Cuanto más cerca de 90, más de
+     canto queda el plano: a 84 las horizontales se apelotonaban
+     todas contra el horizonte y solo quedaban las verticales. */
+  --fb-tumbado: 70deg;
+
+  /* La distancia del ojo al plano. Cuanto MAYOR, más suave la
+     fuga; 260px era una lente de ojo de pez y estiraba las
+     calles centrales hasta convertirlas en vigas.
+
+     Junto con el ángulo fija dónde cae el HORIZONTE, que está a
+     `d / tanθ` del borde de abajo. Con 700 y 70deg son 255px, y
+     por eso .fb__suelo mide algo más que eso: si midiera menos,
+     el suelo se cortaría antes de llegar a fugarse. */
+  --fb-ojo: 700px;
+
+  background:
+    /* ---- EL EMPALME CON LA PÁGINA ----
+       El pie es casi negro y las páginas que lleva encima no. Sin
+       nada, eso no es un cambio de sección: es una banda cruzando
+       la pantalla.
+
+       Así que arranca EXACTAMENTE en el color con el que termina
+       lo que tiene encima y se hunde en la noche en el primer
+       20%, que es el aire que queda por delante de la tarjeta.
+
+       ---- POR QUÉ ES UNA VARIABLE Y NO UN COLOR ----
+       Antes iba fijo a --sec-deep, el tono con el que cierra la
+       portada, porque el pie solo salía ahí. Ahora sale en todas
+       las rutas y ese número dejó de valer: medido justo encima
+       del borde, la portada da 31% de luz y trabajos 29%, pero
+       los apartados de servicios dan 14% y contacto 11%. El
+       arranque claro tapaba bien dos rutas y plantaba una banda
+       clara bajo las otras dos.
+
+       Y no hay forma de esquivarlo con degradados: en el borde,
+       el píxel de arriba es el último de la página y el de abajo
+       el primero del pie. Para que no se vea la costura, ese
+       color TIENE que ser el de la página. Como varía, se pasa
+       desde fuera — lo pone .app según la ruta (ver App.jsx). */
+    linear-gradient(
+      to bottom,
+      var(--pie-arranque, var(--sec-deep, #442f65)) 0%,
+      rgb(var(--pie-arranque-rgb, var(--rgb-sec-deep, 68 47 101)) / 0.55) 8%,
+      rgb(var(--pie-arranque-rgb, var(--rgb-sec-deep, 68 47 101)) / 0) 22%
+    ),
+    /* el aire de arriba, donde flota la tarjeta */
+    radial-gradient(
+      ellipse 70% 55% at 50% 22%,
+      rgba(63, 28, 122, 0.5) 0%,
+      transparent 72%
+    ),
+    /* la base: negro con violeta dentro, nunca negro puro. Un
+       negro neutro sobre una web morada se lee como un agujero */
+    linear-gradient(to bottom, #0d0719 0%, #100822 52%, #150a2c 100%);
+}
+
+/* ============================================================
+   RESPLANDOR
+   El halo bajo y ancho del horizonte: la rejilla tiene que nacer
+   de algo luminoso o parece dibujada sobre el negro.
+   ============================================================ */
+
+.fb__resplandor {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+
+  width: 120%;
+  height: 52%;
+
+  background: radial-gradient(
+    ellipse 50% 100% at 50% 100%,
+    rgba(147, 76, 245, 0.34) 0%,
+    rgba(96, 44, 190, 0.14) 42%,
+    transparent 74%
+  );
+
+  filter: blur(28px);
+}
+
+/* ============================================================
+   LA REJILLA DEL SUELO
+
+   Dos elementos y no uno, por lo que dice el JSX: el de fuera
+   recorta, el de dentro se tumba y desborda.
+   ============================================================ */
+
+.fb__suelo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* algo más que los 255px a los que cae el horizonte con los
+     diales de arriba (ver --fb-ojo) */
+  height: 46%;
+
+  overflow: hidden;
+}
+
+.fb__suelo-plano {
+  position: absolute;
+
+  /* desborda MUCHO por los lados y hacia arriba: al tumbarse, lo
+     que en el plano son los laterales se va hacia el horizonte,
+     y si el plano terminara cerca se vería el borde del
+     rectángulo cruzando la escena en diagonal */
+  left: -150%;
+  right: -150%;
+  bottom: 0;
+  /* muy alto: el plano se acerca al horizonte de forma
+     asintótica, así que la profundidad que se ve depende de
+     cuánto plano haya. A 300% se quedaba a media distancia y su
+     borde superior cruzaba la escena como una línea recta. */
+  height: 800%;
+
+  /* ---- GIRA SOBRE EL BORDE DE ABAJO, NO SOBRE EL DE ARRIBA ----
+     Este era el error de la primera versión. Con el origen
+     arriba, el plano se aleja HACIA ARRIBA desde su borde
+     superior: se colapsa en una banda estrecha y lo que queda en
+     pantalla son tres calles gigantes abriéndose, no un suelo.
+
+     Un suelo nace a los pies del espectador —el borde de abajo,
+     que no se mueve— y se aleja por delante. Ese es el origen
+     correcto, y el resto de la perspectiva se ordena solo. */
+  transform-origin: 50% 100%;
+  transform: perspective(var(--fb-ojo)) rotateX(var(--fb-tumbado));
+
+  background-image:
+    /* verticales: las que convergen */
+    repeating-linear-gradient(
+      to right,
+      rgb(var(--fb-linea) / 0.5) 0 1px,
+      transparent 1px var(--fb-paso)
+    ),
+    /* horizontales: las que se comprimen al alejarse */
+    repeating-linear-gradient(
+      to bottom,
+      rgb(var(--fb-linea) / 0.42) 0 1px,
+      transparent 1px var(--fb-paso)
+    );
+
+  /* ---- EL DESVANECIDO VA EN EL PLANO, NO EN EL CONTENEDOR ----
+     La máscara se aplica ANTES de la transformación, así que
+     este degradado recorre el plano en PROFUNDIDAD: arriba del
+     todo es el horizonte y abajo son los pies del espectador.
+     Puesta en el contenedor solo difuminaría en pantalla, y las
+     líneas seguirían llegando nítidas hasta el fondo — que es
+     justo lo que delata una rejilla falsa.
+
+     Las paradas están donde están porque el reparto NO es
+     lineal: medido con la fórmula de la proyección, el 20% más
+     cercano del plano llena ya la mitad de alto de la franja
+     visible, y el 80% restante se comprime en la otra mitad. Un
+     degradado repartido a ojo deja opaca justo esa zona
+     comprimida, que es donde las líneas se apelmazan en una
+     banda sólida. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 45%,
+    rgba(0, 0, 0, 0.7) 65%,
+    #000 80%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.25) 45%,
+    rgba(0, 0, 0, 0.7) 65%,
+    #000 80%
+  );
+}
+
+/* ============================================================
+   ALAMBRES
+
+   Marcos sin cristal. El relleno es casi nada y está a
+   propósito: sin él el marco parece un rectángulo dibujado en el
+   aire; con demasiado, una ventana de verdad que compite con la
+   tarjeta.
+   ============================================================ */
+
+.fb__marco {
+  position: absolute;
+
+  border: 1px solid rgb(var(--fb-linea) / var(--o, 0.5));
+  border-radius: 10px;
+
+  background: linear-gradient(
+    150deg,
+    rgb(var(--fb-linea) / 0.05),
+    rgb(var(--fb-linea) / 0.01)
+  );
+
+  /* el halo corto que los hace parecer encendidos en vez de
+     dibujados. Va en box-shadow y no en filter: un drop-shadow
+     sobre un elemento hueco proyecta la sombra del RELLENO, no
+     la del filo, y aquí el relleno es casi transparente */
+  box-shadow:
+    0 0 18px rgb(var(--fb-linea) / calc(var(--o, 0.5) * 0.28)),
+    inset 0 0 24px rgb(var(--fb-linea) / calc(var(--o, 0.5) * 0.1));
+}
+
+/* El grande de arriba a la derecha. Entra CASI entero: a -4% y
+   con 13deg de giro, la perspectiva se llevaba su lado derecho
+   fuera de cuadro y lo que quedaba era una L, no un marco. Un
+   alambre se lee como volumen cuando se le ven las cuatro
+   aristas; con dos es una esquina. */
+.fb__marco--alto {
+  --o: 0.62;
+  top: -3%;
+  right: 2%;
+  width: 23%;
+  height: 34%;
+  transform: perspective(1100px) rotateY(-9deg);
+}
+
+/* el de abajo a la derecha, más lejos y más tenue */
+.fb__marco--bajo {
+  --o: 0.3;
+  right: -8%;
+  bottom: 6%;
+  width: 15%;
+  height: 34%;
+  transform: perspective(900px) rotateY(-18deg);
+}
+
+/* el de la izquierda, al fondo: solo asoma un filo */
+.fb__marco--lejano {
+  --o: 0.22;
+  left: -6%;
+  top: 26%;
+  width: 12%;
+  height: 30%;
+  transform: perspective(900px) rotateY(15deg);
+}
+
+/* ============================================================
+   TETRAEDRO Y ESQUIRLAS
+   currentColor: el trazo lo fija `color`, así que la opacidad de
+   cada arista (que va en el SVG) se multiplica por él y basta un
+   número para atenuar la pieza entera.
+   ============================================================ */
+
+.fb__tetra {
+  position: absolute;
+  left: -3%;
+  top: 2%;
+
+  width: 13%;
+  min-width: 90px;
+
+  color: rgb(var(--fb-linea) / 0.55);
+
+  transform: rotate(-8deg);
+}
+
+/* Tamaño en px y no en %: son un detalle de textura, y un
+   detalle que escala con la ventana deja de ser un detalle. */
+.fb__esquirla {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+
+  width: var(--tam);
+  height: auto;
+
+  color: rgb(var(--fb-linea) / var(--o, 0.4));
+
+  transform: translate(-50%, -50%) rotate(var(--giro, 0deg));
+}
+
+/* ============================================================
+   POLVO
+   Veintidós motas como sombras de un punto invisible: cero nodos
+   en el DOM. Los desplazamientos van en % del propio elemento,
+   que mide 4px, así que se reparten por toda la escena.
+   ============================================================ */
+
+.fb__polvo {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+
+  background: transparent;
+
+  box-shadow:
+    14vw 12vh 0 0 rgb(var(--fb-linea) / 0.55),
+    31vw 7vh 0 0 rgb(var(--fb-linea) / 0.3),
+    22vw 26vh 0 -1px rgb(var(--fb-linea) / 0.5),
+    41vw 18vh 0 -1px rgb(var(--fb-linea) / 0.35),
+    8vw 31vh 0 0 rgb(var(--fb-linea) / 0.25),
+    56vw 9vh 0 -1px rgb(var(--fb-linea) / 0.4),
+    68vw 22vh 0 0 rgb(var(--fb-linea) / 0.3),
+    77vw 6vh 0 -1px rgb(var(--fb-linea) / 0.45),
+    88vw 29vh 0 0 rgb(var(--fb-linea) / 0.28),
+    94vw 15vh 0 -1px rgb(var(--fb-linea) / 0.38),
+    5vw 46vh 0 -1px rgb(var(--fb-linea) / 0.3),
+    17vw 54vh 0 0 rgb(var(--fb-linea) / 0.22),
+    36vw 43vh 0 -1px rgb(var(--fb-linea) / 0.26),
+    63vw 49vh 0 -1px rgb(var(--fb-linea) / 0.24),
+    82vw 41vh 0 0 rgb(var(--fb-linea) / 0.3),
+    97vw 52vh 0 -1px rgb(var(--fb-linea) / 0.22),
+    26vw 66vh 0 -1px rgb(var(--fb-linea) / 0.2),
+    48vw 71vh 0 -1px rgb(var(--fb-linea) / 0.18),
+    72vw 63vh 0 -1px rgb(var(--fb-linea) / 0.22),
+    90vw 74vh 0 -1px rgb(var(--fb-linea) / 0.18),
+    11vw 78vh 0 -1px rgb(var(--fb-linea) / 0.16),
+    58vw 83vh 0 -1px rgb(var(--fb-linea) / 0.14);
+}
+
+/* ============================================================
+   ESTRECHO
+   La escena se simplifica en vez de encogerse: en un móvil los
+   alambres de los bordes se cruzan con el contenido, y el suelo
+   necesita más altura relativa para que la fuga siga leyéndose.
+   ============================================================ */
+
+@media (max-width: 780px) {
+  .fb {
+    --fb-paso: 54px;
+    --fb-ojo: 190px;
+  }
+
+  .fb__suelo {
+    height: 40%;
+  }
+
+  .fb__marco--bajo,
+  .fb__marco--lejano,
+  .fb__tetra {
+    display: none;
+  }
+}

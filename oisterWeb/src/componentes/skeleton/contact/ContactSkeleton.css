@@ -1,0 +1,157 @@
+/* ============================================================
+   CONTACT SKELETON — espejo de Contact.jsx
+   Replica el grid del .contact real (header/info a la izquierda,
+   form a la derecha, dos columnas 0.9/1.1 con la tarjeta del
+   formulario) y las dimensiones de cada bloque, para que al
+   revelar la página el contenido caiga en su sitio sin salto.
+   Autocontenido: no depende de Contact.css (que aún no se ha
+   cargado durante el skeleton).
+   ============================================================ */
+
+.contact-skeleton {
+  display: grid;
+
+  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-areas:
+    "header form"
+    "info   form";
+
+  column-gap: 90px;
+  row-gap: 40px;
+
+  align-items: center;
+}
+
+.contact-skeleton__header {
+  grid-area: header;
+
+  align-self: end;
+}
+
+.contact-skeleton__info {
+  grid-area: info;
+
+  align-self: start;
+}
+
+/* ---- cabecera ---- */
+
+.contact-skeleton__title {
+  margin-bottom: 25px; /* == .contact-header h2 */
+
+  border-radius: 10px;
+}
+
+.contact-skeleton__bar {
+  margin-top: 18px;
+  margin-bottom: 25px;
+
+  border-radius: var(--radius-full);
+}
+
+.contact-skeleton__text {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+  max-width: 420px; /* == .contact-text */
+}
+
+/* ---- formulario: caja de cristal (misma caja que .contact-form) ---- */
+
+.contact-skeleton__form {
+  grid-area: form;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 20px;
+
+  padding: 46px 42px;
+
+  border-radius: 30px;
+
+  background: rgba(233, 224, 250, 0.35);
+}
+
+.contact-skeleton__input {
+  width: 100%;
+
+  border-radius: 14px;
+}
+
+.contact-skeleton__textarea {
+  width: 100%;
+}
+
+.contact-skeleton__btn {
+  width: 100%;
+
+  margin-top: 10px;
+
+  border-radius: 999px;
+}
+
+/* ---- info ---- */
+
+.contact-skeleton__item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+}
+
+.contact-skeleton__item + .contact-skeleton__item {
+  margin-top: 18px;
+}
+
+.contact-skeleton__social-title {
+  margin-top: 30px;
+
+  border-radius: 8px;
+}
+
+.contact-skeleton__social {
+  display: flex;
+
+  gap: 16px;
+
+  margin-top: 16px;
+}
+
+/* ============================================================
+   RESPONSIVE — espejo de Contact.css
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .contact-skeleton {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "form"
+      "info";
+
+    row-gap: 50px;
+  }
+
+  .contact-skeleton__header,
+  .contact-skeleton__info {
+    align-self: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .contact-skeleton__form {
+    padding: 26px 18px;
+
+    border-radius: 26px;
+  }
+
+  .contact-skeleton__social {
+    justify-content: center;
+  }
+}

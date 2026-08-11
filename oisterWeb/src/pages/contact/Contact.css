@@ -19,6 +19,8 @@
 ========================================*/
 
 .contact {
+  position: relative;
+
   display: grid;
 
   grid-template-columns: 0.9fr 1.1fr;
@@ -42,28 +44,81 @@
   grid-area: info;
 
   align-self: start;
+
+  /* ---- MENOS AIRE MUERTO ----
+     Entre el párrafo y los datos de contacto quedaban unos 60px
+     de nada. El bloque izquierdo se leía partido en dos mitades
+     sin relación. Un margen negativo lo compacta sin tocar el
+     `row-gap` de la rejilla, que también gobierna la separación
+     con el formulario. */
+  margin-top: -26px;
 }
 
 .contact-page .page-section__inner {
   max-width: 1200px;
 }
 
+/* ---- LA ESCENA DE FONDO ----
+   `position: relative` en la sección para que la escena, que es
+   absoluta, se ancle a ella y la cubra entera. `clip` y no
+   `hidden`: recorta sin crear un contenedor de scroll.
+
+   El contenido se sube a 1; la escena se queda en 0. Ojo con
+   poner el z-index en `__inner` en su lugar: ese bloque es MÁS
+   CORTO que la sección —la sección lleva el hueco del header
+   arriba y aire abajo—, así que anclar ahí dejaba franjas sin
+   escena arriba y abajo. Ya pasó. */
+.contact-page {
+  position: relative;
+  overflow: clip;
+}
+
+.contact-page .contact {
+  position: relative;
+  z-index: 1;
+}
+
 /*========================================
 =            CONTACT HEADER              =
 ========================================*/
 
-.contact-eyebrow {
-  margin-bottom: 10px;
+/* ---- 2 · EL HORIZONTE NO DEBE CRUZAR LOS DATOS ----
+   La línea luminosa de la escena pasaba justo por encima del
+   correo y el teléfono, y ahí compite con lo que hay que leer.
 
-  color: var(--color-primary-dark);
-  display:none;
-  font-size: 0.8rem;
+   No se resuelve moviendo el horizonte: la escena se escala con
+   `slice`, así que su altura en pantalla depende del alto de la
+   ventana y cualquier posición que cuadre hoy se descuadra al
+   redimensionar.
 
-  font-weight: 600;
+   Se resuelve apagando la escena DETRÁS de la columna, que
+   además es lo que el documento propone como máscara. Muy
+   difuso, para que no se vea el borde del velo. */
+.contact-header,
+.contact-info {
+  position: relative;
+  isolation: isolate;
+}
 
-  letter-spacing: 3px;
+.contact-header::before,
+.contact-info::before {
+  content: "";
 
-  text-transform: uppercase;
+  position: absolute;
+  inset: -18% -14% -14% -16%;
+
+  background: radial-gradient(
+    ellipse 60% 56% at 40% 50%,
+    rgba(10, 5, 20, 0.72) 0%,
+    rgba(10, 5, 20, 0.5) 40%,
+    rgba(10, 5, 20, 0.22) 68%,
+    transparent 100%
+  );
+
+  filter: blur(26px);
+
+  pointer-events: none;
+  z-index: -1;
 }
 
 .contact-header h2 {
@@ -140,8 +195,10 @@
   margin-top: 18px;
 }
 
+/* rosa claro, no `--color-primary-dark`: ese morado oscuro
+   sobre el fondo de la página se queda en 1,9:1 */
 .contact-item:hover {
-  color: var(--color-primary-dark);
+  color: #f7b8eb;
 }
 
 .contact-item svg {
@@ -155,16 +212,19 @@
 
   flex-shrink: 0;
 
-  background: rgba(255, 255, 255, 0.65);
+  /* cristal OSCURO, igual que el panel del formulario. Eran
+     círculos blancos y, al pasar el panel a oscuro, se quedaron
+     como las dos únicas islas claras de la página. */
+  background: rgba(24, 15, 42, 0.55);
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(247, 184, 235, 0.28);
 
-  color: var(--color-primary-dark);
+  color: #f7b8eb;
 
-  box-shadow: 0 6px 18px -6px rgba(169, 106, 247, 0.25);
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.45);
 
   transition:
     transform var(--transition),
@@ -173,11 +233,13 @@
 }
 
 .contact-item:hover svg {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(36, 22, 60, 0.8);
+
+  border-color: rgba(247, 184, 235, 0.6);
 
   transform: scale(1.08);
 
-  box-shadow: 0 10px 24px -6px rgba(169, 106, 247, 0.35);
+  box-shadow: 0 10px 24px -6px rgba(240, 114, 200, 0.4);
 }
 
 /*========================================
@@ -221,14 +283,27 @@
 
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.55);
+  /* ---- CRISTAL, NO BOTÓN ESTÁNDAR ----
+     Mismo lenguaje que la tarjeta: fondo translúcido, borde
+     iluminado y un filo interior arriba que simula el canto del
+     vidrio. */
+  background: linear-gradient(
+    160deg,
+    rgba(60, 38, 90, 0.42) 0%,
+    rgba(24, 15, 42, 0.5) 100%
+  );
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
   color: var(--color-text-light);
 
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(247, 184, 235, 0.28);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 18px -10px rgba(0, 0, 0, 0.6),
+    0 0 18px -10px rgb(var(--rgb-accent) / 0.5);
 
   transition:
     transform 0.35s ease,
@@ -245,15 +320,18 @@
 }
 
 .social-buttons a:hover {
-  color: var(--color-primary-dark);
+  color: #24123a;
 
-  border-color: var(--color-primary-light);
+  border-color: transparent;
 
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--gradient-primary);
 
   transform: translateY(-6px);
 
-  box-shadow: 0 18px 35px rgba(247, 184, 235, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 18px 35px -12px rgb(var(--rgb-accent) / 0.7),
+    0 0 30px -8px rgba(169, 106, 247, 0.7);
 }
 
 .social-buttons a:hover svg {
@@ -310,6 +388,12 @@
 .contact-form {
   grid-area: form;
 
+  /* 30px: el equilibrio óptico entre los dos bloques. Con 18
+     seguía leyéndose alto — el titular tiene mucho aire encima y
+     la tarjeta no, así que alineadas por el borde se ven
+     descuadradas. */
+  margin-top: 30px;
+
   position: relative;
 
   display: flex;
@@ -322,24 +406,111 @@
 
   border-radius: 30px;
 
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.72) 0%,
-    rgba(255, 255, 255, 0.5) 45%,
-    rgba(252, 240, 255, 0.55) 100%
-  );
+  /* ---- CRISTAL OSCURO ----
+     Era un panel CLARO (blanco al 72%) sobre una página oscura.
+     Aparte de ser una isla de otro tema, arrastraba un fallo
+     serio: el texto de los campos es #F6F0FF y el fondo del
+     campo enfocado era blanco al 92% — 1,1:1 de contraste. NO SE
+     LEÍA lo que escribías. Pasando el panel a oscuro, ese mismo
+     color de texto pasa a 12:1.
 
-  backdrop-filter: blur(26px);
-  -webkit-backdrop-filter: blur(26px);
+     El filo rosa y el halo lo despegan del fondo sin necesidad
+     de aclararlo. */
+  /* ---- SE DESPEGA DEL FONDO ----
+     Con la escena synthwave detrás, el panel se confundía con
+     el cielo: transparencias parecidas y ningún borde claro. Se
+     ataca por cuatro vías a la vez, porque ninguna basta sola:
+
+       · el relleno baja de 0.72 a 0.88 de opacidad — el cielo
+         deja de leerse a través;
+       · el desenfoque sube a 20px+, así lo de detrás se
+         convierte en color y no en formas reconocibles;
+       · el filo pasa a ser el DEGRADADO DEL HEADER, no un rosa
+         plano (ver el punto de coherencia visual más abajo);
+       · y la sombra exterior se agranda y se difumina, que es
+         lo que le da suelo a la tarjeta. */
+  /* ---- MÁS CRISTAL, PERO SIN QUE LA LUZ LO ATRAVIESE ----
+     Los dos requisitos parecían incompatibles: subir la
+     transparencia y a la vez impedir que el halo cruce la
+     tarjeta.
+
+     No lo son, porque la luz NO venía de detrás. Medido
+     quitando cosas de una en una:
+         tal cual .................... #4b3157
+         sin la máscara del halo ..... #4b3157  (idéntico)
+         sin backdrop-filter ......... #2a193a
+     O sea que el culpable era el propio desenfoque, que muestrea
+     la zona brillante de FUERA de la tarjeta y la arrastra hacia
+     dentro. Enmascarar el halo por detrás no podía servir de
+     nada, y no sirvió.
+
+     La solución es un degradado interno que oscurece el flanco
+     izquierdo —justo por donde entra el arrastre— dejando el
+     resto más transparente que antes. Se gana cristal Y se corta
+     la fuga. */
+  background:
+    linear-gradient(
+      100deg,
+      rgba(14, 8, 26, 0.62) 0%,
+      rgba(14, 8, 26, 0.22) 16%,
+      transparent 34%
+    ),
+    linear-gradient(
+      165deg,
+      rgba(30, 18, 50, 0.8) 0%,
+      rgba(22, 13, 38, 0.76) 45%,
+      rgba(34, 20, 54, 0.8) 100%
+    );
+
+  border: 1px solid transparent;
+
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 24px 70px -18px rgba(120, 70, 220, 0.28),
-    0 4px 14px rgba(217, 107, 197, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    /* iluminación inferior suave: el suelo de la escena refleja
+       algo de luz sobre la panza de la tarjeta */
+    inset 0 -40px 60px -50px rgba(233, 182, 255, 0.5),
+    0 40px 90px -30px rgba(0, 0, 0, 0.7),
+    0 0 70px -20px rgba(169, 106, 247, 0.4);
 
   transition:
     transform 0.4s cubic-bezier(0.22, 0.8, 0.36, 1),
     box-shadow 0.4s ease;
+}
+
+/* ---- EL FILO, CON EL GRADIENTE DEL HEADER ----
+   `--gradient-primary` es el de la píldora de la cabecera. Se
+   reutiliza aquí, en el botón y en el foco de los campos: el
+   documento pedía que ese degradado dejara de ser exclusivo del
+   header y se convirtiera en el hilo visual de la interfaz.
+
+   Va con máscara y `mask-composite: exclude` para que pinte solo
+   el borde y no el relleno — un `border-image` no admite
+   esquinas redondeadas. */
+.contact-form::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+  padding: 1px;
+
+  background: var(--gradient-primary);
+  opacity: 0.55;
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
 }
 
 /* filo-gradiente perimetral (máscara, como btn--secondary del hero) */
@@ -373,6 +544,36 @@
   mask-composite: exclude;
 
   pointer-events: none;
+}
+
+/* El hueco central lo llena ahora el componente `Escaneo`
+   (componentes/escaneo). Aquí había un filete con tres motas
+   hechos con ::before y ::after, pero un pseudo-elemento no da
+   para cuatro líneas con animaciones independientes: solo hay
+   dos por elemento y sus transforms se pisan entre sí. */
+
+/* ---- BRILLO DE LA ESQUINA SUPERIOR IZQUIERDA ----
+   Un reflejo tenue, como el que deja una lámina de vidrio real
+   cuando la luz la roza en diagonal. Es lo que separa un panel
+   translúcido de un cristal: sin él la superficie se lee plana,
+   por muy transparente que sea. */
+.contact-form::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background: radial-gradient(
+    ellipse 58% 46% at 8% 4%,
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(255, 255, 255, 0.045) 34%,
+    transparent 68%
+  );
+
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* aura: glow difuso detrás de la tarjeta */
@@ -412,7 +613,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 34px 90px -20px rgba(120, 70, 220, 0.36),
-    0 6px 18px rgba(217, 107, 197, 0.14);
+    0 6px 18px rgb(var(--rgb-accent) / 0.14);
 }
 
 /*========================================
@@ -436,10 +637,68 @@
   --trace-from: 296deg;
 }
 
-/* trazado de luz: anillo conic recortado al borde.
-   Nace bajo el label, recorre todo el perímetro y
-   CIERRA de nuevo bajo el label: la costura queda
-   oculta por la pastilla */
+/* ---- EL DESVANECIDO DEL BORDE INFERIOR ----
+   Lo que de verdad hace elegante el desplazamiento del mensaje,
+   y lo único que funciona en TODOS los sistemas.
+
+   El motivo: macOS esconde la barra de scroll salvo mientras
+   estás arrastrando, así que por muy bien que se pinte, la mitad
+   de la gente no la ve nunca y no hay ninguna pista de que haya
+   más texto debajo. Un texto cortado a media línea contra un
+   borde recto se lee como que ahí se acaba.
+
+   Con el degradado, las últimas líneas se apagan hacia el borde:
+   se entiende que el texto continúa sin necesidad de barra.
+
+   `pointer-events: none` es obligatorio: si no, esta capa se
+   comería el clic y no se podría enfocar el campo por su parte
+   de abajo. */
+.input-group:has(textarea)::before {
+  content: "";
+
+  position: absolute;
+  left: 2px;
+  right: 12px; /* deja libre el carril de la barra */
+  bottom: 2px;
+
+  height: 42px;
+
+  border-radius: 0 0 13px 13px;
+
+  background: linear-gradient(
+    to top,
+    rgba(14, 8, 26, 0.92) 0%,
+    rgba(14, 8, 26, 0.65) 45%,
+    transparent 100%
+  );
+
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- TRAZADO DE LUZ ----
+   Anillo hecho con un conic-gradient y recortado al borde con
+   dos máscaras y `mask-composite: exclude`: se descuenta el
+   relleno y solo queda el filo de 2px. Al enfocar, `--trace` va
+   de 0 a 360 grados y el trazo recorre el perímetro.
+
+   ---- LA COSTURA, QUE ERA LO QUE FALLABA ----
+   El degradado arrancaba en `--color-primary` y terminaba en
+   `--color-secondary`. Son colores DISTINTOS, así que al cerrar
+   la vuelta el último tono chocaba con el primero y quedaba un
+   salto visible: un tramo del borde mucho más claro que el
+   resto, con un corte seco. Se notaba sobre todo con el trazo ya
+   completo, que es justo cuando más se mira.
+
+   La regla de cualquier degradado cónico cerrado: la primera
+   parada y la última tienen que ser EL MISMO COLOR. Ahora
+   empieza y acaba en var(--color-accent-light), y la vuelta no tiene principio.
+
+   Los tonos pasan además a la pareja rosa-violeta del
+   formulario: los tres de antes eran violetas —uno de ellos
+   var(--color-primary-dark), un violeta OSCURO que sobre un campo casi negro
+   apenas se distinguía—, así que el anillo se apagaba por
+   tramos. */
 .input-group::after {
   content: "";
 
@@ -453,9 +712,11 @@
 
   background: conic-gradient(
     from var(--trace-from),
-    var(--color-primary) 0deg,
-    var(--color-primary-dark) calc(var(--trace) * 0.6),
-    var(--color-secondary) var(--trace),
+    var(--color-accent-light) 0deg,
+    #d68cff calc(var(--trace) * 0.34),
+    var(--color-primary-light) calc(var(--trace) * 0.62),
+    #f7b8eb calc(var(--trace) * 0.85),
+    var(--color-accent-light) var(--trace),
     transparent var(--trace)
   );
 
@@ -475,12 +736,34 @@
 
   --trace: 0deg;
 
-  transition: --trace 0.55s cubic-bezier(0.22, 0.8, 0.36, 1);
+  /* ---- ENTRA DIBUJANDO, SALE APAGÁNDOSE ----
+     Antes solo se animaba `--trace`, así que al quitar el foco el
+     trazo REBOBINABA: se desdibujaba hacia atrás, en sentido
+     contrario al que había venido. Eso se lee como un error de
+     reproducción, no como que el campo se apaga.
+
+     Ahora la salida es un fundido de opacidad —más corto que la
+     entrada, como toda salida— y `--trace` se mantiene quieto
+     hasta que ya no se ve. Ese `transition-delay` de 0.25s en el
+     primero es lo que lo deja dibujado mientras dura el fundido;
+     sin él rebobinaría por debajo igualmente. */
+  opacity: 0;
+
+  transition:
+    --trace 0.55s cubic-bezier(0.22, 0.8, 0.36, 1),
+    opacity 0.25s ease;
+  transition-delay: 0.25s, 0s;
 }
 
-/* vuelta completa: el empalme muere bajo la pastilla */
+/* vuelta completa */
 .input-group:focus-within::after {
   --trace: 360deg;
+
+  opacity: 1;
+
+  /* al ENTRAR no hay espera: el trazo empieza a dibujarse en el
+     mismo instante en que se enfoca */
+  transition-delay: 0s, 0s;
 }
 
 /* icono del campo */
@@ -493,7 +776,13 @@
 
   display: flex;
 
-  color: var(--color-text-muted);
+  /* ---- CON TONO, NO GRISES ----
+     Iban en `--color-text-muted`, un lila apagado que sobre el
+     campo oscuro apenas se distinguía del borde. Un lavanda con
+     algo de cuerpo los separa del fondo y de paso los ata a la
+     paleta: dejan de ser iconos de sistema y pasan a ser parte
+     del lenguaje de la interfaz. */
+  color: #b9a3e0;
 
   font-size: 1rem;
 
@@ -505,8 +794,9 @@
 }
 
 .input-group:focus-within .input-group__icon,
-.input-group.active .input-group__icon {
-  color: var(--color-primary-dark);
+.input-group.active .input-group__icon,
+.input-group:hover .input-group__icon {
+  color: #f7b8eb;
 }
 
 .input-group label {
@@ -539,8 +829,9 @@
   z-index: 1;
 }
 
+/* el asterisco de obligatorio */
 .input-group label span {
-  color: var(--color-primary-dark);
+  color: #f7b8eb;
 }
 
 /* React controla esta clase: label flotante en
@@ -556,14 +847,17 @@
 
   letter-spacing: 0.02em;
 
-  color: var(--color-primary-dark);
+  /* rosa claro sobre la pastilla oscura: el morado oscuro que
+     había aquí era ilegible en cuanto la pastilla dejó de ser
+     blanca */
+  color: #f7b8eb;
 
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(20, 12, 34, 0.92);
 
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 
-  box-shadow: 0 2px 10px rgba(169, 106, 247, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* el label recibe el trazo: glow con delay sincronizado
@@ -571,10 +865,10 @@
    la transition del label: top, left, font-size, COLOR,
    background, BOX-SHADOW */
 .input-group:focus-within label {
-  color: var(--color-primary-dark);
+  color: #ffc9f2;
 
   box-shadow:
-    0 2px 10px rgba(169, 106, 247, 0.15),
+    0 2px 10px rgba(0, 0, 0, 0.35),
     0 0 16px rgba(247, 184, 235, 0.55);
 
   transition-delay: 0s, 0s, 0s, 0.4s, 0s, 0.4s;
@@ -590,19 +884,37 @@
 
   padding: 16px 16px 13px 44px; /* hueco del icono */
 
-  border: 1px solid rgba(169, 106, 247, 0.14);
+  /* borde rosado tenue en reposo: marca el campo sin gritar */
+  border: 1px solid rgba(247, 184, 235, 0.22);
 
   border-radius: 14px;
 
   outline: none;
 
-  background: rgba(255, 255, 255, 0.55);
+  /* ---- PROFUNDIDAD ----
+     Eran un color plano y se leían como rectángulos pegados,
+     no como huecos. Dos cosas lo arreglan y hacen falta las
+     dos: un degradado interno —más oscuro arriba, donde caería
+     la sombra del borde— y una sombra interior que hunde el
+     campo en la tarjeta. Sin el degradado la sombra sola se ve
+     como un filo; sin la sombra, el degradado se ve como una
+     mancha. */
+  background: linear-gradient(
+    180deg,
+    rgba(10, 5, 20, 0.72) 0%,
+    rgba(20, 12, 34, 0.5) 45%,
+    rgba(26, 16, 42, 0.44) 100%
+  );
 
   color: var(--color-text);
 
   font-size: 1rem;
 
   font-family: inherit;
+
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
 
   transition:
     border-color 0.3s ease,
@@ -613,25 +925,246 @@
 .input-group textarea {
   min-height: 145px;
 
-  resize: vertical;
+  /* hueco para el contador de abajo a la derecha */
+  padding-bottom: 30px;
+
+  /* ---- NO SE PUEDE ESTIRAR ----
+     Era `resize: vertical`. Quitarlo hace dos cosas:
+
+     · el formulario deja de poder descuadrarse. Arrastrando, el
+       campo crecía sin tope y empujaba al botón fuera de la
+       pantalla, y el panel de cristal se estiraba con él;
+     · desaparece el agarradero nativo de la esquina, que es un
+       triángulo gris del sistema operativo — no se puede
+       maquetar, y sobre este campo oscuro se veía como un
+       raspón. Además caía justo encima del contador.
+
+     No se pierde nada: el mensaje tiene tope de 500 caracteres,
+     así que no hay textos tan largos que obliguen a agrandar, y
+     lo que no cabe se desplaza con el desvanecido de abajo
+     avisando de que sigue. */
+  resize: none;
+
+  /* ---- LA BARRA DE SCROLL ----
+     Por defecto el navegador pinta la suya, y en Windows y Linux
+     es ancha y CLARA: sobre un campo casi negro canta como un
+     parche de otro sitio. En macOS no se nota porque el sistema
+     la superpone y la esconde, así que el problema pasa
+     desapercibido si solo se prueba ahí.
+
+     `scrollbar-width` y `scrollbar-color` son el estándar y los
+     entiende Firefox; las reglas ::-webkit- de abajo, Chrome,
+     Edge y Safari. Hacen falta las dos: ningún navegador entiende
+     ambas sintaxis. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(247, 184, 235, 0.42) transparent;
+}
+
+/* ---- OJO CON EL ORDEN DE PRECEDENCIA ----
+   Desde Chrome 121, en cuanto se declara `scrollbar-width` o
+   `scrollbar-color` el navegador IGNORA los ::-webkit- de aquí
+   abajo y usa el estándar. O sea que en un Chrome actual manda
+   el bloque de arriba y esto no se aplica.
+
+   No sobra: es lo que atiende a los Safari y Chrome anteriores,
+   que no entienden las propiedades estándar. Los dos juntos
+   cubren todo el parque sin que ninguno estorbe al otro. */
+
+/* riel invisible: la barra solo existe cuando hay algo que
+   arrastrar, en vez de dibujar un canal permanente */
+.input-group textarea::-webkit-scrollbar {
+  width: 10px;
+}
+
+.input-group textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.input-group textarea::-webkit-scrollbar-thumb {
+  /* el borde transparente + background-clip deja la pastilla en
+     6px reales dentro de un carril de 10px: así no roza el borde
+     redondeado del campo, que es lo que la hacía ver encajada a
+     presión */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+
+  border-radius: 999px;
+
+  background-color: rgba(247, 184, 235, 0.34);
+
+  transition: background-color 0.25s ease;
+}
+
+.input-group textarea::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(247, 184, 235, 0.6);
+}
+
+/* al arrastrarla se enciende del todo: confirma que la tienes
+   agarrada */
+.input-group textarea::-webkit-scrollbar-thumb:active {
+  background-color: rgba(255, 201, 242, 0.85);
+}
+
+/* el cuadradito donde se cruzan las dos barras: sin esto Chrome
+   pinta ahí un rectángulo blanco */
+.input-group textarea::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .input-group input:hover,
 .input-group textarea:hover {
-  background: rgba(255, 255, 255, 0.72);
+  /* hover: se aclara un punto y el filo se enciende. Es el
+     estado que faltaba — antes solo había reposo y foco, así que
+     pasar el ratón no decía nada. */
+  background: linear-gradient(
+    180deg,
+    rgba(14, 8, 26, 0.72) 0%,
+    rgba(28, 17, 46, 0.56) 45%,
+    rgba(34, 21, 54, 0.5) 100%
+  );
 
-  border-color: rgba(243, 189, 241, 0.7);
+  border-color: rgba(247, 184, 235, 0.5);
+
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   AUTOCOMPLETADO DEL NAVEGADOR
+
+   ---- POR QUÉ SE PONÍA BLANCO ----
+   Cuando Chrome rellena un campo, le aplica un fondo propio
+   (blanco azulado, o amarillo pálido según la versión) desde la
+   HOJA DE ESTILOS DEL NAVEGADOR y con prioridad de agente de
+   usuario. Un `background-color` normal NO puede ganarle: da
+   igual lo específico que sea el selector, ni sirve `!important`.
+   Por eso el campo oscuro se volvía blanco de golpe, y encima el
+   texto seguía siendo casi blanco, así que dejaba de leerse.
+
+   ---- CÓMO SE GANA ----
+   Con una SOMBRA INTERIOR enorme. Chrome pisa el
+   `background-color`, pero no toca el `box-shadow`: una sombra
+   `inset` de 1000px cubre la caja entera y hace de fondo. Es el
+   apaño estándar para esto, y es el único que funciona sin
+   depender de la versión.
+
+   El color del texto se arregla aparte, con
+   `-webkit-text-fill-color`: Chrome también fuerza `color`, y
+   esta propiedad tiene preferencia sobre él.
+
+   Los cuatro estados van juntos a propósito: sin :hover y :focus
+   el fondo blanco reaparecía en cuanto pasabas el ratón o
+   entrabas en el campo ya relleno.
+   ============================================================ */
+.input-group input:-webkit-autofill,
+.input-group input:-webkit-autofill:hover,
+.input-group input:-webkit-autofill:focus,
+.input-group input:-webkit-autofill:active,
+.input-group textarea:-webkit-autofill,
+.input-group textarea:-webkit-autofill:hover,
+.input-group textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: inset 0 0 0 1000px rgba(18, 11, 31, 0.96);
+  box-shadow: inset 0 0 0 1000px rgba(18, 11, 31, 0.96);
+
+  -webkit-text-fill-color: var(--color-text, #f6f0ff);
+
+  /* el cursor también lo tiñe Chrome */
+  caret-color: #f7b8eb;
+
+  /* Chrome anima su fondo al rellenar; sin esto se ve un
+     parpadeo blanco de un fotograma antes de que entre la
+     sombra */
+  transition: background-color 100000s ease-in-out 0s;
+}
+
+/* enfocado y relleno: mismo oscurecido que un campo normal al
+   enfocar, para que el autocompletado no sea un caso aparte */
+.input-group input:-webkit-autofill:focus {
+  -webkit-box-shadow: inset 0 0 0 1000px rgba(14, 8, 26, 0.98);
+  box-shadow: inset 0 0 0 1000px rgba(14, 8, 26, 0.98);
+}
+
+/* Firefox lo marca con su propia clase y ahí el fondo SÍ se
+   puede pisar de la forma normal */
+.input-group input:autofill,
+.input-group textarea:autofill {
+  background: rgba(18, 11, 31, 0.96);
+  color: var(--color-text, #f6f0ff);
 }
 
 /* al enfocar, el borde estático se apaga: el indicador
    de foco es el trazado de luz */
 .input-group input:focus,
 .input-group textarea:focus {
-  background: rgba(255, 255, 255, 0.92);
+  /* al enfocar SE OSCURECE, no se aclara: así el texto que
+     escribes gana contraste justo cuando estás escribiendo */
+  background: linear-gradient(
+    180deg,
+    rgba(8, 4, 16, 0.9) 0%,
+    rgba(16, 9, 28, 0.86) 100%
+  );
 
   border-color: transparent;
 
-  box-shadow: 0 8px 20px -8px rgba(169, 106, 247, 0.25);
+  /* el halo del foco usa el rosa del degradado del header, el
+     mismo que el filo del panel y el botón */
+  box-shadow:
+    0 0 0 1px rgb(var(--rgb-accent) / 0.45),
+    0 8px 28px -8px rgb(var(--rgb-accent) / 0.45);
+}
+
+/* ---- EL PLACEHOLDER ----
+   El texto de ejemplo iba al mismo tono que el resto y se perdía
+   sobre el campo oscuro. Sube a un lila legible, pero sin llegar
+   al del texto que escribes: tiene que distinguirse de lo que ya
+   has tecleado. */
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+  color: rgba(214, 194, 245, 0.6);
+}
+
+/* ---- CONTADOR DEL MENSAJE ----
+   Dentro del textarea, abajo a la derecha, como en la referencia.
+   `pointer-events: none` para que no robe el clic: pulsar ahí
+   tiene que seguir enfocando el campo. */
+.input-group__contador {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+
+  /* ---- POR QUÉ LLEVA FONDO ----
+     El contador flota SOBRE el textarea, así que al desplazar el
+     texto las líneas le pasaban por debajo y quedaba "390 / 500"
+     encima de la palabra "newsletter". El `padding-bottom` del
+     campo reserva el hueco de la ÚLTIMA línea, pero no impide que
+     las de en medio crucen por ahí al hacer scroll.
+
+     Con una pastilla translúcida y desenfoque, el texto se
+     desliza por detrás y desaparece limpiamente. */
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  background: rgba(14, 8, 26, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+
+  color: var(--color-text-muted, #afa0cc);
+
+  pointer-events: none;
+
+  transition: color 0.25s ease;
+}
+
+/* al acercarse al tope se avisa ANTES de llegar, no cuando el
+   campo ya ha dejado de aceptar letras */
+.input-group__contador--cerca {
+  color: #f7b8eb;
 }
 
 /*========================================
@@ -645,34 +1178,104 @@
 
   margin-top: 10px;
 
-  padding: 17px;
+  /* ---- NI TAN ALTO NI A TODO LO ANCHO ----
+     El alto ya estaba resuelto: 48px, un pelo por debajo de un
+     campo (49) y por encima del mínimo táctil de 44. Lo que
+     seguía pesando era el ANCHO — el botón medía los 525px del
+     formulario entero, así que ocupaba tanto como cinco campos
+     apilados.
 
+     `align-self: flex-end` lo saca del estirado del flex y lo
+     deja del tamaño de su contenido, al final de la columna, que
+     es donde el ojo termina de leer el formulario.
+
+     El `min-width` es para que "ENVIAR" no quede apretado contra
+     los bordes: es la palabra más corta que puede llevar, y sin
+     suelo el botón encogería hasta parecer una etiqueta. */
+  align-self: flex-end;
+
+  min-width: 190px;
+
+  padding: 14px 34px;
+
+  /* filo rosa: es lo que lo separa del panel ahora que el relleno
+     es oscuro */
   border: none;
 
   border-radius: 999px;
 
   cursor: pointer;
 
-  color: #fff;
+  /* ---- BOTÓN OSCURO, NO PASTILLA DE CARAMELO ----
+     Era un degradado rosa-lila claro a todo lo ancho: demasiado
+     dulce y demasiado peso para un panel que ya es sobrio.
 
-  font-size: 1rem;
+     Y no había forma de arreglarlo bajando el tono. Medido:
+     con texto BLANCO, un degradado solo pasa AA si se mantiene
+     oscuro de punta a punta —#D64BBE da 3,74:1 y #A855F7, 3,96—,
+     así que habría acabado siendo un botón violeta sin nada de
+     rosa. El único camino que conserva la pareja de marca es
+     invertirlo: fondo oscuro y el rosa en el FILO.
 
-  font-weight: 600;
+     Es además lo que hace tu referencia, y el idioma que ya
+     hablan la barra de métricas y las píldoras de filtro. */
+  color: #24123a;
 
-  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 
   font-family: inherit;
 
-  background: linear-gradient(160deg, #a879ff 0%, #8757f5 45%, #6d49e0 100%);
+  /* ---- RELLENO CON EL DEGRADADO DEL HEADER ----
+     Antes era oscuro con el filo rosa, y sobre el panel —que
+     ahora también es oscuro y también tiene filo— dejaba de
+     distinguirse: el botón principal se leía como un campo más.
+
+     Relleno macizo con `--gradient-primary`, el mismo de la
+     píldora de la cabecera. Texto oscuro y no blanco: medido, el
+     blanco sobre var(--color-accent) da 2,6:1 y no llega ni al mínimo de
+     texto grande; con #24123A sube por encima de 7. */
+  background: var(--gradient-primary);
 
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 8px 16px -4px rgba(109, 73, 224, 0.24),
-    0 24px 48px -12px rgba(140, 95, 245, 0.32);
+    /* sombra interior arriba: le da cuerpo, como si la pieza
+       tuviera grosor */
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(90, 20, 80, 0.35),
+    0 10px 30px -10px rgb(var(--rgb-accent) / 0.65),
+    0 0 40px -14px rgba(169, 106, 247, 0.6);
 
   transition:
-    transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
-    box-shadow 0.3s ease;
+    transform 0.35s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.35s ease,
+    filter 0.35s ease;
+}
+
+/* ---- REFLEJO SUPERIOR ----
+   Una banda clara en la mitad de arriba, como la que deja
+   cualquier superficie curva bajo una luz cenital. Es lo que
+   convierte el degradado en un objeto con volumen en vez de un
+   rectángulo pintado. */
+.contact-form button::after {
+  content: "";
+
+  position: absolute;
+  inset: 1px 1px 45% 1px;
+
+  border-radius: 999px 999px 40% 40% / 999px 999px 100% 100%;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+
+  pointer-events: none;
 }
 
 /* shine: barrido de luz al hover */
@@ -687,10 +1290,12 @@
   width: 60%;
   height: 100%;
 
+  /* el barrido sube de 0.35 a 0.5: sobre el relleno oscuro de
+     ahora, al 35% no se veía pasar */
   background: linear-gradient(
     120deg,
     transparent,
-    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.5),
     transparent
   );
 
@@ -701,13 +1306,56 @@
   left: 160%;
 }
 
+/* al pasar por encima sube, se satura un punto y el halo crece.
+   Tres señales a la vez, porque una sola sobre un botón ya
+   llamativo se pierde. */
 .contact-form button:hover {
+  /* el halo CRECE al pasar por encima: no solo se enciende, se
+     expande. Es el gesto que da la sensación de que el botón se
+     levanta hacia ti. */
   transform: translateY(-3px);
 
+  filter: saturate(1.14) brightness(1.08);
+
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 12px 24px -6px rgba(109, 73, 224, 0.3),
-    0 32px 64px -16px rgba(140, 95, 245, 0.42);
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 6px rgba(90, 20, 80, 0.3),
+    0 16px 40px -12px rgb(var(--rgb-accent) / 0.8),
+    0 0 60px -14px rgba(169, 106, 247, 0.75);
+}
+
+/* pulsado: se hunde. Sin esto el clic no se acusaba, el mismo
+   fallo que tenía el enlace de las cards de /works. */
+.contact-form button:active {
+  transform: translateY(0) scale(0.985);
+
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 3px 10px -6px rgba(240, 114, 200, 0.5);
+
+  transition-duration: 0.12s;
+}
+
+.contact-form button:focus-visible {
+  outline: 2px solid #f7b8eb;
+  outline-offset: 3px;
+}
+
+/* ---- EN MÓVIL, A TODO EL ANCHO ----
+   No es una excepción caprichosa: con el pulgar, un botón
+   estrecho alineado a un lado obliga a apuntar, y el ancho
+   completo es la diana más cómoda. En escritorio, con ratón,
+   apuntar no cuesta nada y manda la composición.
+
+   ⚠️ Este bloque tiene que ir DESPUÉS de la regla base. Lo puse
+   antes la primera vez y no se aplicaba: misma especificidad,
+   así que ganaba la que viene después en el archivo. El botón
+   seguía midiendo 190px en un móvil de 390. */
+@media (max-width: 640px) {
+  .contact-form button {
+    align-self: stretch;
+    padding: 14px;
+  }
 }
 
 .contact-form button:active {
@@ -717,7 +1365,7 @@
 }
 
 .contact-form button:focus-visible {
-  outline: 2px solid #8757f5;
+  outline: 2px solid var(--color-primary);
 
   outline-offset: 3px;
 }
@@ -773,11 +1421,6 @@
 
   /* mock: eyebrow "CONTACTO" centrado arriba;
      titular y texto a la izquierda, debajo */
-  .contact-eyebrow {
-    text-align: center;
-    display: block;
-    margin-bottom: 18px;
-  }
 
   .contact-header,
   .contact-info {
@@ -902,7 +1545,7 @@
     /* la sombra proyecta hacia DENTRO de la pantalla */
     box-shadow:
       -6px 4px 18px -6px rgba(120, 70, 220, 0.3),
-      -2px 2px 6px rgba(217, 107, 197, 0.12);
+      -2px 2px 6px rgb(var(--rgb-accent) / 0.12);
   }
 
   /* pulso sutil en la pestaña del teléfono: espera a que
@@ -1001,13 +1644,13 @@
   100% {
     box-shadow:
       -6px 4px 18px -6px rgba(120, 70, 220, 0.3),
-      -2px 2px 6px rgba(217, 107, 197, 0.12);
+      -2px 2px 6px rgb(var(--rgb-accent) / 0.12);
   }
 
   96% {
     box-shadow:
       -6px 4px 22px -4px rgba(120, 70, 220, 0.45),
-      -2px 2px 10px rgba(217, 107, 197, 0.2),
+      -2px 2px 10px rgb(var(--rgb-accent) / 0.2),
       0 0 14px rgba(247, 184, 235, 0.5);
   }
 }

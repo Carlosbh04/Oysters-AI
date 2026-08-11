@@ -1,9 +1,67 @@
+/* ---- FUERA EL REBOTE DEL BORDE ----
+   En macOS, al pasarte del tope con el trackpad, la página bota
+   y deja a la vista una franja POR ENCIMA del documento. Esa
+   franja es el LIENZO del navegador, no el body, y salía blanca.
+
+   `overscroll-behavior-y: none` quita el rebote de raíz: al
+   llegar al borde, el scroll simplemente para. Ya no hay franja
+   que pintar, así que el problema deja de existir en vez de
+   quedar disimulado.
+
+   Lo que esto se lleva por delante, para que conste:
+   · el gesto elástico de macOS — deliberado, es lo que se pedía;
+   · el "tirar para recargar" de Chrome en Android. En un sitio
+     de escaparate no se echa en falta, y de hecho evita recargas
+     sin querer al desplazarse.
+   NO afecta a ningún scroll interno de la página: esto es solo
+   el desplazamiento de la ventana.
+
+   ---- Y EL COLOR, POR SI ACASO ----
+   El body de aquí abajo lleva el mismo color y no es un
+   duplicado. Este cubre el lienzo en los instantes en que el
+   body aún no ha pintado —la primera carga, sobre todo—, donde
+   el fondo por defecto del navegador es BLANCO. Con el rebote
+   fuera ya casi no se ve, pero cuesta una línea.
+
+   Sin degradado a propósito, solo el color: si la raíz tuviera
+   imagen de fondo, la del body dejaría de propagarse al lienzo y
+   el degradado se quedaría anclado a la caja del body. */
+html{
+    overscroll-behavior-y:none;
+    background-color:#402B5F;
+}
+
 body{
     font-family:
         Inter,
         system-ui,
         sans-serif;
     background:var(--gradient-bg);
+
+    /* ---- ESTA LÍNEA EVITA EL FOGONAZO BLANCO ----
+       No es un duplicado del degradado de arriba: es su red de
+       seguridad, y tiene que ir DESPUÉS.
+
+       `background` es la forma CORTA, así que al aplicarla
+       resetea `background-color` a transparent y deja solo
+       imágenes. index.css ya ponía un color de fondo unas líneas
+       antes; esta declaración se lo borraba.
+
+       Con html y body transparentes, el lienzo del navegador es
+       BLANCO. Y el degradado no se pinta de golpe: son cuatro
+       capas sobre un body de 3.600px, que Chrome rasteriza por
+       trozos. Haciendo scroll rápido te adelantas al rasterizado
+       y durante uno o dos fotogramas ves el lienzo desnudo — un
+       flash blanco a pantalla completa.
+
+       Medido: bajando y subiendo rápido con la rueda, 4 de 22
+       fotogramas salían en blanco. Con este color, 0 de 22.
+
+       #402B5F es el punto medio del degradado de abajo, así que
+       el trozo que aún no está rasterizado no se distingue del
+       que sí. */
+    background-color:#402B5F;
+
     color:var(--color-text);
     overflow-x:hidden;
 }

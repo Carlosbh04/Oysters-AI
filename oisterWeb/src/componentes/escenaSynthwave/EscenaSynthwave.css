@@ -1,0 +1,79 @@
+/* ============================================================
+   ESCENA SYNTHWAVE
+   (la composición y el porqué de cada capa, en el JSX;
+    las fórmulas, en geometria.js)
+   ============================================================ */
+
+.escena {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  pointer-events: none;
+
+  /* ---- z-index 0, NUNCA -1 ----
+     Un z-index negativo mete el elemento por detrás del fondo de
+     su contexto de apilamiento. El <body> de este sitio tiene
+     fondo OPACO, así que con -1 la escena desaparecería entera.
+     Quien la monte sube su contenido a 1. */
+  z-index: 0;
+}
+
+/* En pantallas estrechas la escena se recorta por los lados
+   (`preserveAspectRatio="slice"`), así que el punto de fuga
+   deja de estar centrado respecto al texto. Bajarle un punto la
+   presencia evita que compita con el contenido. */
+@media (max-width: 768px) {
+  .escena {
+    opacity: 0.75;
+  }
+}
+
+/* ============================================================
+   DESTELLO DE LAS ESTRELLAS
+
+   Un chispazo breve cada ~30 segundos, repartido entre unas 98
+   de las 380 (el reparto y el porqué, en geometria.js).
+
+   ---- LA FORMA DEL KEYFRAME ----
+   La estrella pasa el 96% del ciclo en su opacidad normal y solo
+   destella en un tramo cortísimo. Con una duración de 30s, ese
+   4% son 1,2 segundos: sube, brilla y vuelve.
+
+   Repartir el brillo por todo el ciclo daría un parpadeo
+   constante, que es lo contrario de lo que se pide: aquí el
+   cielo está quieto y de vez en cuando una estrella suelta un
+   chispazo.
+
+   ---- POR QUÉ `--o` Y NO UN VALOR FIJO ----
+   Cada estrella tiene su propia opacidad de reposo, así que el
+   keyframe no puede terminar en un número: tiene que volver a
+   LA SUYA. Publicándola como variable, un único keyframe vale
+   para todas. El pico es `calc(var(--o) * 4.5)` — la opacidad se
+   recorta sola en 1, así que las que ya son brillantes llegan al
+   blanco y las tenues suben proporcionalmente sin pasarse. */
+@media (prefers-reduced-motion: no-preference) {
+  .escena__destello {
+    animation: estrellaDestello var(--dur) ease-in-out var(--retraso) infinite;
+  }
+
+  @keyframes estrellaDestello {
+    0%,
+    94%,
+    100% {
+      opacity: var(--o);
+    }
+    96.5% {
+      opacity: calc(var(--o) * 4.5);
+    }
+  }
+}
+
+/* Sin más animaciones propias. Cada capa lleva su id
+   (#background-sky, #stars, #clouds-back, #clouds-front,
+   #horizon-glow, #horizon-line, #ground-grid) precisamente para
+   poder animarlas por separado desde aquí sin tocar el marcado. */

@@ -11,28 +11,91 @@
   z-index: 5;
 }
 
+/* tipografía del logo: "Outfit" (cargada en index.html).
+   "OISTER" en peso 600 con tracking aireado (0.03em) y "AI" en
+   peso 800 y tracking más cerrado: jerarquía de marca clara
+   sin romper la caja de gradiente. El tamaño (clamp) debe
+   calzar con el muestreo de partículas de IntroAnimation.jsx. */
 .logo-overlay__text {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(40px, 8vw, 110px);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-family: "Outfit", sans-serif;
+  font-size: clamp(44px, 9vw, 128px);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+
+  white-space: nowrap;
+}
+
+.logo-overlay__char--strong {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* cada letra aparece al llegarle su turno en el
+   tipeo: un pequeño ascenso + fade, como letra tecleada.
+   Cada letra lleva SU PROPIO gradiente recortado al texto
+   (background-clip: text en la propia letra, no en el
+   contenedor): recortar el fondo del padre a través de hijos
+   con opacity animada no se repinta en algunos navegadores
+   (Safari) y las letras quedan invisibles. Así el reveal
+   funciona en todos. */
+.logo-overlay__char {
+  display: inline-block;
+
+  opacity: 0;
+  transform: translateY(0.16em);
+
+  transition:
+    opacity 0.14s ease,
+    transform 0.24s cubic-bezier(0.22, 0.8, 0.36, 1);
 
   background: linear-gradient(135deg, #f7b8eb, #e7b5f5);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
-.logo-overlay__dot {
+.logo-overlay__char.is-on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* cursor de tipeo: barrita con el gradiente del texto; parpadea
+   mientras se teclea y se apaga al completar */
+.logo-overlay__cursor {
   display: inline-block;
 
-  width: 0.12em;
-  height: 0.12em;
+  width: 3px;
+  height: 0.85em;
 
-  border-radius: 50%;
+  margin-left: 0.08em;
+  vertical-align: 0.04em;
 
-  background: #f7b8eb;
+  border-radius: 2px;
 
-  margin: 0 0.05em;
-  vertical-align: 0.15em;
+  background: linear-gradient(180deg, #f7b8eb, #e7b5f5);
+
+  box-shadow: 0 0 10px rgba(247, 184, 235, 0.7);
+
+  animation: logoCursorBlink 0.85s steps(1) infinite;
+}
+
+.logo-overlay__cursor.is-done {
+  opacity: 0;
+
+  animation: none;
+}
+
+@keyframes logoCursorBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-overlay__cursor {
+    animation: none;
+    opacity: 0;
+  }
 }

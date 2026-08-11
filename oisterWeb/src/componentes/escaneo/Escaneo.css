@@ -1,0 +1,174 @@
+/* ============================================================
+   ESCANEO — líneas holográficas
+   (el porqué de las cuatro y de sus duraciones, en el JSX)
+   ============================================================ */
+
+.escaneo {
+  position: absolute;
+  inset: 0;
+
+  overflow: clip;
+
+  pointer-events: none;
+
+  /* ---- z-index 0, NUNCA -1 ----
+     Un z-index negativo lo mete por detrás del fondo de su
+     contexto de apilamiento, y el <body> de este sitio tiene
+     fondo OPACO: desaparecería entero. */
+  z-index: 0;
+}
+
+/* ---- LA LÍNEA ----
+   1px, con degradado vertical: nace y muere en transparente, así
+   que no se ve dónde empieza ni dónde acaba. Un color plano se
+   leería como una barra dibujada. */
+.escaneo__linea {
+  position: absolute;
+  top: 50%;
+  left: var(--izq);
+
+  width: 1px;
+  height: var(--alto);
+
+  transform: translate(-50%, -50%);
+
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(224, 112, 190, 0.35) 18%,
+    rgba(233, 182, 255, 0.9) 50%,
+    rgba(169, 106, 247, 0.35) 82%,
+    transparent 100%
+  );
+
+  /* el desenfoque la quita de plano: sin él se lee como una
+     regla, con él como luz */
+  filter: blur(0.7px);
+
+  opacity: var(--op);
+
+  /* resplandor muy suave a los lados */
+  box-shadow:
+    0 0 6px rgba(224, 112, 190, 0.5),
+    0 0 18px rgba(169, 106, 247, 0.3);
+}
+
+/* ---- LA MOTA ----
+   Núcleo blanco pequeño, halo rosa, resplandor amplio y un
+   rastro por detrás. Los cuatro elementos van en el mismo nodo:
+   el núcleo es el `background`, y halo, resplandor y rastro son
+   sombras encadenadas — así no hacen falta cuatro elementos
+   anidados para una mota de 5px. */
+.escaneo__mota {
+  position: absolute;
+  left: 50%;
+  top: 0;
+
+  width: 5px;
+  height: 5px;
+
+  transform: translateX(-50%);
+
+  border-radius: 50%;
+
+  /* el núcleo, blanco */
+  background: #fff;
+
+  box-shadow:
+    /* halo rosa pegado */
+    0 0 0 2px rgba(255, 150, 230, 0.55),
+    /* resplandor de 26px, dentro del rango que pedía el
+       documento (20-30) */
+    0 0 26px 6px rgba(240, 144, 212, 0.65),
+    /* rastro: una sombra alargada hacia arriba, de donde viene */
+    0 -22px 22px -8px rgba(224, 112, 190, 0.5),
+    0 -40px 30px -14px rgba(169, 106, 247, 0.35);
+
+  opacity: var(--mota);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- EL BARRIDO ----
+     `ease-in-out` y no `linear`: una línea que cruza a velocidad
+     constante se lee como un elemento de interfaz moviéndose. Con
+     aceleración y frenada parece un fenómeno.
+
+     `alternate` para que vuelva por donde vino en vez de saltar
+     al origen — un salto delataría el bucle en cada vuelta. */
+  .escaneo__linea {
+    animation: escaneoCruza var(--dur) ease-in-out var(--retraso) infinite
+      alternate;
+  }
+
+  /* la mota recorre la línea de arriba abajo, a su propio ritmo
+     (1.6 veces el de la línea) para que las dos no vayan
+     acompasadas */
+  .escaneo__mota {
+    animation: escaneoMota calc(var(--dur) * 1.6) ease-in-out var(--retraso)
+      infinite;
+  }
+
+  /* la intermitente: pasa tramos enteros invisible */
+  .escaneo__linea--intermitente {
+    animation:
+      escaneoCruza var(--dur) ease-in-out var(--retraso) infinite alternate,
+      escaneoParpadeo calc(var(--dur) * 0.78) ease-in-out infinite;
+  }
+
+  @keyframes escaneoCruza {
+    from {
+      transform: translate(-50%, -50%) translateX(-9vw);
+    }
+    to {
+      transform: translate(-50%, -50%) translateX(9vw);
+    }
+  }
+
+  @keyframes escaneoMota {
+    0% {
+      top: 6%;
+      opacity: 0;
+    }
+    12% {
+      opacity: var(--mota);
+    }
+    /* la intensidad varía por el camino: no es un punto que se
+       desplaza, es energía recorriendo la línea */
+    46% {
+      opacity: calc(var(--mota) * 1.5);
+    }
+    72% {
+      opacity: calc(var(--mota) * 0.6);
+    }
+    88% {
+      opacity: var(--mota);
+    }
+    100% {
+      top: 94%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes escaneoParpadeo {
+    0%,
+    38% {
+      opacity: var(--op);
+    }
+    52%,
+    68% {
+      opacity: 0;
+    }
+    82%,
+    100% {
+      opacity: var(--op);
+    }
+  }
+}
+
+/* En pantallas pequeñas sobran: el contenido ocupa todo el ancho
+   y las líneas pasarían por encima del texto. */
+@media (max-width: 1024px) {
+  .escaneo {
+    display: none;
+  }
+}

@@ -4,12 +4,19 @@
    viewport y reaparecen al volver, salvo con `once`. */
 
 @media (prefers-reduced-motion: no-preference) {
+  /* 0.5s y no 0.7s: la referencia para una entrada por scroll
+     está en 400-600ms, y a 0.7s la entrada se arrastraba — con
+     un escalonado de 5 tarjetas encima, la última no acababa
+     hasta pasado el segundo.
+     OJO: este componente lo usa TODO el sitio, así que este
+     número cambia el ritmo de cada sección. Es el único sitio
+     donde tocarlo. */
   .reveal {
     opacity: 0;
     transition:
-      opacity 0.7s ease,
-      transform 0.7s cubic-bezier(0.22, 0.8, 0.36, 1),
-      filter 0.7s ease;
+      opacity 0.5s ease,
+      transform 0.5s cubic-bezier(0.22, 0.8, 0.36, 1),
+      filter 0.5s ease;
     will-change: opacity, transform;
   }
 

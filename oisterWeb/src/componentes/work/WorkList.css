@@ -3,6 +3,28 @@
 .work-list {
   position: relative;
 
+  /* ---- EL `width: 100%` NO SOBRA ----
+     .work-list es un hijo flex de .page-section__inner, que es
+     una columna. En una columna el eje transversal es el ancho,
+     y `align-items: stretch` haría que llenase el hueco... salvo
+     que el propio hijo tenga MÁRGENES AUTO horizontales, que es
+     justo lo que pone el `margin: auto` de aquí abajo. Con auto,
+     el estirado se cancela y el ancho pasa a ser `auto`, o sea,
+     el que pida el contenido.
+
+     ¿Y cuánto pide? La rejilla de dentro es `repeat(3, 1fr)`, y
+     al dimensionarse por contenido esos `1fr` se resuelven a
+     max-content: 1160px fijos. Resultado: por debajo de ~1250px
+     la lista se salía de la ventana. Medido a 390px de ancho, la
+     rejilla seguía midiendo 1160px — las cards se cortaban por
+     la derecha, y encima SIN barra de scroll que lo delatara,
+     porque .page-section lleva `overflow-x: clip`.
+
+     Con el ancho al 100% manda la ventana, el max-width sigue
+     poniendo el techo en escritorio y el margin auto sigue
+     centrando. (border-box es global, así que el padding de
+     30px va por dentro y no vuelve a desbordar.) */
+  width: 100%;
   max-width: 1200px;
 
   margin: auto;
@@ -35,7 +57,13 @@
   width: 340px;
   height: 340px;
 
-  background: rgba(244, 155, 228, 0.35);
+  /* de 0.35 a 0.21: este orbe cae justo detrás de la cabecera y
+     la iluminaba tanto que el fondo real subía a #925995. Medido
+     ahí, el subtítulo se quedaba en 3,02:1 — por debajo del 4,5
+     que pide la norma. Bajarlo es mejor que blanquear el texto:
+     así el secundario puede seguir siendo más apagado que el
+     titular y la jerarquía se mantiene. */
+  background: rgba(244, 155, 228, 0.21);
 }
 
 .work-list::after {
@@ -45,7 +73,8 @@
   width: 380px;
   height: 380px;
 
-  background: rgba(169, 106, 247, 0.28);
+  /* mismo motivo que el de arriba (0.28 → 0.17) */
+  background: rgba(169, 106, 247, 0.17);
 }
 
 /* ======= Sparkles ambientales ======= */
@@ -138,34 +167,32 @@
   text-align: center;
 }
 
-.work-list-badge {
-  padding: 0.42rem 1.05rem;
+/* ---- TODA ESTA CABECERA ERA DE TEMA CLARO ----
+   El título, el subtítulo y los textos de las métricas estaban
+   en `--color-dark` (#261A38, casi negro) sobre una píldora y un
+   panel blancos. Eso tenía sentido cuando la página tenía fondo
+   claro; con el fondo morado de ahora, el texto se quedaba en
+   1,92:1 de contraste — por debajo incluso del 3:1 que pide la
+   norma para texto GRANDE, así que fallaba en el titular a
+   60px. Medido sobre el fondo real, no a ojo.
 
-  border-radius: 999px;
+   Pasa entera al tema oscuro. #F6F0FF (--color-text, el que ya
+   usa el resto del sitio) da 7,63:1 sobre ese mismo fondo. */
 
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-
-  color: #7a3fb3;
-
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-
-  box-shadow: 0 4px 14px rgba(169, 106, 247, 0.12);
-}
-
+/* ---- EL TITULAR ABRE EL BLOQUE ----
+   Sube de tamaño porque ahora es lo primero que se ve y no
+   tiene nada por encima que le dispute la atención. */
 .work-list-title {
   position: relative;
 
   margin: 1.1rem 0 0.9rem;
 
-  font-size: clamp(2.4rem, 6vw, 3.8rem);
+  font-size: clamp(2.8rem, 7vw, 4.6rem);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 
-  color: var(--color-dark);
+  color: var(--color-text, #f6f0ff);
 }
 
 /* glow bajo el título: mismo lenguaje que el subrayado
@@ -179,8 +206,14 @@
 
   transform: translateX(-50%);
 
-  width: 70%;
-  height: 4px;
+  /* MÁS ESTRECHO Y NÍTIDO.
+     Era del 70% del titular, 4px de alto y con `filter:
+     blur(1px)`. A ese grosor el desenfoque no suaviza: deja la
+     barra borrosa y se lee como un fallo de render, no como un
+     subrayado. Ahora es un filete de 2px sin desenfoque, que
+     nace y muere en transparente — un remate, no una barra. */
+  width: 42%;
+  height: 2px;
 
   border-radius: 999px;
 
@@ -194,18 +227,103 @@
     #f8f2ff,
     transparent
   );
-
-  filter: blur(1px);
 }
 
-.work-list-subtitle {
-  margin-top: 0.9rem;
+/* ---- LA LÍNEA DE APOYO, DEBAJO DEL TITULAR ----
+   Sin `opacity`: bajarle la opacidad a un texto es la forma más
+   rápida de romper el contraste sin enterarte, porque el valor
+   que acabas viendo ya no es el que pone `color`. El tono
+   apagado se elige directamente.
 
-  font-size: 1.05rem;
-  line-height: 1.6;
+   #EBE2FB y no #E2D6F7 porque esta línea cae sobre la parte MÁS
+   iluminada del fondo (#834F87), donde el segundo se quedaba en
+   4,43:1 — a siete centésimas del mínimo. Con este, 4,89:1. */
+.work-list-claim {
+  margin-top: 1.1rem;
 
-  color: var(--color-dark);
-  opacity: 0.7;
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  /* holgado a propósito: el chip lleva relleno vertical y en un
+     elemento en línea eso NO agranda la caja de línea, así que
+     sin este aire se montaría sobre lo de arriba y lo de abajo */
+  line-height: 2;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+
+  color: #ebe2fb;
+}
+
+/* ---- EL RESALTADO ----
+   Va en un <span> con las dos últimas palabras, no en la frase
+   entera: resaltar todo no resalta nada, porque no queda
+   contraste contra el que destacar.
+
+   ---- POR QUÉ EL CHIP ES OSCURO ----
+   El primer intento fue un trazo de rotulador CLARO por detrás,
+   como se haría sobre papel. Medido, era un error de bulto: el
+   texto va en el degradado lila de marca, y aclarar el fondo
+   justo detrás lo dejaba en 2,88:1 — el resaltado ESTROPEABA la
+   legibilidad de lo que quería destacar. Sin nada detrás tampoco
+   valía: el degradado sobre el morado de la página se queda en
+   2,53:1.
+
+   Medido sobre el fondo real (#834F87):
+     degradado a pelo ............ 2,53 - 2,81:1   ✗
+     con trazo claro detrás ...... 2,88 - 3,19:1   ✗
+     con chip oscuro al 62% ...... 5,2 - 5,8:1     ✓
+
+   Así que el resaltado va al revés de lo que pide el instinto:
+   se OSCURECE el fondo. Y encima es más visible, porque sobre
+   una página morada media un bloque oscuro recorta más que uno
+   claro. El sitio ya habla ese idioma — la barra de métricas y
+   las píldoras de filtro son cristal oscuro.
+
+   El texto sigue en el degradado del titular, el mismo que el
+   "AI" del hero, así que no se estrena vocabulario. */
+.work-list-claim__marca {
+  position: relative;
+  isolation: isolate;
+
+  padding: 0.26em 0.72em;
+  border-radius: 999px;
+
+  font-weight: 700;
+
+  background: var(
+    --gradient-title,
+    linear-gradient(90deg, var(--color-primary-light), #d68cff, var(--color-accent-light))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* el chip. Va en un ::before y no en el `background` del span
+   porque ese background ya está ocupado: es el degradado
+   recortado contra las letras. */
+.work-list-claim__marca::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  border-radius: inherit;
+
+  background: rgba(24, 15, 42, 0.62);
+
+  /* el filo rosa es lo que lo convierte en una pieza y no en una
+     mancha; el halo lo despega del fondo */
+  border: 1px solid rgb(var(--rgb-accent-light) / 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 4px 18px -6px rgba(214, 75, 190, 0.5);
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .work-list-claim__marca {
+    -webkit-text-fill-color: initial;
+    color: #f6f0ff;
+  }
 }
 
 /* ======= Barra de métricas ======= */
@@ -218,14 +336,20 @@
 
   border-radius: 22px;
 
-  background: rgba(255, 255, 255, 0.55);
+  /* ---- CRISTAL OSCURO, NO LOSA BLANCA ----
+     Era `rgba(255,255,255,0.55)`: un panel claro en mitad de una
+     página oscura, que además tapaba la red neuronal del fondo
+     justo donde más se ve. Mismo criterio que la cinta de
+     marcas — lo justo para que el texto se lea sobre lo que pase
+     por detrás, sin partir la atmósfera en dos. */
+  background: rgba(24, 15, 42, 0.42);
+  backdrop-filter: blur(0.4rem);
 
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   box-shadow:
-    0 12px 40px rgba(169, 106, 247, 0.14),
-    0 2px 8px rgba(217, 107, 197, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 40px -18px rgba(0, 0, 0, 0.55);
 }
 
 .work-list-stat {
@@ -257,15 +381,18 @@
 
   font-size: 1.15rem;
 
+  /* sobre cristal oscuro el degradado rosa translúcido perdía
+     todo el cuerpo: sube de 0.35 a 0.55 para que el icono siga
+     teniendo su propia caja y no flote suelto */
   background: linear-gradient(
     135deg,
-    rgba(244, 155, 228, 0.35),
-    rgba(198, 137, 214, 0.35)
+    rgba(244, 155, 228, 0.55),
+    rgba(198, 137, 214, 0.55)
   );
 
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .work-list-stat-info {
@@ -279,15 +406,17 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 
-  color: var(--color-dark);
+  color: var(--color-text, #f6f0ff);
 }
 
 .work-list-stat-label {
   font-size: 0.82rem;
 
-  color: var(--color-dark);
-  opacity: 0.65;
+  /* sin `opacity`: el 0.65 de antes dejaba el color real fuera
+     de control. El tono apagado se elige aquí directamente. */
+  color: #e2d6f7;
 }
 
 /* ======= Grid de tarjetas =======
@@ -303,6 +432,24 @@
   gap: 24px;
 
   margin-bottom: 3rem;
+}
+
+/* ---- wrapper de cada card ----
+   La animación de entrada, el apartarse de las vecinas y el
+   apagado viven aquí (no en .work-card), como hace el home
+   con .latest-projects__reveal: así no pisan el transform
+   del hover de la card. --w-i → stagger de la cascada. */
+
+.work-reveal {
+  min-width: 0; /* permite apretarse: sin esto el contenido fuerza el salto */
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.work-reveal:hover {
+  z-index: 2; /* al crecer, pasa por encima de las vecinas sin recortarse */
 }
 
 /* ======= Banda CTA ======= */
@@ -323,7 +470,7 @@
 
   box-shadow:
     0 12px 40px rgba(169, 106, 247, 0.14),
-    0 2px 8px rgba(217, 107, 197, 0.1),
+    0 2px 8px rgb(var(--rgb-accent) / 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
@@ -439,56 +586,20 @@
     0 0 18px rgba(247, 184, 235, 0.14);
 }
 
-/* ======= Entrada: escalonada ======= */
+/* ======= Entrada: solo las cards se revelan =======
+   Cabecera, métricas y CTA NO animan: el skeleton de App.jsx
+   ya las muestra en su sitio (misma posición y medidas), así
+   que en el reveal solo las cards entran escalonadas. */
 
 @media (prefers-reduced-motion: no-preference) {
-  .work-list-head,
-  .work-list-stats,
-  .work-list-cta {
-    opacity: 0;
-    animation: workRiseIn 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
-  }
-
-  .work-list-stats {
-    animation-delay: 0.12s;
-  }
-
-  .work-list-grid > .work-card {
-    opacity: 0;
-    animation: workRiseIn 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
-    animation-delay: 0.75s;
-  }
-
-  .work-list-grid > .work-card:nth-child(1) {
-    animation-delay: 0.22s;
-  }
-
-  .work-list-grid > .work-card:nth-child(2) {
-    animation-delay: 0.3s;
-  }
-
-  .work-list-grid > .work-card:nth-child(3) {
-    animation-delay: 0.38s;
-  }
-
-  .work-list-grid > .work-card:nth-child(4) {
-    animation-delay: 0.46s;
-  }
-
-  .work-list-grid > .work-card:nth-child(5) {
-    animation-delay: 0.54s;
-  }
-
-  .work-list-grid > .work-card:nth-child(6) {
-    animation-delay: 0.62s;
-  }
-
-  .work-list-grid > .work-card:nth-child(7) {
-    animation-delay: 0.7s;
-  }
-
-  .work-list-cta {
-    animation-delay: 0.55s;
+  .work-list-grid > .work-reveal {
+    /* SIN opacity base: el fill `backwards` ya esconde cada
+       card durante su delay (aplica el estado `from`); al
+       terminar, vuelve a su estilo natural (visible) y el
+       transform de las vecinas puede actuar. Con opacity 0
+       base + `forwards` la card quedaba invisible al acabar. */
+    animation: workRiseIn 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) backwards;
+    animation-delay: calc(0.12s + var(--w-i, 0) * 0.08s);
   }
 }
 
@@ -503,6 +614,25 @@
     transform: translateY(0);
     filter: blur(0);
   }
+}
+
+/* ======= Las vecinas se apartan =======
+   El mismo gesto que las cards del home: al hacer hover en
+   una card, las de al lado le dan aire y las demás se apagan
+   (la seleccionada queda inconfundible). `backwards` en la
+   animación de entrada: sin fill final, el transform de aquí
+   funciona aunque la animación ya haya terminado. */
+
+.work-list-grid:has(.work-reveal:hover) .work-reveal:not(:hover) {
+  opacity: 0.45;
+}
+
+.work-reveal:hover + .work-reveal {
+  transform: translateX(12px);
+}
+
+.work-reveal:has(+ .work-reveal:hover) {
+  transform: translateX(-12px);
 }
 
 /* ======= Responsive ======= */
@@ -552,6 +682,17 @@
     gap: 18px;
   }
 
+  /* en columna única ni el apartarse ni el apagado tienen
+     sentido (el hover táctil se queda pegado) */
+  .work-list-grid:has(.work-reveal:hover) .work-reveal:not(:hover) {
+    opacity: 1;
+  }
+
+  .work-reveal:hover + .work-reveal,
+  .work-reveal:has(+ .work-reveal:hover) {
+    transform: none;
+  }
+
   .work-list-cta {
     flex-direction: column;
 
@@ -559,4 +700,124 @@
 
     padding: 1.6rem 1.4rem;
   }
+}
+/* ======= PAGINACIÓN =======
+   Va justo bajo la rejilla y por encima de la cinta de marcas.
+   Los tamaños salen de la regla táctil: 44px de lado mínimo,
+   porque en móvil son el objetivo más pequeño de la página. */
+
+.work-pag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  /* la rejilla ya trae 3rem de margen inferior: esto solo separa
+     los controles de la última fila sin duplicar ese hueco */
+  margin-top: -1rem;
+}
+
+.work-pag__lista {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.work-pag__num,
+.work-pag__flecha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 44px;
+  min-height: 44px;
+
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+
+  background: rgba(18, 11, 31, 0.55);
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+
+  color: var(--color-text-light, #cdc1e2);
+
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+.work-pag__num:hover,
+.work-pag__flecha:not(:disabled):hover {
+  border-color: rgba(240, 114, 200, 0.45);
+  background: rgba(240, 114, 200, 0.12);
+  color: var(--color-text, #f6f0ff);
+  transform: translateY(-2px);
+}
+
+/* la página actual: no basta con el color — lleva también
+   aria-current en el JSX, que es lo que la anuncia a un lector
+   de pantalla */
+.work-pag__num--activa,
+.work-pag__num--activa:hover {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-primary-light));
+  color: #24123a;
+  transform: none;
+  cursor: default;
+}
+
+/* deshabilitado: se ve inerte Y no responde. Solo bajar la
+   opacidad dejaría un botón que parece pulsable y no hace nada */
+.work-pag__flecha:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.work-pag__num:focus-visible,
+.work-pag__flecha:focus-visible {
+  outline: 2px solid #f7c8e8;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-pag__num,
+  .work-pag__flecha,
+  .work-pag__num:hover,
+  .work-pag__flecha:not(:disabled):hover {
+    transform: none;
+  }
+}
+
+/* los puntos del truncado: no son un botón, así que no deben
+   parecerlo — sin caja, sin borde y sin cursor de mano */
+.work-pag__salto {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  min-width: 24px;
+  min-height: 44px;
+
+  padding-bottom: 0.7rem;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+
+  color: var(--color-text-muted, #8a7aa8);
+
+  user-select: none;
 }

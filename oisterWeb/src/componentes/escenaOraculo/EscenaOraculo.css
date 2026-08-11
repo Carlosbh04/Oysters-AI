@@ -1,0 +1,531 @@
+/* ============================================================
+   ESCENA ORÁCULO
+
+   Orden de apilado:
+     0  fondo ................. el propio background de .eo
+     1  corredor de rayos ..... .eo__corredor
+     2  suelo en perspectiva .. .eo__suelo
+     3  núcleo del punto fuga . .eo__nucleo
+     4  paneles de cristal .... .eo__panel
+     5  geometría de alambre .. .eo__geometria
+     6  barras de neón ........ .eo__barras
+     7  motas ................. .eo__motas
+     8  la figura ............. .eo__figura
+   ============================================================ */
+
+.eo {
+  /* ---- DIALES ----
+     El punto de fuga es el más importante: de él nacen los rayos,
+     hacia él converge la rejilla y sobre él se centra el núcleo.
+     Moverlo recoloca la escena entera de forma coherente. */
+  --eo-fuga-x: 33%;
+  --eo-fuga-y: 66%;
+
+  --eo-void: #0a0316;
+  --eo-fondo: #1a0733;
+  --eo-violeta: #8b3ff0;
+  --eo-magenta: #d946ef;
+  --eo-luz: #e9b8ff;
+
+  /* ---- 62% → 44% ----
+     La referencia es una ILUSTRACIÓN: ahí la figura puede ocupar
+     media composición porque es el sujeto. Esto es un FONDO y va
+     a llevar texto delante, así que el sujeto pasa a ser el texto
+     y la figura tiene que ceder.
+
+     44% la deja reconocible —se ve la cabeza, la venda y el
+     mármol— sin robarle el sitio a nada. Por debajo del 35% deja
+     de leerse qué es y se convierte en una mancha clara en la
+     esquina, que es peor que no ponerla. */
+  --eo-figura-ancho: 44%;
+
+  /* cuánto se apaga la escena para que el texto de encima gane.
+     0 = escena a plena intensidad, 1 = negro */
+  --eo-velo: 0.42;
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  width: 100%;
+  height: 100%;
+
+  /* Base en dos radiales, no en un lineal: la escena está
+     iluminada desde el punto de fuga, así que el color tiene que
+     nacer de ahí y apagarse hacia las esquinas. Un degradado
+     lineal daría una banda y mataría la profundidad. */
+  /* ---- MÁS OSCURO QUE ANTES ----
+     La referencia es casi negra en las esquinas y en todo el
+     tercio superior izquierdo: la luz vive solo en el corredor y
+     alrededor de la figura. Mis radiales llegaban demasiado lejos
+     y levantaban la escena entera a un violeta medio, que es lo
+     que le quitaba la profundidad.
+
+     Ahora el radial del punto de fuga es más pequeño y más
+     concentrado, y el segundo pasa a ser el halo DETRÁS DE LA
+     CABEZA de la figura —que en la referencia es una mancha
+     magenta bien localizada, no una iluminación general. */
+  background-color: var(--eo-void);
+  background-image:
+    radial-gradient(
+      44% 58% at var(--eo-fuga-x) var(--eo-fuga-y),
+      rgba(160, 70, 255, 0.34) 0%,
+      rgba(90, 30, 170, 0.1) 42%,
+      transparent 72%
+    ),
+    radial-gradient(
+      26% 30% at 76% 38%,
+      rgba(200, 70, 240, 0.3) 0%,
+      rgba(120, 40, 190, 0.1) 45%,
+      transparent 75%
+    ),
+    radial-gradient(
+      130% 120% at 50% 55%,
+      transparent 30%,
+      rgba(6, 2, 14, 0.75) 100%
+    );
+}
+
+/* ============================================================
+   CORREDOR DE RAYOS
+   ============================================================ */
+
+.eo__corredor {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ---- POR QUÉ transform-origin Y NO COORDENADAS ----
+   Cada rayo es una barra que arranca en el punto de fuga y se
+   gira sobre él. Con transform-origin ahí, basta una rotación por
+   rayo para abrir el abanico: no hay que calcular dónde acaba
+   cada uno. Y al mover --eo-fuga-x/y, los treinta y dos se
+   recolocan solos. */
+.eo__rayo {
+  position: absolute;
+  left: var(--eo-fuga-x);
+  top: var(--eo-fuga-y);
+
+  width: var(--largo);
+  height: var(--ancho);
+
+  transform-origin: 0 50%;
+  transform: rotate(var(--ang)) scaleX(0);
+
+  /* ---- ARRANCA SEPARADO DEL NÚCLEO ----
+     Antes el rayo nacía blanco en el punto de fuga mismo, y con 54
+     encima el centro se empastaba en una mancha blanca. Ahora los
+     primeros 6% van transparentes: el rayo aparece un poco por
+     fuera, como un trazo que YA viene en camino. El destello del
+     centro lo pone .eo__nucleo, que para eso está. */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.9) 6%,
+    var(--eo-magenta) 18%,
+    rgba(139, 63, 240, 0.4) 52%,
+    transparent 100%
+  );
+
+  opacity: var(--op);
+  border-radius: 2px;
+
+  transition: transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--i) * 22ms);
+}
+
+.eo--dentro .eo__rayo {
+  transform: rotate(var(--ang)) scaleX(1);
+}
+
+/* núcleo: el destello del punto de fuga. Va por encima de los
+   rayos para que parezca que salen de dentro de él */
+.eo__nucleo {
+  position: absolute;
+  left: var(--eo-fuga-x);
+  top: var(--eo-fuga-y);
+  z-index: 3;
+
+  /* 34% → 18%. Era una nube enorme que lavaba el centro de la
+     escena; en la referencia el punto de fuga es un destello
+     PEQUEÑO y muy intenso, y eso es lo que le da la sensación de
+     estar lejísimos. */
+  width: 18%;
+  aspect-ratio: 1;
+
+  transform: translate(-50%, -50%) scale(0.4);
+
+  background: radial-gradient(
+    circle closest-side,
+    #ffffff 0%,
+    var(--eo-luz) 12%,
+    rgba(217, 70, 239, 0.55) 30%,
+    transparent 70%
+  );
+
+  opacity: 0;
+
+  transition: opacity 1200ms ease, transform 1600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.eo--dentro .eo__nucleo {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ============================================================
+   SUELO EN PERSPECTIVA
+   ============================================================ */
+
+.eo__suelo {
+  position: absolute;
+  left: -25%;
+  right: -25%;
+  top: var(--eo-fuga-y);
+  bottom: -20%;
+  z-index: 2;
+
+  perspective: 380px;
+  perspective-origin: var(--eo-fuga-x) 0;
+
+  /* se desvanece hacia el horizonte: sin esto la rejilla llega
+     nítida al punto de fuga y delata que es un plano plano */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 42%, #000 100%);
+}
+
+.eo__suelo-rejilla {
+  position: absolute;
+  inset: 0;
+
+  transform: rotateX(74deg);
+  transform-origin: 50% 0;
+
+  /* dos tramas cruzadas: las líneas que se alejan y los travesaños.
+     A esta inclinación, los travesaños se comprimen solos hacia el
+     horizonte y dan la sensación de profundidad. */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(190, 120, 255, 0.22) 0 1px,
+      transparent 1px 56px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(217, 70, 239, 0.2) 0 2px,
+      transparent 2px 44px
+    );
+
+  /* ---- EL SUELO NO SON LÍNEAS, SON GUIONES ----
+     Con las dos tramas a secas salía una cuadrícula continua, y la
+     referencia no tiene eso: tiene un campo de trazos cortos de
+     luz, como datos posados en el plano.
+
+     La máscara de rayas verticales parte AMBAS tramas en trozos:
+     los travesaños se convierten en guiones, y las líneas de
+     profundidad quedan segmentadas. Es la diferencia entre leerlo
+     como un papel milimetrado y como un suelo digital. */
+  -webkit-mask-image: repeating-linear-gradient(
+    90deg,
+    #000 0 26px,
+    transparent 26px 46px
+  );
+  mask-image: repeating-linear-gradient(
+    90deg,
+    #000 0 26px,
+    transparent 26px 46px
+  );
+
+  opacity: 0;
+  transition: opacity 1600ms ease 300ms;
+}
+
+.eo--dentro .eo__suelo-rejilla {
+  opacity: 1;
+}
+
+/* ============================================================
+   PANELES DE CRISTAL
+   ============================================================ */
+
+.eo__panel {
+  position: absolute;
+  z-index: 4;
+
+  border: 1px solid rgba(190, 140, 255, 0.22);
+  background: linear-gradient(
+    120deg,
+    rgba(160, 110, 255, 0.07),
+    rgba(160, 110, 255, 0.015)
+  );
+
+  opacity: 0;
+  transition: opacity 1200ms ease 500ms;
+}
+
+.eo--dentro .eo__panel {
+  opacity: 1;
+}
+
+/* salen del encuadre a propósito: enteros se leerían como cajas */
+.eo__panel--izq {
+  left: -6%;
+  top: 22%;
+
+  width: 22%;
+  height: 62%;
+
+  transform: perspective(700px) rotateY(16deg);
+}
+
+.eo__panel--der {
+  right: -4%;
+  top: 4%;
+
+  width: 16%;
+  height: 44%;
+
+  transform: perspective(700px) rotateY(-14deg);
+}
+
+/* ============================================================
+   GEOMETRÍA DE ALAMBRE
+   ============================================================ */
+
+.eo__geometria {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+
+  color: rgba(200, 150, 255, 0.75);
+}
+
+.eo__poliedro {
+  position: absolute;
+
+  aspect-ratio: 1;
+
+  /* deriva lentísima y desfasada por índice: sin ella la escena
+     se lee como una foto. 18s es deliberadamente largo — un fondo
+     que se mueve deprisa roba atención al contenido. */
+  animation: eo-flotar 18s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -3.1s);
+
+  transform: rotate(var(--giro));
+}
+
+@keyframes eo-flotar {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+/* la esquirla es un cuadrado girado 45°, no un SVG: a este tamaño
+   (5-13px) un polígono no aporta nada y sí dieciocho nodos más */
+.eo__esquirla {
+  position: absolute;
+
+  background: linear-gradient(140deg, var(--eo-luz), var(--eo-magenta));
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.6);
+
+  transform: rotate(var(--giro));
+  border-radius: 1px;
+}
+
+/* ============================================================
+   BARRAS DE NEÓN
+   ============================================================ */
+
+.eo__barras {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+
+.eo__barra {
+  position: absolute;
+
+  height: 3px;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--eo-magenta) 22%,
+    #ffffff 50%,
+    var(--eo-magenta) 78%,
+    transparent 100%
+  );
+
+  box-shadow: 0 0 14px rgba(217, 70, 239, 0.75);
+  border-radius: 3px;
+
+  /* entran barriendo desde su izquierda, como un destello que
+     pasa: aparecer con opacidad las dejaba muertas */
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(600ms + var(--i) * 70ms);
+}
+
+.eo--dentro .eo__barra {
+  transform: scaleX(1);
+}
+
+/* ============================================================
+   MOTAS
+   ============================================================ */
+
+.eo__motas {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+}
+
+.eo__motas span {
+  position: absolute;
+
+  border-radius: 50%;
+  background: var(--eo-luz);
+  box-shadow: 0 0 6px rgba(233, 184, 255, 0.8);
+}
+
+/* ============================================================
+   LA FIGURA
+   ============================================================ */
+
+.eo__figura {
+  position: absolute;
+  right: -4%;
+  bottom: 0;
+  z-index: 8;
+
+  width: var(--eo-figura-ancho);
+  max-width: none;
+
+  /* anclada abajo y a la derecha, y algo salida del encuadre: es
+     el remate de la composición, no el sujeto centrado */
+  object-fit: contain;
+  object-position: bottom right;
+
+  opacity: 0;
+  transform: translateX(4%) scale(0.98);
+
+  transition: opacity 1200ms ease 200ms,
+    transform 1500ms cubic-bezier(0.16, 1, 0.3, 1) 200ms;
+}
+
+.eo--dentro .eo__figura {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* ============================================================
+   EL VELO
+
+   Va el ÚLTIMO de todo, por encima de la figura incluida. Es lo
+   que convierte una ilustración en un fondo: apaga la escena lo
+   justo para que cualquier texto blanco encima se lea sin tener
+   que llevar sombra propia.
+
+   No es plano: cae con fuerza sobre la mitad izquierda —que es
+   donde va a ir el texto, y donde además está el corredor, que es
+   lo más brillante— y se levanta hacia la derecha, para no
+   apagar la figura del todo. Un velo uniforme dejaría la figura
+   sucia y el texto sin ganar nada.
+   ============================================================ */
+
+.eo::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(6, 2, 14, var(--eo-velo)) 0%,
+      rgba(6, 2, 14, calc(var(--eo-velo) * 0.85)) 42%,
+      rgba(6, 2, 14, calc(var(--eo-velo) * 0.35)) 72%,
+      rgba(6, 2, 14, calc(var(--eo-velo) * 0.15)) 100%
+    );
+}
+
+/* ============================================================
+   PANTALLAS ESTRECHAS
+   El corredor necesita ancho para leerse. En vertical, la figura
+   manda y la escena se recompone alrededor de ella.
+   ============================================================ */
+
+@media (max-width: 820px) {
+  .eo {
+    --eo-fuga-x: 40%;
+    --eo-fuga-y: 58%;
+
+    /* en vertical la figura tiene menos ancho que ocupar, así que
+       sube en porcentaje para seguir midiendo algo parecido en
+       píxeles. 92% era el valor de cuando esto iba a ser una
+       ilustración: como fondo, tapaba la pantalla entera. */
+    --eo-figura-ancho: 66%;
+
+    /* el texto se apila y ocupa más superficie: hace falta más
+       velo para que siga leyéndose */
+    --eo-velo: 0.55;
+  }
+
+  .eo__panel--der {
+    display: none;
+  }
+}
+
+/* ============================================================
+   QUIEN PIDE NO VER MOVIMIENTO
+   La escena se sirve montada: mismo estado final, sin recorrido
+   ni deriva continua.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .eo__rayo,
+  .eo__nucleo,
+  .eo__suelo-rejilla,
+  .eo__panel,
+  .eo__barra,
+  .eo__figura {
+    transition: none;
+  }
+
+  .eo__rayo {
+    transform: rotate(var(--ang)) scaleX(1);
+  }
+
+  .eo__nucleo {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .eo__suelo-rejilla,
+  .eo__panel,
+  .eo__figura {
+    opacity: 1;
+  }
+
+  .eo__figura {
+    transform: none;
+  }
+
+  .eo__barra {
+    transform: scaleX(1);
+  }
+
+  .eo__poliedro {
+    animation: none;
+  }
+}

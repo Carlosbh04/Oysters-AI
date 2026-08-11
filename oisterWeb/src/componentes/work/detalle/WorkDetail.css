@@ -1,0 +1,1178 @@
+/* ============================================================
+   DETALLE DE TRABAJO — tokens y receta compartida
+
+   Todo lo que se repite vive aquí: los colores, la receta de
+   tarjeta y el rótulo monoespaciado. El carrusel tiene su
+   propio archivo porque es el único que necesita geometría
+   propia.
+
+   ---- UNA SOLA RECETA DE TARJETA ----
+   `.wd-tarjeta` la usan las seis secciones. No es por ahorrar
+   líneas: es la única forma de que sigan pareciéndose dentro de
+   seis meses. Con cada tarjeta definiendo su propio fondo y su
+   propio borde, basta con que alguien retoque una para que
+   empiecen a divergir, y eso no se nota de golpe sino poco a
+   poco.
+   ============================================================ */
+
+.wd {
+  /* superficies */
+  --wd-superficie: rgba(20, 12, 40, 0.55);
+  --wd-superficie-alta: rgba(30, 18, 55, 0.7);
+  --wd-borde: rgba(160, 120, 255, 0.18);
+  --wd-borde-activo: rgba(217, 70, 239, 0.6);
+
+  /* texto */
+  --wd-texto: #f5f0ff;
+  --wd-texto-suave: rgba(230, 220, 255, 0.7);
+
+  /* acentos */
+  --wd-magenta: #d946ef;
+  --wd-violeta: #a855f7;
+  --wd-degradado: linear-gradient(135deg, #a855f7, #d946ef);
+
+  --wd-radio: 18px;
+  --wd-glow: 0 0 24px rgba(217, 70, 239, 0.25);
+
+  --wd-hueco: clamp(32px, 5vw, 64px);
+
+  /* tipografía de los rótulos */
+  --wd-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, monospace;
+
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-hueco);
+
+  /* el hero pide aire por arriba para despegarse de la píldora
+     del header, que es absolute y no empuja nada */
+  padding-block: 96px 80px;
+
+  color: var(--wd-texto);
+}
+
+/* ============================================================
+   RECETA DE TARJETA
+   ============================================================ */
+
+.wd-tarjeta {
+  padding: 22px 24px;
+
+  border: 1px solid var(--wd-borde);
+  border-radius: var(--wd-radio);
+
+  background: var(--wd-superficie);
+
+  /* ---- EL BLUR ESTÁ MEDIDO, Y SALE GRATIS ----
+     Detrás hay un canvas repintando a 60fps, así que desenfocar
+     lo que queda debajo parecía caro. Medido en A/B con la CPU
+     frenada 6×: 18.3ms de p95 CON blur y 20.5ms SIN él. No solo
+     no cuesta, ayuda — la propiedad promociona la tarjeta a su
+     propia capa de composición y eso le ahorra trabajo al
+     compositor en cada fotograma. */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.25s ease;
+}
+
+/* Solo en dispositivos con puntero fino. En una pantalla táctil
+   el :hover se queda pegado después de tocar, y una tarjeta que
+   se enciende y no se apaga se lee como un fallo. */
+@media (hover: hover) {
+  .wd-tarjeta:hover {
+    border-color: var(--wd-borde-activo);
+    background: var(--wd-superficie-alta);
+    box-shadow: var(--wd-glow);
+  }
+}
+
+/* ---- RÓTULO DE TARJETA ----
+   Monoespaciado, versales y 11px. Es deliberado que NUNCA haya
+   titulares grandes dentro de una tarjeta: el único titular
+   grande de la página es el h1 del hero. Si las tarjetas
+   compiten con él, la página deja de tener un punto de entrada. */
+.wd-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  margin: 0 0 14px;
+
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-rotulo svg {
+  width: 14px;
+  height: 14px;
+
+  color: var(--wd-violeta);
+}
+
+/* el punto luminoso de "Descripción del proyecto" */
+.wd-rotulo__punto {
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--wd-magenta);
+  box-shadow: 0 0 10px var(--wd-magenta);
+}
+
+.wd-rotulo--magenta {
+  color: var(--wd-magenta);
+}
+
+/* ============================================================
+   REVELADO AL ENTRAR EN PANTALLA
+   ============================================================ */
+
+.wd-revelar {
+  opacity: 0;
+  transform: translateY(24px);
+
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s ease-out;
+
+  /* el retraso lo pone el JSX con --i, y sale de multiplicar el
+     índice de la sección por 80ms */
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+.wd-revelar--visto {
+  opacity: 1;
+  transform: none;
+}
+
+/* Con movimiento reducido no hay entrada NI estado inicial: si
+   solo se quitara la transición, el contenido se quedaría en
+   opacidad 0 hasta que el observador disparase, y en una página
+   corta puede no disparar nunca. */
+@media (prefers-reduced-motion: reduce) {
+  .wd-revelar {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ============================================================
+   1 · HERO
+   ============================================================ */
+
+.wd-hero {
+  text-align: center;
+}
+
+.wd-hero__volver {
+  /* flex de bloque con ancho ajustado y `margin-right: auto`:
+     así ocupa su propia línea y se alinea a la IZQUIERDA aunque
+     el hero esté centrado. Con inline-flex compartía línea con
+     la píldora de categoría y las dos salían pegadas. */
+  display: flex;
+  width: fit-content;
+
+  align-items: center;
+  gap: 0.45rem;
+
+  margin: 0 auto 28px 0;
+
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  color: var(--wd-texto-suave);
+
+  transition:
+    gap 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
+    color 0.25s ease;
+}
+
+.wd-hero__volver:hover {
+  gap: 0.75rem;
+  color: var(--wd-texto);
+}
+
+.wd-hero__volver svg {
+  width: 14px;
+  height: 14px;
+}
+
+.wd-hero__categoria {
+  display: inline-block;
+
+  margin-bottom: 18px;
+  padding: 0.34rem 0.95rem;
+
+  border: 1px solid var(--wd-borde);
+  border-radius: 999px;
+
+  background: var(--wd-superficie);
+
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-hero__titulo {
+  margin: 0;
+
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+
+  color: var(--wd-texto);
+}
+
+/* ---- EL FRAGMENTO EN DEGRADADO ----
+   background-clip: text necesita que el color sea transparente;
+   si se olvida, el degradado queda TAPADO por el color de
+   relleno y no se ve nada raro — simplemente no pasa nada, que
+   es el peor tipo de fallo. */
+.wd-hero__destacado {
+  background: var(--wd-degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wd-hero__sub {
+  max-width: 46ch;
+  margin: 14px auto 0;
+
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.55;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-hero__etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+
+  margin: 22px 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.wd-hero__etiquetas li {
+  font-size: 13px;
+
+  color: var(--wd-texto-suave);
+}
+
+/* ============================================================
+   3 · BARRA DE FICHA
+   ============================================================ */
+
+/* ---- CADA CELDA PIDE LO SUYO Y EL SOBRANTE SE REPARTE ----
+   Dos intentos fallidos antes de esto:
+
+   · A `1fr` cada una, o sea a partes iguales: "AÑO 2025" y
+     "CLIENTE ACCIONA" se llevaban el mismo ancho que
+     "Infraestructura y Energía Sostenible", que se partía en tres
+     líneas mientras a las vecinas les sobraba sitio.
+
+   · Dándole a la segunda celda TODO el sobrante: arreglaba
+     ACCIONA y rompía ALSEA, que no trae web y tiene los tres
+     textos cortos — quedaba un vacío enorme entre "Restauración"
+     y "AÑO".
+
+   Con flexbox y `flex: 1 1 auto`, la base de cada celda es el
+   ancho de su contenido y el hueco que sobra se reparte por
+   igual. Así la celda larga arranca más ancha sin acaparar, y con
+   tres celdas cortas el reparto queda parejo. Funciona con
+   cualquier combinación de datos, que es lo que hace falta cuando
+   cada proyecto trae los suyos. */
+.wd-meta {
+  display: flex;
+
+  padding: 0;
+}
+
+.wd-meta__celda {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  /* más aire vertical: la barra pasa a ir bajo la galería, donde
+     es la primera pieza de datos de la página y no un remate */
+  padding: 22px 26px;
+
+  flex: 1 1 auto;
+
+  /* sin esto una celda no puede encoger por debajo de su
+     contenido y la barra se desborda en pantallas justas */
+  min-width: 0;
+}
+
+/* Separador SOLO entre celdas. Con `border-right` en todas
+   quedaría un filo suelto al final de la barra. */
+.wd-meta__celda + .wd-meta__celda {
+  border-left: 1px solid var(--wd-borde);
+}
+
+.wd-meta__icono {
+  display: grid;
+  place-items: center;
+
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background: rgba(168, 85, 247, 0.16);
+
+  color: var(--wd-violeta);
+}
+
+.wd-meta__icono svg {
+  width: 18px;
+  height: 18px;
+}
+
+.wd-meta__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  min-width: 0;
+}
+
+.wd-meta__rotulo {
+  font-family: var(--wd-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-meta__valor {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+
+  color: var(--wd-texto);
+}
+
+.wd-meta__valor a {
+  color: var(--wd-magenta);
+  text-decoration: none;
+}
+
+.wd-meta__valor a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   4 · CONTENIDO  ·  5 · DESTACADO
+   Los dos comparten la misma rejilla 7fr / 5fr.
+   ============================================================ */
+
+.wd-rejilla {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 20px;
+
+  /* ---- LAS COLUMNAS SE ESTIRAN, NO EMPIEZAN ARRIBA ----
+     La spec pedía `align-items: start`. Con eso cada columna
+     toma su altura natural y la más corta deja un agujero: en
+     ACCIONA eran 192px de aire muerto debajo de las
+     herramientas.
+
+     Con el estirado por defecto las dos ocupan la altura de la
+     fila, y el último elemento de cada una (ver abajo) absorbe
+     la diferencia. Así terminan siempre a la misma altura, venga
+     el proyecto con los datos que venga. */
+}
+
+/* ---- COLUMNA ÚNICA: MÁS ESTRECHA Y CENTRADA ----
+   Cuando no hay barra lateral, dejar las tarjetas a los 1120px
+   de la página no soluciona nada: el párrafo está limitado a 70
+   caracteres por legibilidad, así que ocupaba 617px y quedaban
+   455px de tarjeta vacía a la derecha. Medido en ALSEA.
+
+   La solución no es ensanchar el texto —70 caracteres es el
+   tope cómodo para leer seguido— sino estrechar el bloque hasta
+   la anchura que el texto realmente ocupa. El resultado es el
+   patrón editorial de toda la vida: medios anchos, texto
+   estrecho. Se lee como una decisión, no como un hueco. */
+.wd-rejilla--sola {
+  grid-template-columns: 1fr;
+}
+
+/* El estrechado es SOLO para bloques de texto. Un vídeo suelto
+   también cae en `--sola`, y estrechado a 680px se quedaba
+   pequeño debajo de una galería de 1120: no necesita medida de
+   lectura, necesita ancho. Por eso la anchura va en una clase
+   aparte y no en `--sola`. */
+.wd-rejilla--estrecha,
+.wd-herramientas--sola {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+/* dentro del bloque estrecho el tope de 70ch ya no hace falta:
+   lo impone el propio bloque, y dejarlo puesto volvería a
+   recortar el texto y a dejar aire muerto */
+.wd-rejilla--estrecha .wd-descripcion p {
+  max-width: none;
+}
+
+.wd-rejilla__lado {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  height: 100%;
+}
+
+/* ---- CÓMO SE REPARTE EL SOBRANTE ----
+   Las dos columnas miden lo mismo, así que la más corta tiene
+   altura de más que colocar en algún sitio. Se reparte según lo
+   que haya:
+
+   · Si hay un VÍDEO, se lo queda él (`flex: auto` abajo, en
+     .wd-destacado__video--relleno). Un vídeo más alto sigue
+     siendo un vídeo.
+
+   · Si no, `space-between` lo convierte en separación ENTRE
+     tarjetas. Antes lo absorbía la última tarjeta estirándose, y
+     en ACCIONA eso dejaba 86px de vacío dentro de la caja de
+     PROYECTOS. Repartido como aire entre tarjetas se lee como
+     una decisión de espaciado; metido dentro de una caja se lee
+     como que falta contenido.
+
+   Los dos casos conviven porque `flex: auto` gana: donde hay
+   vídeo no queda sobrante que repartir y space-between no tiene
+   nada que hacer. */
+.wd-rejilla__lado {
+  justify-content: space-between;
+}
+
+/* ---- UNA SOLA TARJETA NO PUEDE REPARTIR SOBRANTE ----
+   `space-between` convierte el sobrante en separación ENTRE
+   tarjetas, y eso solo funciona con dos o más. La columna derecha
+   lleva una —entregables y herramientas comparten caja a
+   propósito, para no fragmentarla— así que el sobrante se
+   acumulaba entero debajo: medido en ACCIONA, 490px de columna
+   vacía al lado del texto.
+
+   Estirarla tampoco sirve: ya se probó y una caja con aire dentro
+   se lee como que falta contenido, no como espaciado.
+
+   La salida es que acompañe al scroll. Deja de haber columna vacía
+   porque la tarjeta está siempre a la altura de lo que se está
+   leyendo, y de paso es lo que uno espera de una barra de datos:
+   que no se pierda al bajar.
+
+   Solo cuando la rejilla tiene DOS columnas: en `--sola` la
+   tarjeta es el contenido principal y pegarla arriba no tendría
+   sentido. */
+.wd-rejilla:not(.wd-rejilla--sola)
+  > .wd-rejilla__lado:last-child
+  > .wd-tarjeta:only-child {
+  position: sticky;
+
+  /* por debajo de la píldora del header, más el mismo aire que
+     separa las tarjetas entre sí */
+  top: calc(var(--header-height) + 20px);
+}
+
+/* Con la tarjeta pegajosa, `space-between` ya no tiene nada que
+   repartir en esa columna y su altura al 100% solo estorba: la
+   caja se queda arriba y es la posición pegajosa la que manda. */
+.wd-rejilla:not(.wd-rejilla--sola)
+  > .wd-rejilla__lado:last-child:has(> .wd-tarjeta:only-child) {
+  justify-content: flex-start;
+}
+
+/* ---- descripción ---- */
+
+.wd-descripcion p {
+  margin: 0;
+
+  /* 70 caracteres es el tope de línea cómodo para leer seguido */
+  max-width: 70ch;
+
+  font-size: 14px;
+  line-height: 1.75;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-descripcion p + p {
+  margin-top: 1.1em;
+}
+
+/* ---- entregables ---- */
+
+.wd-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.wd-lista li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-lista__check {
+  display: grid;
+  place-items: center;
+
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+
+  /* medio punto de desfase: la caja se alinea con la altura de
+     la mayúscula y no con la de la línea entera */
+  margin-top: 1px;
+
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 5px;
+
+  color: var(--wd-violeta);
+}
+
+.wd-lista__check svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ---- separador entre entregables y herramientas ---- */
+
+.wd-divisor {
+  height: 1px;
+  margin: 20px 0;
+
+  border: 0;
+
+  background: var(--wd-borde);
+}
+
+/* ---- chips de herramientas ---- */
+
+.wd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.wd-chips li {
+  padding: 6px 14px;
+
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 999px;
+
+  background: rgba(168, 85, 247, 0.08);
+
+  font-size: 12px;
+
+  color: var(--wd-texto);
+}
+
+/* ============================================================
+   5 · DESTACADO
+   ============================================================ */
+
+.wd-destacado__video {
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid var(--wd-borde);
+  border-radius: 14px;
+
+  background: #05030f;
+
+  /* reserva el hueco antes de que cargue el vídeo: sin esto el
+     resto de la página salta hacia abajo al aparecer */
+  aspect-ratio: 16 / 9;
+}
+
+/* Parte de 16:9 y crece desde ahí si su columna se queda corta.
+   Al crecer pierde la proporción, y de que no se deforme se
+   encarga el `object-fit: cover` de abajo. El mínimo evita que
+   quede como una rendija en pantallas estrechas. */
+.wd-destacado__video--relleno {
+  flex: auto;
+
+  min-height: 200px;
+}
+
+.wd-destacado__video video {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+/* botón de play sobre el vídeo en pausa */
+.wd-destacado__play {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.wd-destacado__play span {
+  display: grid;
+  place-items: center;
+
+  width: 62px;
+  height: 62px;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+
+  background: rgba(20, 12, 40, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  color: #fff;
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+.wd-destacado__play:hover span {
+  transform: scale(1.08);
+  box-shadow: var(--wd-glow);
+}
+
+.wd-destacado__ficha {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  height: 100%;
+
+  padding: 30px 32px;
+
+  /* el cubo asoma por la esquina y se recorta contra el borde
+     redondeado de la tarjeta: es lo que hace que parezca que
+     está DENTRO y no pegado encima */
+  overflow: hidden;
+}
+
+/* Sacado del flujo visual pero no del árbol de accesibilidad.
+   `clip` sobre un rectángulo vacío es la receta que no rompe la
+   lectura: con `display: none` o `visibility: hidden` el texto
+   desaparece también para el lector de pantalla, que es justo lo
+   contrario de lo que se busca. */
+.wd-solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wd-destacado__comillas {
+  display: block;
+
+  /* la comilla tipográfica trae mucho aire por arriba; el
+     interlineado a 0.7 y el margen negativo la suben hasta donde
+     ópticamente parece que empieza */
+  margin-bottom: 6px;
+
+  font-size: 64px;
+  line-height: 0.7;
+
+  background: var(--wd-degradado);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wd-destacado__cita {
+  position: relative;
+
+  margin: 0;
+
+  /* Más grande y más claro que el resto de párrafos: es una cita
+     destacada, no cuerpo de texto. A 19px y con peso 500 ya
+     cuenta como texto grande para el AA (umbral 3:1), aunque
+     aquí sobra margen de todos modos. */
+  font-size: clamp(16px, 1.5vw, 19px);
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+
+  color: var(--wd-texto);
+
+  /* por encima del cubo */
+  z-index: 1;
+}
+
+.wd-destacado__cubo {
+  position: absolute;
+  right: -34px;
+  bottom: -38px;
+
+  width: 190px;
+  height: 190px;
+
+  fill: none;
+  stroke: var(--wd-violeta);
+  stroke-width: 1.5;
+
+  opacity: 0.28;
+
+  pointer-events: none;
+}
+
+/* ---- FRANJA DE HERRAMIENTAS A TODO LO ANCHO ----
+   La que aparece cuando no hay barra lateral (ver
+   WorkContentGrid). Los chips fluyen en horizontal, así que a
+   todo el ancho ocupan una o dos filas y no queda hueco; en una
+   columna estrecha se apilaban y dejaban la caja medio vacía. */
+.wd-herramientas {
+  margin-top: 20px;
+}
+
+/* ============================================================
+   6 · CTA
+   ============================================================ */
+
+.wd-cta {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 26px 30px;
+
+  overflow: hidden;
+}
+
+/* filo superior en degradado. Va como pseudo-elemento y no como
+   border-top porque un borde no puede llevar degradado y seguir
+   el radio de la esquina. */
+.wd-cta::before {
+  content: "";
+
+  position: absolute;
+  inset: 0 0 auto;
+
+  height: 1px;
+
+  background: var(--wd-degradado);
+}
+
+.wd-cta__izq {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  min-width: 0;
+}
+
+.wd-cta__icono {
+  display: grid;
+  place-items: center;
+
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: rgba(168, 85, 247, 0.2);
+
+  color: var(--wd-violeta);
+}
+
+.wd-cta__icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.wd-cta__titulo {
+  margin: 0;
+
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+
+  color: var(--wd-texto);
+}
+
+.wd-cta__sub {
+  margin: 4px 0 0;
+
+  font-size: 13px;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-cta__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  flex-shrink: 0;
+
+  padding: 12px 12px 12px 24px;
+
+  border-radius: 999px;
+
+  background: var(--wd-degradado);
+
+  font-family: var(--wd-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  /* ---- TEXTO CASI NEGRO, Y NO BLANCO ----
+     Blanco sobre este degradado da 3.96:1 en el extremo violeta
+     —por debajo del 4.5 del AA—, porque #a855f7 ya es un color
+     claro. Va al revés: texto oscuro sobre fondo claro.
+
+     Y es #0d0418 y no un morado oscuro más suave: con #1a0b2e el
+     extremo violeta se quedaba en 4.69:1, demasiado justo para
+     un texto de 12px. Con este, 5.07:1 en el peor extremo del
+     degradado y 5.80:1 en el otro. */
+  color: #0d0418;
+
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.28);
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+.wd-cta__boton:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 6px 30px rgba(217, 70, 239, 0.45);
+}
+
+.wd-cta__flecha {
+  display: grid;
+  place-items: center;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+
+  background: rgba(13, 4, 24, 0.22);
+
+  transition: transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.wd-cta__flecha svg {
+  width: 15px;
+  height: 15px;
+}
+
+.wd-cta__boton:hover .wd-cta__flecha {
+  transform: translateX(4px);
+}
+
+.wd-cta__boton:focus-visible,
+.wd-hero__volver:focus-visible {
+  outline: 2px solid var(--wd-magenta);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   Regla única: todas las rejillas de 2 columnas colapsan a 1 y
+   el orden lógico se mantiene (no hay ningún `order` en juego).
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .wd-rejilla {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .wd {
+    padding-block: 72px 56px;
+  }
+
+  .wd-meta {
+    grid-auto-flow: row;
+  }
+
+  /* los separadores pasan de verticales a horizontales */
+  .wd-meta__celda + .wd-meta__celda {
+    border-left: 0;
+    border-top: 1px solid var(--wd-borde);
+  }
+
+  .wd-cta {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .wd-cta__boton {
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   FILAS
+
+   La página se compone de filas, y cada una decide su reparto.
+   Antes había una única rejilla de dos columnas fijas que
+   gobernaba todo el contenido; el orden de la página vive ahora
+   en WorkDetail.jsx y aquí solo están los repartos.
+   ============================================================ */
+.wd-fila {
+  display: grid;
+  gap: 20px;
+
+  /* ---- ARRIBA, NO ESTIRADAS ----
+     Con el estirado por defecto, la tarjeta más corta de la fila
+     crece hasta la altura de la más alta y se queda con aire
+     dentro, que se lee como que falta contenido. Alineadas
+     arriba, cada una mide lo que mide y el sobrante queda fuera,
+     donde no parece un error. */
+  align-items: start;
+}
+
+/* ---- 6 A 5, MEDIDO ----
+   La columna izquierda lleva dos tarjetas y la derecha cuatro, así
+   que la derecha tiende a ser la larga. Estrecharla —que era la
+   primera idea— la haría más alta todavía; lo que equilibra es
+   ensancharla.
+
+   Barridas tres proporciones sobre los tres proyectos, midiendo
+   cuánto se desajustan las dos columnas al final:
+
+     7fr 5fr   212px de media
+     6fr 5fr   159px
+     1fr 1fr   148px
+
+   Se queda en 6/5. A partes iguales equilibra doce píxeles más,
+   pero la descripción es el texto de lectura seguida de la página
+   y merece la columna ancha: con 1fr sus líneas se acortan hasta
+   quedar por debajo de la medida cómoda. */
+.wd-fila--7-5 {
+  grid-template-columns: 6fr 5fr;
+
+  /* Las dos columnas miden lo mismo para que la tarjeta de
+     siguiente proyecto pueda estirarse y cerrar el hueco justo.
+     Sin esto cada pila mide su contenido y la tarjeta no tiene
+     contra qué crecer. */
+  align-items: stretch;
+}
+
+/* la columna apilada: mismas separaciones que entre filas, para
+   que la retícula sea una sola y no dos superpuestas */
+.wd-pila {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  min-width: 0;
+}
+
+/* ---- REPARTO A PARTES IGUALES, Y QUE SE COLOQUEN SOLAS ----
+   `auto-fit` con un mínimo hace dos cosas de golpe: reparte a
+   partes iguales cuando hay dos tarjetas y ocupa la fila entera
+   cuando solo hay una. Sin eso haría falta una clase por cada
+   combinación de datos que traiga el proyecto — y de los siete
+   del catálogo, cada uno trae los suyos. */
+.wd-fila--iguales {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* ---- ENTREGABLES A DOS COLUMNAS ----
+   Son etiquetas de dos o tres palabras: en una columna dejaban
+   media tarjeta vacía a la derecha mientras la lista se estiraba
+   hacia abajo. */
+.wd-lista--dos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+}
+
+@media (max-width: 860px) {
+  .wd-fila--7-5 {
+    grid-template-columns: 1fr;
+  }
+
+  .wd-lista--dos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   SIGUIENTE PROYECTO
+   ============================================================ */
+
+/* ---- SE ESTIRA PARA COMER EL SOBRANTE ----
+   `margin-top: auto` la empuja al pie de su columna y `flex: 1`
+   le deja absorber lo que quede libre. Es la única tarjeta a la
+   que se le permite: las demás con aire dentro se leen como que
+   falta contenido, pero esta es un enlace —su caja ES la zona
+   pulsable— así que crecer la mejora. */
+.wd-siguiente {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  margin-top: auto;
+  flex: 1 1 auto;
+
+  text-decoration: none;
+
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.wd-siguiente:hover {
+  border-color: var(--wd-borde-activo);
+  background: var(--wd-superficie-alta);
+  transform: translateY(-2px);
+}
+
+.wd-siguiente:focus-visible {
+  outline: 2px solid var(--wd-magenta);
+  outline-offset: 3px;
+}
+
+.wd-siguiente__cuerpo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  /* centrado en el alto sobrante: si la tarjeta se estira, el
+     contenido se queda en medio en vez de pegado arriba */
+  margin-block: auto;
+}
+
+.wd-siguiente__miniatura {
+  flex: 0 0 auto;
+
+  width: 68px;
+  height: 68px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--wd-borde);
+  border-radius: 12px;
+
+  background: #05030f;
+}
+
+.wd-siguiente__miniatura img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.wd-siguiente__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.wd-siguiente__texto strong {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  color: var(--wd-texto);
+}
+
+.wd-siguiente__texto em {
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.4;
+
+  color: var(--wd-texto-suave);
+}
+
+.wd-siguiente svg {
+  flex: 0 0 auto;
+
+  width: 18px;
+  height: 18px;
+
+  color: var(--wd-magenta);
+}

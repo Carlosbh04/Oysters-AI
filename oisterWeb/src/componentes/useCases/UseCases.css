@@ -1,0 +1,447 @@
+/* ============================================================
+   CASOS DE USO
+
+   Sección sobre la escena de cristal, así que todo lo que se pinta
+   aquí tiene que dejarla ver: superficies translúcidas, filos
+   finos y nada de bloques opacos.
+   ============================================================ */
+
+.uc {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  padding-block: clamp(3rem, 7vh, 6rem);
+}
+
+.uc__rejilla {
+  display: grid;
+
+  /* El enunciado ocupa menos que las tarjetas: es texto corto y
+     una pieza, contra ocho listas. A partes iguales el titular
+     quedaba suelto en medio de su columna. */
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+
+  width: min(1240px, 92%);
+  margin-inline: auto;
+}
+
+/* ---- ENUNCIADO ---- */
+
+.uc__enunciado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ---- LA ETIQUETA DESTACA POR COMPOSICIÓN, NO POR EFECTO ----
+   Hubo una versión en píldora: relleno magenta, halo alrededor y
+   un punto que latía. Destacaba, sí, y se veía hecha con plantilla
+   — resplandor más punto pulsante es el acabado por defecto de
+   cualquier generador, y en una web de agencia eso resta en vez de
+   sumar.
+
+   Lo que destaca aquí es el contraste y el espaciado: magenta
+   pleno sobre violeta, versalitas muy abiertas y un filete corto
+   delante. Sin caja, sin sombra y sin movimiento.
+
+   El filete no es decoración suelta: es la misma figura que abre
+   cada tarjeta —el número con su raya— repetida al otro lado de la
+   sección. Eso es lo que hace que las dos mitades se lean como un
+   sistema. */
+/* La forma del rótulo vive en el componente Rotulo, compartida
+   con las otras tres secciones del home. */
+
+.uc__titulo {
+  margin: 0 0 1.1rem;
+
+  font-size: clamp(2rem, 3.4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+
+  color: #fff;
+}
+
+/* la segunda línea en magenta: el mismo recurso que usa el
+   titular de "últimos proyectos", para que las dos secciones se
+   reconozcan como de la misma familia */
+.uc__titulo span {
+  display: block;
+  color: var(--color-magenta);
+}
+
+.uc__entradilla {
+  margin: 0 0 2rem;
+
+  /* medida de lectura: sin tope, la línea se estiraría hasta el
+     borde de la columna y costaría seguirla */
+  max-width: 34ch;
+
+  font-size: 15px;
+  line-height: 1.65;
+
+  color: rgba(226, 214, 255, 0.72);
+}
+
+/* ---- LA PIEZA DE AI FIRST ----
+   El render trae su propio alfa —46% del archivo es transparente—
+   así que se apoya sobre la escena sin caja ni recorte: no hace
+   falta máscara ninguna.
+
+   Lo que sí necesita es no cortarse contra su propia caja. El
+   resplandor de los tubos se derrama bastante más allá de las
+   letras, y por eso va sin `overflow` ni bordes: cualquier
+   recorte dejaría el halo seccionado en una línea recta. */
+.uc__pieza {
+  display: block;
+
+  width: 100%;
+  max-width: 26rem;
+  height: auto;
+
+  /* se sale un poco por la izquierda de la columna, como en el
+     boceto: la pieza es decorativa y pisar el margen la hace
+     parecer parte del fondo en vez de una imagen colocada */
+  margin: 0 0 1.5rem -1.5rem;
+}
+
+.uc__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 15px 30px;
+
+  border: 1px solid rgb(var(--rgb-magenta) / 0.55);
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+
+  color: #fff;
+
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.uc__cta:hover {
+  border-color: rgb(var(--rgb-magenta) / 0.9);
+  background: rgb(var(--rgb-magenta) / 0.14);
+  transform: translateY(-2px);
+}
+
+.uc__cta:focus-visible {
+  outline: 2px solid var(--color-magenta);
+  outline-offset: 3px;
+}
+
+.uc__cta svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ---- TARJETAS ---- */
+
+.uc__tarjetas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 1.6vw, 1.5rem);
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  /* ---- LAS CUATRO MIDEN LO MISMO ----
+     Traen distinto número de puntos —seis, seis, cinco y cuatro—
+     así que por contenido cada una acaba a una altura. Alineadas
+     arriba quedaban cuatro cajas de tamaños distintos y la rejilla
+     se leía como rota.
+
+     `stretch` iguala las de una misma fila, pero eso solo arregla
+     la mitad: la fila de arriba seguiría midiendo distinto que la
+     de abajo. Con `grid-auto-rows: 1fr` las DOS filas reparten a
+     partes iguales el alto del bloque, así que las cuatro tarjetas
+     son idénticas.
+
+     El aire que le sobra a las cortas se reparte entre sus puntos
+     (ver .uc__puntos), que es donde se lee como espaciado y no
+     como un hueco al final. */
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+}
+
+.uc__tarjeta {
+  display: flex;
+  flex-direction: column;
+
+  padding: clamp(1.25rem, 1.8vw, 1.75rem);
+
+  /* sube de .3 a .38: con el relleno más claro, la distancia de
+     luz con el fondo pasó de 14,5 puntos a 7,3, y parte del
+     trabajo de decir dónde acaba la tarjeta se lo queda el filo */
+  border: 1px solid rgb(var(--rgb-secondary) / 0.38);
+  border-radius: 18px;
+
+  /* ---- SE CIERRAN, PERO NO DEL TODO ----
+   Iban al 55% sobre un fondo casi negro y funcionaba. Con el fondo
+   en violeta medio se transparentaban demasiado: la figura y los
+   paneles se leían a través de las listas y competían con el
+   texto.
+
+   Suben al 78% y además desenfocan lo que tienen detrás. El
+   desenfoque hace el trabajo que la opacidad sola no puede: deja
+   intuir que hay escena —los colores siguen ahí— pero borra su
+   dibujo, que es lo que estorbaba a la lectura. Cerrarlas del todo
+   habría sido más fácil y habría convertido la sección en cuatro
+   cajas opacas sobre un fondo que ya no se ve.
+
+   Y aquí el desenfoque sí sale barato: a diferencia de los paneles
+   del hero, estas tarjetas no se mueven con el ratón, así que el
+   compositor no tiene que rehacer la lectura del fondo en cada
+   fotograma.
+
+   ---- POR QUÉ SUBIÓ EL RELLENO Y NO BAJÓ LA OPACIDAD ----
+   El violeta casi negro de antes se eligió contra un fondo más
+   oscuro. Al aclararse la sección, la tarjeta se quedó 14,5
+   puntos de luz por debajo de lo que la rodea: medido, 16,5%
+   contra 31,0%, y a esa distancia deja de leerse como una
+   superficie y pasa a leerse como un agujero.
+
+   La tentación es bajar el 78%, y es justo lo que no se puede
+   hacer: ese número está aquí para tapar el dibujo de la escena,
+   y aflojarlo devuelve la figura y los paneles por debajo del
+   texto. Así que se aclara el RELLENO y se deja la opacidad
+   quieta — la tarjeta sube a 23,7% y conserva 7,3 puntos de
+   separación, que es lo que la sigue haciendo tarjeta. */
+  background: rgba(48, 25, 83, 0.78);
+
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+
+  transition:
+    border-color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.uc__tarjeta:hover {
+  border-color: rgba(214, 140, 255, 0.45);
+  /* 26,0% frente al 23,7% en reposo. Antes el realce era de 1,5
+     puntos y bastaba sobre un fondo oscuro; con la sección más
+     clara ese salto ya no se percibía. */
+  background: rgba(57, 30, 96, 0.84);
+}
+
+.uc__numero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 1.5rem;
+}
+
+.uc__numero span {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+
+  color: #c084fc;
+}
+
+/* el filete llega siempre al borde: crece con lo que sobra */
+.uc__numero i {
+  flex: 1 1 auto;
+
+  height: 1px;
+
+  background: linear-gradient(
+    to right,
+    rgba(192, 132, 252, 0.55),
+    transparent
+  );
+}
+
+.uc__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 1.15rem;
+}
+
+.uc__icono {
+  display: grid;
+  place-items: center;
+
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+
+  border: 1px solid rgb(var(--rgb-primary-light) / 0.3);
+  border-radius: 13px;
+
+  background: rgba(120, 70, 210, 0.16);
+
+  color: #d8b4fe;
+}
+
+.uc__icono svg {
+  width: 22px;
+  height: 22px;
+}
+
+.uc__cabeza h3 {
+  margin: 0;
+
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+
+  color: #fff;
+}
+
+.uc__puntos {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  /* ---- LA LISTA ABSORBE EL SOBRANTE ----
+     Con las cuatro tarjetas a la misma altura, a las de cuatro y
+     cinco puntos les sobra sitio. `flex: 1` se lo da a la lista y
+     `space-between` lo reparte ENTRE los puntos.
+
+     La alternativa —dejarlo al final de la caja— deja un vacío
+     debajo del último punto, y eso se lee como que falta un dato.
+     Repartido, se lee como que esa lista respira más. */
+  flex: 1 1 auto;
+  justify-content: space-between;
+}
+
+.uc__puntos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  color: rgba(226, 214, 255, 0.78);
+}
+
+.uc__puntos svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+
+  /* alineado con la primera línea del texto y no con la caja
+     entera: en los puntos de dos líneas quedaría centrado en
+     medio del párrafo */
+  margin-top: 4px;
+
+  color: #a855f7;
+}
+
+/* ---- ESTRECHO ---- */
+
+@media (max-width: 1024px) {
+  .uc__rejilla {
+    grid-template-columns: 1fr;
+  }
+
+  .uc__entradilla {
+    max-width: 52ch;
+  }
+}
+
+@media (max-width: 640px) {
+  .uc__tarjetas {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
+   ENTRADA — FASES 2 Y 3: LA LETRA Y LAS TARJETAS
+
+   El fondo ya se ha colocado (fase 1, en UseCasesBackground.css).
+   Ahora entra lo que se lee y, al final, la rejilla.
+
+   Los retardos arrancan del mismo instante que los del fondo:
+   el disparo es único y vive en el contenedor de la sección
+   (ver Home.jsx), así que las tres fases comparten reloj y el
+   orden no depende de en qué píxel de scroll observó cada
+   componente.
+
+   LA LÍNEA DE TIEMPO COMPLETA
+     0.00s  halo y paneles ....... FASE 1, el decorado
+     0.14s  la figura
+     0.20s  huella, retícula y marcas
+     0.26s  las piedras
+     0.87s  · el decorado queda entero
+     ---- un respiro de verdad entre fase y fase ----
+     0.70s  rótulo ............... FASE 2, la letra
+     0.80s  titular
+     0.90s  entradilla
+     1.00s  la pieza de AI FIRST y el botón
+     1.60s  · la letra queda entera
+     1.15s  tarjeta 01 ........... FASE 3, la rejilla
+     2.00s  tarjeta 04, y se acabó
+
+   ---- POR QUÉ HAY HUECO Y NO UN CHORRO CONTINUO ----
+   Hubo una versión que repartía todo esto en 1,3s y quedaba
+   pegado: las tres fases se solapaban tanto que no se leían como
+   tres, sino como un único fundido general. El escalonado solo
+   se percibe si cada grupo tiene tiempo de ASENTARSE antes de
+   que arranque el siguiente, y eso pide hueco, no velocidad.
+
+   Los solapes que quedan son a propósito: la letra empieza
+   (0.70s) con el decorado aún cerrando (0.87s) y las tarjetas
+   (1.15s) con la letra aún entrando (1.60s). Encadenar así evita
+   los tres parones que habría si cada fase esperara a que la
+   anterior terminase del todo. */
+@media (prefers-reduced-motion: no-preference) {
+  .uc__rotulo,
+  .uc__titulo,
+  .uc__entradilla,
+  .uc__pieza,
+  .uc__cta,
+  .uc__tarjeta {
+    opacity: 0;
+  }
+
+  .uc--dentro .uc__rotulo { animation: uc-entra .5s cubic-bezier(.22,.8,.36,1) .7s forwards; }
+  .uc--dentro .uc__titulo { animation: uc-entra .54s cubic-bezier(.22,.8,.36,1) .8s forwards; }
+  .uc--dentro .uc__entradilla { animation: uc-entra .5s cubic-bezier(.22,.8,.36,1) .9s forwards; }
+  .uc--dentro .uc__pieza { animation: uc-entra .6s cubic-bezier(.22,.8,.36,1) 1s forwards; }
+  .uc--dentro .uc__cta { animation: uc-entra .5s cubic-bezier(.22,.8,.36,1) 1s forwards; }
+
+  /* ---- LA REJILLA, ESCALONADA ----
+     El retardo se calcula con el índice que pone el JSX (--i) en
+     vez de escribir cuatro reglas :nth-child: si mañana cambia
+     el número de capacidades, el escalonado sigue saliendo solo.
+
+     Curva con rebote —el equivalente CSS de back.out—, la misma
+     que usan las tarjetas de "Nosotros": ese sobrepaso mínimo al
+     final es lo que separa un fundido de una entrada. */
+  .uc--dentro .uc__tarjeta {
+    animation: uc-tarjeta .52s cubic-bezier(.34, 1.35, .64, 1)
+      calc(1.15s + var(--i, 0) * .11s) forwards;
+  }
+
+  @keyframes uc-entra {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes uc-tarjeta {
+    from { opacity: 0; transform: translateY(26px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

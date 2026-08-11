@@ -1,0 +1,420 @@
+/* ============================================================
+   FONDO TRAMA — tira ancha tecnológica
+
+   Orden de apilado dentro del componente:
+     1  degradado base .......... el propio background
+     2  cintas de luz .......... .ft__cintas
+     3  retícula de puntos ..... .ft__reticula
+     4  hexágonos .............. .ft__hex
+     5  trazas ................. .ft__trazas
+     6  nodos y racimos ........ .ft__puntos
+
+   Las cintas van DEBAJO de las trazas a propósito: en la
+   referencia el circuito se lee por encima de la luz, no
+   difuminado por ella.
+   ============================================================ */
+
+.ft {
+  /* ---- DIALES ----
+     Todo lo ajustable en un sitio: las paradas del degradado y la
+     intensidad de cada capa. */
+  /* Gama morada apagada. Antes era violeta → magenta → rosa claro
+     y cantaba sobre el resto del sitio, que es oscuro. */
+  --ft-izq: #4a3660;
+  --ft-medio: #573a6a;
+  --ft-der: #62406e;
+
+  /* Sobre base oscura el blanco destaca mucho más que sobre el
+     rosa: los mismos valores de antes se veían como tiza. Bajan
+     todos, y el degradado sube su peso relativo. */
+  --ft-linea: rgba(255, 255, 255, 0.3);
+  --ft-punto: rgba(255, 255, 255, 0.22);
+  --ft-hex: rgba(255, 255, 255, 0.16);
+
+  --ft-reticula-paso: 24px;
+  --ft-reticula-radio: 1.1px;
+
+  position: relative;
+  overflow: hidden;
+
+  width: 100%;
+  height: 100%;
+
+  /* ---- EL DEGRADADO ----
+     Dos capas. La segunda es un radial muy abierto arriba a la
+     derecha que levanta esa zona: sin él la tira se lee como una
+     banda plana y pierde el aire de espacio iluminado. */
+  background-image:
+    radial-gradient(
+      120% 160% at 78% 0%,
+      rgba(200, 165, 255, 0.14) 0%,
+      rgba(200, 165, 255, 0) 58%
+    ),
+    linear-gradient(
+      100deg,
+      var(--ft-izq) 0%,
+      #513868 22%,
+      var(--ft-medio) 55%,
+      #5d3c6c 80%,
+      var(--ft-der) 100%
+    );
+
+  isolation: isolate;
+}
+
+/* ---- VARIANTE SIN BASE ----
+   Quita el degradado propio y deja solo el circuito: retícula,
+   trazas, nodos y cintas de luz.
+
+   Es lo que hay que usar al montarlo DENTRO de una sección que ya
+   tiene su color. Con la base puesta, el degradado de la trama
+   —horizontal y de tono fijo— chocaba contra el vertical de la
+   sección y dibujaba un escalón horizontal en el borde. Por muy
+   larga que fuera la máscara, seguía viéndose la juntura: no era
+   un problema de dureza del desvanecido sino de que había dos
+   colores distintos peleando.
+
+   Sin base no hay dos colores: el degradado de la sección cruza
+   entero, continuo de una a otra, y la trama solo añade dibujo
+   encima. */
+.ft--sin-base {
+  background-image: none;
+}
+
+/* ---- capas a pantalla completa del componente ---- */
+.ft__cintas,
+.ft__trazas,
+.ft__pulso,
+.ft__reticula,
+.ft__puntos {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.ft__cintas {
+  z-index: 1;
+
+  /* screen y no opacidad plana: la luz se SUMA al degradado en vez
+     de lavarlo. Con opacity el rosa se volvía blancuzco y perdía
+     saturación justo donde más se ve. */
+  mix-blend-mode: screen;
+}
+
+/* ---- RETÍCULA ----
+   Dos radiales repetidos y desfasados medio paso: el punto cae en
+   tresbolillo y no en cuadrícula perfecta, que a poca opacidad se
+   lee más orgánico.
+
+   La máscara la apaga en el centro, que es por donde pasan las
+   cintas: en la referencia la trama desaparece bajo la luz. */
+.ft__reticula {
+  z-index: 2;
+
+  background-image:
+    radial-gradient(var(--ft-punto) var(--ft-reticula-radio), transparent var(--ft-reticula-radio)),
+    radial-gradient(var(--ft-punto) var(--ft-reticula-radio), transparent var(--ft-reticula-radio));
+  background-size: var(--ft-reticula-paso) var(--ft-reticula-paso);
+  background-position:
+    0 0,
+    calc(var(--ft-reticula-paso) / 2) calc(var(--ft-reticula-paso) / 2);
+
+  -webkit-mask-image: radial-gradient(
+    75% 120% at 50% 45%,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.85) 60%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    75% 120% at 50% 45%,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.85) 60%,
+    #000 100%
+  );
+}
+
+.ft__trazas {
+  z-index: 4;
+
+  color: var(--ft-linea);
+}
+
+/* ---- EL PULSO ----
+   Encima de las trazas apagadas, por debajo de los nodos.
+
+   La máscara es una banda estrecha sobre un lienzo de 300% de
+   ancho: solo deja ver el tramo de circuito que queda bajo ella.
+   Al desplazar la posición de la máscara, la banda recorre la
+   pantalla y el brillo viaja por el cable.
+
+   Se anima `mask-position` y no un `transform` porque la máscara
+   viaja con el elemento: moviendo la capa se movería también el
+   circuito, y lo que tiene que moverse es solo la ventana. */
+.ft__pulso {
+  z-index: 4;
+
+  color: var(--ft-pulso, rgba(228, 200, 255, 0.85));
+
+  opacity: 0;
+
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 50%,
+    rgba(0, 0, 0, 0.35) 54%,
+    transparent 60%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.35) 46%,
+    #000 50%,
+    rgba(0, 0, 0, 0.35) 54%,
+    transparent 60%,
+    transparent 100%
+  );
+
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* ---- SOLO EN LA SECCIÓN ACTIVA ----
+   Depende de `.ft--activo`, que el JSX pone únicamente en la
+   sección que cruza el centro de la pantalla. Antes colgaba de
+   `.ft--dentro` y eso hacía que pulsaran a la vez todas las
+   secciones asomadas, aunque estuvieras leyendo solo una.
+
+   Al salir, la animación se corta y la capa se funde: no se queda
+   corriendo fuera de vista gastando repintados. */
+.ft--activo .ft__pulso {
+  opacity: 1;
+
+  animation: ft-pulso 9s linear infinite;
+  animation-delay: 1.4s; /* justo al terminar el barrido de entrada */
+
+  transition: opacity 600ms ease 1.4s;
+}
+
+/* la salida no espera al retardo de entrada: se apaga en cuanto
+   la sección deja el centro */
+.ft__pulso {
+  transition: opacity 400ms ease;
+}
+
+@keyframes ft-pulso {
+  from {
+    -webkit-mask-position: 150% 0;
+    mask-position: 150% 0;
+  }
+  to {
+    -webkit-mask-position: -150% 0;
+    mask-position: -150% 0;
+  }
+}
+
+.ft__puntos {
+  z-index: 5;
+
+  pointer-events: none;
+}
+
+/* ---- HEXÁGONOS ----
+   `aspect-ratio` fijo y anclados fuera del borde para que salgan
+   cortados. Enteros parecerían un icono; a medias son trama. */
+.ft__hex {
+  position: absolute;
+  z-index: 3;
+
+  color: var(--ft-hex);
+}
+
+.ft__hex--izq {
+  left: -9%;
+  top: 8%;
+
+  width: 19%;
+  min-width: 130px;
+  aspect-ratio: 100 / 116;
+}
+
+.ft__hex--der {
+  right: -5%;
+  top: -22%;
+
+  width: 15%;
+  min-width: 110px;
+  aspect-ratio: 100 / 116;
+}
+
+/* ---- NODOS ----
+   El halo es un box-shadow y no un blur: un filtro por cada punto
+   crearía una capa de composición por nodo, y son diecisiete. */
+.ft__nodo {
+  position: absolute;
+
+  width: var(--ft-r);
+  height: var(--ft-r);
+  margin: calc(var(--ft-r) / -2) 0 0 calc(var(--ft-r) / -2);
+
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 calc(var(--ft-r) * 2.4) rgba(255, 255, 255, 0.75);
+}
+
+/* ============================================================
+   ENTRADA — el circuito se enciende al asomar la sección
+
+   Orden: primero se tienden los cables (las trazas se dibujan de
+   izquierda a derecha, escalonadas), y cuando ya están puestos se
+   encienden los contactos (nodos y racimos).
+
+   El escalonado sale de `--i`, que el JSX publica como índice en
+   cada elemento. Sin él las dieciocho trazas arrancarían a la vez
+   y se leería como un fundido, no como un trazado.
+   ============================================================ */
+
+/* ---- POR QUÉ UN BARRIDO Y NO stroke-dashoffset ----
+   El dibujado clásico con dasharray/dashoffset aquí NO funciona.
+   Este SVG combina tres cosas que se pelean entre sí:
+
+     · preserveAspectRatio="none" → el lienzo va muy estirado
+     · vector-effect: non-scaling-stroke → el trazo se calcula en
+       el espacio YA deformado
+     · pathLength → pretende normalizar la longitud
+
+   El navegador acaba midiendo el guion en el espacio estirado y no
+   en la longitud normalizada: las trazas salían fijas, sin animar.
+
+   El barrido con clip-path es inmune a todo eso, porque recorta el
+   contenedor y no toca la geometría del trazo. Y da el mismo
+   efecto: el circuito se traza de izquierda a derecha. */
+.ft__trazas {
+  clip-path: inset(0 100% 0 0);
+
+  transition: clip-path 1500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ft--dentro .ft__trazas {
+  clip-path: inset(0 0 0 0);
+}
+
+/* la retícula entra con un fundido corto por detrás del barrido:
+   así el fondo no aparece de golpe cuando asoma la sección */
+.ft__reticula {
+  opacity: 0;
+
+  transition: opacity 900ms ease;
+}
+
+.ft--dentro .ft__reticula {
+  opacity: 1;
+}
+
+/* Los contactos esperan a que el cable esté tendido: 420ms de
+   base, que es cuando la primera tanda de trazas va por la mitad.
+   Entran con un pop corto —escala 0 → 1— en vez de un fundido:
+   un punto de luz no aparece, se enciende. */
+.ft__nodo,
+.ft__racimo i {
+  opacity: 0;
+  transform: scale(0);
+
+  transition: opacity 260ms ease, transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(420ms + var(--i, 0) * 45ms);
+}
+
+.ft--dentro .ft__nodo,
+.ft--dentro .ft__racimo i {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* el racimo ya se centra con un translate propio, así que su
+   escala tiene que ir en los hijos y no en el contenedor —
+   compartir transform le rompería el centrado */
+.ft--dentro .ft__racimo i:last-child {
+  opacity: 0.6;
+}
+
+/* ---- QUIEN PIDE NO VER MOVIMIENTO ----
+   Se le sirve el circuito ya dibujado. No se le quita el fondo,
+   solo la transición: el estado final es idéntico. */
+@media (prefers-reduced-motion: reduce) {
+  .ft__trazas,
+  .ft__reticula,
+  .ft__nodo,
+  .ft__racimo i {
+    transition: none;
+
+    clip-path: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* el pulso desaparece del todo: es movimiento continuo, y eso
+     es exactamente lo que esta preferencia pide evitar */
+  .ft--activo .ft__pulso {
+    animation: none;
+    opacity: 0;
+  }
+
+  .ft__racimo i:last-child {
+    opacity: 0.6;
+  }
+}
+
+/* ---- RACIMOS ----
+   Tres o cuatro puntitos seguidos, como un dato viajando por la
+   traza. En flex para no calcular cada offset a mano. */
+.ft__racimo {
+  position: absolute;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.ft__racimo i {
+  width: 3px;
+  height: 3px;
+
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* el último del racimo más pequeño: sugiere que la señal se apaga */
+.ft__racimo i:last-child {
+  width: 2px;
+  height: 2px;
+
+  opacity: 0.6;
+}
+
+/* ---- PANTALLAS ESTRECHAS ----
+   La tira pasa de 3:1 a casi cuadrada, y con ella la retícula se
+   volvía densísima y los hexágonos ocupaban media caja. */
+@media (max-width: 700px) {
+  .ft {
+    --ft-reticula-paso: 18px;
+  }
+
+  .ft__hex--izq {
+    left: -22%;
+    width: 44%;
+  }
+
+  .ft__hex--der {
+    right: -18%;
+    width: 38%;
+  }
+}

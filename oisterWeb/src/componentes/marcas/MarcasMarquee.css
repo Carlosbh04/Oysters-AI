@@ -1,0 +1,211 @@
+/* ============================================================
+   CINTA DE MARCAS
+   (la estructura y el porqué del bucle, en MarcasMarquee.jsx)
+   ============================================================ */
+
+.marcas {
+  /* ---- SEPARACIÓN: UN ESCALÓN POR ENCIMA ----
+     Medido el ritmo vertical real de la página:
+         cabecera → métricas   42px
+         métricas → rejilla    48px
+     Ese es el escalón de "bloques dentro de la misma sección".
+     La cinta estaba en 64px — solo 1,3 veces más — y por eso se
+     seguía leyendo agrupada con las cards.
+
+     Pero desde que va A SANGRE ya no es un bloque interno: rompe
+     el contenedor, así que pertenece a otro nivel de jerarquía y
+     necesita su propio escalón. A 96px es el DOBLE del de abajo,
+     que es lo que hace que se lea como "otra cosa" y no como una
+     card más de la lista.
+
+     Los valores salen de la escala de 8: 48 → 96. Y en el mínimo
+     (56px) sigue estando claramente por encima de los 42-48 de
+     los bloques internos, así que la jerarquía se mantiene
+     también en pantallas estrechas.
+
+     El margen INFERIOR importa igual: la banda del CTA no tiene
+     margen propio —se apoyaba en el hueco de la rejilla— y lo
+     lleva la cinta para separarse sola de lo que venga después,
+     la monten donde la monten. */
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+  margin-bottom: clamp(3.5rem, 7vw, 6rem);
+
+  /* ---- A SANGRE ----
+     Se sale del contenedor de 1200px y ocupa el ancho de la
+     ventana. `calc(50% - 50vw)` a cada lado lleva el borde justo
+     al del viewport, mida lo que mida el padre.
+
+     Por qué: dentro de una caja con bordes, una cinta se lee
+     como un widget con un bucle dentro. A sangre se lee como un
+     río de marcas pasando por detrás de la página, y el
+     desvanecido de los extremos deja de contradecirse — antes se
+     veía dónde acababa Y además se difuminaba.
+
+     Sin borde ni esquinas redondeadas por lo mismo: ya no hay
+     caja que dibujar. Quedan dos filetes que la separan del
+     contenido de arriba y abajo. */
+  margin-inline: calc(50% - 50vw);
+
+  padding: clamp(1.6rem, 3vw, 2.4rem) 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* 0.28 y no 0.82: en el diseño la red neuronal SE VE por
+     detrás de la cinta. Con un fondo casi opaco la caja se
+     convertía en una banda maciza y cortaba la atmósfera de la
+     página en dos. Aquí solo hace falta lo justo para que las
+     marcas se lean sobre lo que pase por detrás. */
+  background: rgba(18, 11, 31, 0.28);
+  backdrop-filter: blur(0.35rem);
+
+  /* recorta la pista, que es más ancha que la caja */
+  overflow: hidden;
+}
+
+.marcas__titulo {
+  margin: 0 auto clamp(1rem, 2vw, 1.4rem);
+  padding: 0 1.5rem;
+
+  /* SIN max-width: los 46ch que tenía partían el rótulo en dos
+     líneas —son 52 caracteres— y en el diseño va en una sola.
+     El balance de líneas solo actúa si de verdad no cabe. */
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+  text-wrap: balance;
+
+  color: var(--color-text-light, #cdc1e2);
+}
+
+/* ---- la ventana: recorta y DESVANECE los extremos ----
+   Sin la máscara, las marcas aparecen y desaparecen de golpe
+   contra el borde y se ve dónde empieza el truco. Con ella
+   entran y salen difuminadas y la cinta parece no tener
+   principio ni fin. */
+.marcas__ventana {
+  overflow: hidden;
+
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
+/* la pista: las DOS copias, una detrás de otra */
+.marcas__pista {
+  display: flex;
+  width: max-content;
+
+  /* la GPU la resuelve sin repintar: es una traslación pura */
+  will-change: transform;
+}
+
+.marcas__vuelta {
+  display: flex;
+  align-items: center;
+  /* El hueco sube de 3.5rem a 6rem, y no es cosmético: con 3
+     marcas, cuanto más ancha es la cinta más repeticiones caben
+     a la vista y más se nota que son pocas. Más aire = menos
+     elementos en pantalla a la vez. Cuando entren más clientes
+     se puede volver a apretar. */
+  gap: clamp(2.75rem, 5vw, 6rem);
+
+  margin: 0;
+  /* el padding hace de separación ENTRE las dos copias: sin él,
+     la última marca de una y la primera de la otra se pegarían y
+     el empalme se notaría */
+  padding: 0 clamp(1rem, 2vw, 1.75rem);
+
+  list-style: none;
+}
+
+.marcas__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  font-size: clamp(0.85rem, 0.78rem + 0.3vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  color: var(--color-text, #f6f0ff);
+
+  /* en reposo van apagadas: la cinta es una prueba de confianza,
+     no debe competir con las cards de arriba */
+  opacity: 0.62;
+
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.marcas__item svg {
+  flex-shrink: 0;
+  color: var(--color-secondary, #c9a8ff);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* De 0 a -50%: la pista lleva dos copias, así que al llegar a
+     la mitad ha recorrido exactamente una y el fotograma final
+     coincide con el inicial. Ahí está el bucle sin costura.
+     `linear` y no ease: cualquier curva haría que la cinta
+     acelerara y frenara en cada vuelta, delatando el ciclo. */
+  .marcas__pista {
+    animation: marcas-desliza 38s linear infinite;
+  }
+
+  @keyframes marcas-desliza {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* se detiene al pasar por encima: si alguien se para a mirar
+     una marca, lo normal es que pueda leerla */
+  .marcas:hover .marcas__pista {
+    animation-play-state: paused;
+  }
+
+  .marcas:hover .marcas__item {
+    opacity: 1;
+  }
+}
+
+/* Con movimiento reducido la cinta no se mueve, así que las
+   marcas que no caben quedarían inaccesibles: se permite
+   arrastrarla a mano. */
+@media (prefers-reduced-motion: reduce) {
+  .marcas__ventana {
+    overflow-x: auto;
+  }
+
+  /* la segunda copia sobra si no hay bucle */
+  .marcas__vuelta[aria-hidden="true"] {
+    display: none;
+  }
+
+  .marcas__item {
+    opacity: 0.85;
+  }
+}
+
+@media (max-width: 640px) {
+  .marcas__titulo {
+    font-size: 0.66rem;
+    letter-spacing: 0.13em;
+  }
+}

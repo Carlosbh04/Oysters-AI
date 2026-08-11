@@ -28,8 +28,10 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 
-  background: #fff;
-  color: #111827;
+  /* base del tema oscuro: si algo tarda en pintar o un
+     contenedor no cubre, el flash es morado, no blanco */
+  background: #372550;
+  color: #F2ECFF;
 }
 
 #root {

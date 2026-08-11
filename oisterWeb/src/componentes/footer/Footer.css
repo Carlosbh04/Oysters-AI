@@ -1,0 +1,773 @@
+/* ---- EL ARRANQUE, SEGÚN LA PÁGINA ----
+   data-pie lo pone App.jsx a partir de la ruta. Va sobre .app y
+   no sobre .pie porque las variables heredan hacia abajo, y así
+   el pie no tiene que saber en qué página está. */
+.app[data-pie="claro"] {
+  --pie-arranque: var(--pie-claro, #442f65);
+  --pie-arranque-rgb: var(--rgb-pie-claro, 68 47 101);
+}
+
+.app[data-pie="oscuro"] {
+  --pie-arranque: var(--pie-oscuro, #22152e);
+  --pie-arranque-rgb: var(--rgb-pie-oscuro, 34 21 46);
+}
+
+/* ============================================================
+   PIE — la tarjeta
+
+   El fondo va en FooterBackground.css. Aquí solo lo que flota
+   encima.
+   ============================================================ */
+
+.pie {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  padding: clamp(3rem, 7vh, 5.5rem) 0 clamp(2rem, 4vh, 3rem);
+}
+
+/* ---- LA TARJETA ----
+   Cerrada casi del todo (86%) y no translúcida de verdad: por
+   detrás pasa la rejilla del suelo, y una trama regular leyéndose
+   a través de tres columnas de texto es exactamente el tipo de
+   fondo que impide leer. Lo que sí deja pasar es el COLOR, que es
+   lo que la ata a la escena. */
+.pie__tarjeta {
+  position: relative;
+  z-index: 1;
+
+  /* Ancha de verdad. El tope sube de 1400 a 1720 y el porcentaje
+     de 92 a 96: en pantallas grandes mandaba el tope y la tarjeta
+     se quedaba corta en medio de la escena; en las normales manda
+     el porcentaje, así que había que subir los dos o solo cambia
+     la mitad del rango. */
+  width: min(1720px, 96%);
+  margin: 0 auto;
+
+  border: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.16);
+  border-radius: 22px;
+
+  background: rgba(14, 10, 26, 0.86);
+
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgb(var(--fb-linea, 196 132 252) / 0.06);
+}
+
+/* ---- EL FILO DE LUZ ----
+   Un borde uniforme deja la tarjeta plana. Este solo se enciende
+   en el centro, y eso basta para que se lea como una superficie
+   bajo una fuente de luz que está por encima. Va con un halo
+   corto debajo por la misma razón que los alambres del fondo:
+   una línea sin halo se lee dibujada, no encendida. */
+.pie__filo {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: -1px;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--fb-linea, 196 132 252) / 0.35) 28%,
+    rgba(255, 255, 255, 0.92) 50%,
+    rgb(var(--fb-linea, 196 132 252) / 0.35) 72%,
+    transparent 100%
+  );
+
+  /* el halo es lo que se ve de verdad: la línea mide un píxel y
+     a esa escala casi todo lo que llega al ojo es el resplandor
+     de alrededor, no el trazo */
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.5),
+    0 0 26px 2px rgb(var(--fb-linea, 196 132 252) / 0.55);
+}
+
+/* el de la barra legal: el mismo gesto, algo más contenido */
+.pie__filo--legal {
+  left: 26%;
+  right: 26%;
+}
+
+/* ============================================================
+   LAS TRES COLUMNAS
+   ============================================================ */
+
+.pie__cuerpo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  padding: clamp(2rem, 3.6vw, 3.25rem);
+}
+
+/* Los separadores son BORDES de las columnas 2 y 3, no elementos
+   sueltos: así aparecen y desaparecen solos cuando la rejilla
+   pasa a una columna en estrecho, sin una media query que los
+   apague uno a uno. */
+.pie__col,
+.pie__marca {
+  display: flex;
+  flex-direction: column;
+
+  padding-inline: clamp(1rem, 2.4vw, 2.75rem);
+}
+
+.pie__marca {
+  padding-left: 0;
+}
+
+.pie__col {
+  border-left: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.12);
+}
+
+/* ---- COLUMNA 1 · MARCA ---- */
+
+.pie__logo {
+  display: block;
+
+  width: 100%;
+  max-width: 17rem;
+  height: auto;
+
+  /* el render trae su propio alfa, así que no necesita caja ni
+     máscara; el halo corto lo asienta sobre la tarjeta */
+  filter: drop-shadow(0 10px 30px rgba(150, 80, 250, 0.35));
+}
+
+.pie__reclamo {
+  max-width: 24ch;
+  margin: 1.5rem 0 0;
+
+  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.12rem);
+  line-height: 1.5;
+
+  color: rgba(232, 224, 250, 0.9);
+}
+
+/* "ideas" y "resultados": el reclamo tiene dos palabras que son
+   el mensaje y el resto es andamiaje. Se marcan en magenta, que
+   es el color que ya usan los titulares para lo mismo. */
+.pie__reclamo span {
+  color: var(--color-magenta, #e879f9);
+  font-weight: 600;
+}
+
+/* ---- EL BOTÓN ----
+   Pegado al reclamo, NO empujado al fondo con `margin-top: auto`.
+   Se probó y abría un vacío enorme entre el logo y el resto: la
+   columna es más corta que las otras dos, y estirarla para que
+   cuadren por abajo rompe el único grupo que hay aquí —logo,
+   frase y botón son una sola cosa. */
+.pie__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+
+  align-self: flex-start;
+  margin-top: 1.9rem;
+  padding: 15px 26px;
+
+  border: 1px solid rgb(var(--rgb-magenta) / 0.55);
+  border-radius: 999px;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  color: #fff;
+
+  background: linear-gradient(
+    100deg,
+    rgb(var(--rgb-magenta) / 0.14),
+    rgb(var(--rgb-primary) / 0.1)
+  );
+
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.pie__cta svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+/* el sobre a la izquierda, en magenta; la flecha a la derecha,
+   más apagada, porque es indicación y no icono */
+.pie__cta > svg:first-child {
+  color: var(--color-magenta, #e879f9);
+}
+
+.pie__cta-flecha {
+  color: rgb(var(--rgb-magenta) / 0.7);
+  transition: transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.pie__cta:hover {
+  border-color: rgb(var(--rgb-magenta) / 0.9);
+  transform: translateY(-2px);
+}
+
+.pie__cta:hover .pie__cta-flecha {
+  transform: translateX(4px);
+}
+
+.pie__cta:focus-visible {
+  outline: 2px solid var(--color-magenta, #e879f9);
+  outline-offset: 3px;
+}
+
+/* ---- CABECERAS DE COLUMNA ----
+   El componente Rotulo con dos variables cambiadas: aquí las
+   versalitas van en blanco y el icono en magenta. Se pasan por
+   variable y no con una regla propia para no competir con
+   .rotulo a igualdad de especificidad. */
+.pie__titulo {
+  --rotulo-color: #fff;
+  --rotulo-icono: var(--color-magenta, #e879f9);
+
+  margin-bottom: 1.9rem;
+}
+
+/* ---- COLUMNA 2 · ENLACES ----
+   Filas de alto natural, pegadas arriba. Hubo un intento de
+   repartirlas por el alto de la columna para tapar el hueco que
+   queda debajo, y fue peor: los enlaces se separaban tanto que
+   dejaban de leerse como una lista. El hueco no es un defecto,
+   es que esta columna tiene menos contenido que la del logo. */
+
+.pie__enlaces {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie__enlaces li + li {
+  border-top: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.1);
+}
+
+.pie-enlace {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 0.95rem 0;
+
+  font-size: 1rem;
+  text-decoration: none;
+
+  color: rgba(232, 224, 250, 0.88);
+
+  transition: color 0.25s ease;
+}
+
+.pie-enlace__icono {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+
+  color: rgb(var(--fb-linea, 196 132 252) / 0.75);
+
+  transition: color 0.25s ease;
+}
+
+/* el texto empuja a la flecha contra el borde derecho */
+.pie-enlace__texto {
+  flex: 1 1 auto;
+}
+
+.pie-enlace__flecha {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+
+  color: rgb(var(--rgb-magenta) / 0.55);
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.pie-enlace:hover {
+  color: #fff;
+}
+
+.pie-enlace:hover .pie-enlace__icono {
+  color: var(--color-magenta, #e879f9);
+}
+
+.pie-enlace:hover .pie-enlace__flecha {
+  color: var(--color-magenta, #e879f9);
+  transform: translateX(5px);
+}
+
+.pie-enlace:focus-visible {
+  outline: 2px solid var(--color-magenta, #e879f9);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* ---- COLUMNA 3 · REDES ---- */
+
+.pie__redes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie-red {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 10px 14px;
+
+  border: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.22);
+  border-radius: 14px;
+
+  font-size: 1rem;
+  text-decoration: none;
+
+  color: rgba(232, 224, 250, 0.9);
+
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+/* el cuadradito de marca. Cada red trae su propio degradado
+   —Instagram el suyo, LinkedIn el azul— porque un logotipo de
+   plataforma fuera de su color deja de reconocerse de un vistazo,
+   que es justo para lo que está */
+.pie-red__marca {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 10px;
+
+  color: #fff;
+}
+
+.pie-red__marca svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pie-red--ig .pie-red__marca {
+  background: linear-gradient(135deg, #f9737b 0%, #d92e7f 52%, #a930b8 100%);
+}
+
+.pie-red--in .pie-red__marca {
+  background: linear-gradient(135deg, #2f6fd0 0%, #1f4fa8 100%);
+}
+
+.pie-red__texto {
+  flex: 1 1 auto;
+}
+
+.pie-red__flecha {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+
+  color: rgb(var(--fb-linea, 196 132 252) / 0.6);
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.pie-red:hover {
+  border-color: rgb(var(--fb-linea, 196 132 252) / 0.5);
+  background: rgb(var(--fb-linea, 196 132 252) / 0.07);
+  transform: translateY(-2px);
+}
+
+.pie-red:hover .pie-red__flecha {
+  color: var(--color-magenta, #e879f9);
+  transform: translateX(4px);
+}
+
+.pie-red:focus-visible {
+  outline: 2px solid var(--color-magenta, #e879f9);
+  outline-offset: 3px;
+}
+
+/* ---- LA PIEZA DE LA TERCERA COLUMNA ---- */
+
+.pie__pieza {
+  position: relative;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.4vw, 1.25rem);
+
+  /* auto arriba: se pega al fondo de la columna, igual que el
+     botón de la primera. Las tres columnas cierran a la vez. */
+  margin-top: auto;
+  /* abajo también: los anillos sobresalen del cuadro de la gema
+     y sin este colchón los recortaría el borde de la tarjeta */
+  padding: 2rem 0 1.25rem;
+}
+
+/* La proporción va DECLARADA porque el componente Crystal es
+   `position: absolute` y no trae ancho: sin una caja con alto
+   propio, su <img> se va al tamaño del archivo (684px) y la
+   piedra se sale de la tarjeta por abajo. Pasó exactamente eso.
+   763/843 es la proporción del render (cristal-1). */
+.pie__gema {
+  position: relative;
+
+  display: block;
+
+  width: 40%;
+  min-width: 100px;
+  max-width: 132px;
+  aspect-ratio: 763 / 843;
+}
+
+.pie__gema .hb-cristal-pieza {
+  inset: 0;
+}
+
+/* La huella de luz, debajo de la piedra. Queda detrás por orden
+   del marcado (ver el JSX), no por z-index. */
+.pie__anillos {
+  position: absolute;
+  left: 50%;
+  /* por DEBAJO del vértice inferior, no a la altura de la base:
+     a ras, el cuerpo de la piedra tapaba los tres anillos y la
+     huella no se veía. Así la piedra se lee posada en ellos. */
+  bottom: -9%;
+  transform: translateX(-50%);
+
+  width: 172%;
+  aspect-ratio: 380 / 110;
+}
+
+.pie__anillos i {
+  position: absolute;
+  inset: calc(var(--r) * 13%) calc(var(--r) * 13%);
+
+  border-radius: 50%;
+  border: 1px solid
+    rgb(var(--fb-linea, 196 132 252) / calc(0.5 - var(--r) * 0.13));
+
+  box-shadow: 0 0 12px
+    rgb(var(--fb-linea, 196 132 252) / calc(0.3 - var(--r) * 0.08));
+}
+
+/* las barritas: instrumentación, no datos. Muy apagadas a
+   propósito — si compiten con la piedra, la columna se convierte
+   en un gráfico */
+.pie__barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+
+  height: 62px;
+  padding-bottom: 6%;
+}
+
+.pie__barras i {
+  width: 4px;
+  height: var(--h);
+
+  border-radius: 2px;
+
+  background: linear-gradient(
+    to top,
+    rgb(var(--fb-linea, 196 132 252) / 0.55),
+    rgb(var(--fb-linea, 196 132 252) / 0.12)
+  );
+}
+
+/* una sola barra encendida a cada lado rompe la regularidad: doce
+   barras iguales se leen como una trama, no como un panel */
+.pie__barras--izq i:nth-child(2),
+.pie__barras--der i:nth-child(4) {
+  background: linear-gradient(
+    to top,
+    rgb(var(--rgb-magenta) / 0.7),
+    rgb(var(--rgb-magenta) / 0.15)
+  );
+}
+
+/* ============================================================
+   BARRA LEGAL
+   ============================================================ */
+
+.pie__legal {
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+
+  padding: 1.35rem clamp(2rem, 3.6vw, 3.25rem);
+
+  border-top: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.12);
+}
+
+.pie__copy {
+  margin: 0;
+
+  font-size: 0.9rem;
+  color: rgba(206, 194, 232, 0.72);
+}
+
+.pie__estrella {
+  width: 17px;
+  height: 17px;
+
+  color: rgb(var(--fb-linea, 196 132 252) / 0.85);
+
+  filter: drop-shadow(0 0 8px rgb(var(--fb-linea, 196 132 252) / 0.6));
+}
+
+.pie__legales {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.1rem;
+
+  font-size: 0.9rem;
+}
+
+.pie__legales a {
+  text-decoration: none;
+  color: rgba(206, 194, 232, 0.72);
+
+  transition: color 0.25s ease;
+}
+
+.pie__legales a:hover {
+  color: #fff;
+}
+
+.pie__legales a:focus-visible {
+  outline: 2px solid var(--color-magenta, #e879f9);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.pie__legales span {
+  color: rgb(var(--fb-linea, 196 132 252) / 0.35);
+}
+
+/* ============================================================
+   ESTRECHO
+   ============================================================ */
+
+@media (max-width: 980px) {
+  .pie__cuerpo {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  /* en una columna el separador tiene que pasar de vertical a
+     horizontal: es la misma raya, cambiada de lado */
+  .pie__col {
+    padding-left: 0;
+    padding-top: 2.25rem;
+
+    border-left: 0;
+    border-top: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.12);
+  }
+
+  .pie__marca {
+    padding-right: 0;
+  }
+
+  /* `margin-top: auto` no tiene sentido apilado: las columnas ya
+     no comparten alto, así que empujaría el botón contra el
+     separador siguiente */
+  .pie__cta,
+  .pie__pieza {
+    margin-top: 1.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .pie__legal {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.9rem;
+
+    text-align: center;
+  }
+
+  .pie__legales {
+    justify-content: center;
+  }
+
+  /* el filo de la barra legal se estrecha con ella o queda más
+     ancho que el texto que separa */
+  .pie__filo--legal {
+    left: 18%;
+    right: 18%;
+  }
+}
+
+/* ============================================================
+   ENTRADA DEL PIE
+
+   El pie cierra la página, así que su entrada tiene que leerse
+   como un cierre: primero se posa la tarjeta, luego se enciende
+   su filo, después se llenan las tres columnas y al final la
+   barra legal. De arriba abajo, como se lee.
+
+   ---- BACKWARDS, NO FORWARDS ----
+   Aquí va el estado de REPOSO y el keyframe lleva el de partida.
+   Con `forwards` el valor que se congela es el interpolado, así
+   que cada pieza se quedaría con un `transform` de identidad —y
+   un transform, aunque sea identidad, mantiene capa compuesta y
+   trabajo de compositor para siempre. Ya pasó en el hero con
+   `filter: blur(0)`, que se quedó en once capas vivas.
+
+   Con `backwards` el elemento muestra el estado de partida
+   durante su retardo y, al acabar, manda esta regla: sin
+   transform, sin capa.
+
+   LÍNEA DE TIEMPO
+     0.00s  la tarjeta se posa
+     0.22s  el filo se enciende de dentro afuera
+     0.30s  logo · rótulos de las dos columnas
+     0.42s  reclamo · primer enlace · primera red
+     0.50s  botón de contactar
+     ~0.9s  último enlace y la pieza del cristal
+     1.00s  la barra legal
+   ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- EL ESTADO PREVIO, QUE FALTABA ----
+     `backwards` solo muestra el fotograma de partida MIENTRAS
+     corre el retardo de la animación, y la animación no existe
+     hasta que llega .pie--dentro. Sin esta regla, antes del
+     disparo manda el reposo y el pie entero se ve desde que
+     carga la página: medido, las once piezas salían ya a
+     opacidad 1 en el primer fotograma.
+
+     Con el `:not()` desaparecen hasta que la sección entra, y en
+     cuanto entra deja de aplicar y toma el relevo la animación.
+     Va dentro de la consulta de movimiento: con motion reducido
+     no hay animación que las devuelva, así que tampoco pueden
+     esconderse. */
+  .pie:not(.pie--dentro) .pie__tarjeta,
+  .pie:not(.pie--dentro) .pie__filo,
+  .pie:not(.pie--dentro) .pie__logo,
+  .pie:not(.pie--dentro) .pie__reclamo,
+  .pie:not(.pie--dentro) .pie__cta,
+  .pie:not(.pie--dentro) .pie__titulo,
+  .pie:not(.pie--dentro) .pie__enlaces li,
+  .pie:not(.pie--dentro) .pie__redes li,
+  .pie:not(.pie--dentro) .pie__pieza,
+  .pie:not(.pie--dentro) .pie__legal {
+    opacity: 0;
+  }
+
+  .pie--dentro .pie__tarjeta {
+    animation: pie-posa 0.72s cubic-bezier(0.22, 0.8, 0.36, 1) backwards;
+  }
+
+  /* el filo nace en el centro y se abre hacia los lados: es una
+     luz que se enciende, no una barra que aparece */
+  .pie--dentro .pie__filo {
+    animation: pie-filo 0.85s cubic-bezier(0.22, 0.8, 0.36, 1) 0.22s backwards;
+  }
+
+  .pie--dentro .pie__logo {
+    animation: pie-sube 0.62s cubic-bezier(0.22, 0.8, 0.36, 1) 0.3s backwards;
+  }
+
+  .pie--dentro .pie__reclamo {
+    animation: pie-sube 0.58s cubic-bezier(0.22, 0.8, 0.36, 1) 0.42s backwards;
+  }
+
+  .pie--dentro .pie__cta {
+    animation: pie-sube 0.58s cubic-bezier(0.34, 1.35, 0.64, 1) 0.5s backwards;
+  }
+
+  .pie--dentro .pie__titulo {
+    animation: pie-lado 0.55s cubic-bezier(0.22, 0.8, 0.36, 1) 0.3s backwards;
+  }
+
+  /* --i lo pone el JSX: da igual cuántos enlaces o redes haya,
+     el escalonado sale solo */
+  .pie--dentro .pie__enlaces li {
+    animation: pie-lado 0.5s cubic-bezier(0.22, 0.8, 0.36, 1)
+      calc(0.42s + var(--i, 0) * 0.09s) backwards;
+  }
+
+  .pie--dentro .pie__redes li {
+    animation: pie-sube 0.5s cubic-bezier(0.34, 1.35, 0.64, 1)
+      calc(0.42s + var(--i, 0) * 0.11s) backwards;
+  }
+
+  /* la piedra no sube: se ENCIENDE creciendo desde su huella, que
+     es lo que hace un objeto que aparece flotando */
+  .pie--dentro .pie__pieza {
+    animation: pie-gema 0.8s cubic-bezier(0.34, 1.3, 0.64, 1) 0.72s backwards;
+  }
+
+  .pie--dentro .pie__legal {
+    animation: pie-sube 0.6s ease-out 1s backwards;
+  }
+
+  @keyframes pie-posa {
+    from {
+      opacity: 0;
+      transform: translateY(34px);
+    }
+  }
+
+  @keyframes pie-filo {
+    from {
+      opacity: 0;
+      transform: scaleX(0.08);
+    }
+  }
+
+  @keyframes pie-sube {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+
+  /* lateral y no vertical para las listas: entran desde el filo
+     de su columna, que es de donde vienen */
+  @keyframes pie-lado {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+  }
+
+  @keyframes pie-gema {
+    from {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+  }
+}

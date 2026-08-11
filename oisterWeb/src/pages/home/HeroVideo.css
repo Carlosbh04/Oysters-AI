@@ -1,0 +1,159 @@
+/* ============================================================
+   HERO VIDEO — el vídeo que sustituye a la ostra 3D
+
+   Aquí SOLO vive lo propio del vídeo. El contenedor
+   (.hero__right) sigue siendo el de Home.css con toda su
+   coreografía de scroll: posición fija, viaje hacia la
+   izquierda, acople sobre "Qué hacemos" y el halo de suelo.
+   Este archivo no lo toca.
+
+   El vídeo trae canal alfa real (HEVC/VP9, ver HeroVideo.jsx),
+   así que aquí no hay ningún truco de recorte ni de mezcla: el
+   <video> se pinta tal cual y el navegador compone la
+   transparencia. El mix-blend-mode: screen de la etapa sin alfa
+   se fue con ella — sobre un vídeo ya transparente solo
+   aclararía la figura y le comería el contraste.
+   ============================================================ */
+
+.hero-video {
+  /* ---- encuadre: la ostra TAPA la luz de las ondas ----
+     La figura viene centrada por object-fit y hay que llevarla
+     encima del núcleo blanco de .hero-ripples, cubriéndolo del
+     todo. Nada de esto es a ojo — sale de medir el vídeo y el
+     CSS de las ondas, y si mueves las ondas hay que recalcular:
+
+     · X — la concha vive en x = 0.519 del fotograma (medido en 4
+       fotogramas del giro). El vídeo siempre llena los 56vw de
+       ancho del área (contain limitado por anchura), así que
+       queda en 44vw + 0.519×56vw ≈ 73vw. El centro de las ondas
+       está en 78vw (right: -10vw, 64vw de ancho): +5vw.
+
+     · Y — aquí NO vale un vh fijo: la altura del vídeo es
+       proporcional al ANCHO (16:9 → 56vw × 9/16 = 31.5vw) y su
+       centro cae en 50vh, así que dónde queda la base de la
+       figura depende de la proporción de la ventana. La base
+       sólida está en y = 0.953 del fotograma (medido), o sea a
+       (0.953 − 0.5) × 31.5vw ≈ 14.3vw bajo el centro. El núcleo
+       de luz late hasta ~79vh (centro 74vh, 16% de 52vh de alto,
+       escala ×1.15). Para posar la base justo ahí, en cualquier
+       ventana:  79vh − 50vh − 14.3vw. */
+  --hv-desplaza-x: 2.2vw;
+  --hv-desplaza-y: calc(29vh - 14.3vw);
+
+  /* ---- suavizado del canto ----
+     Generosa a propósito: el objeto vive en el centro y ni la
+     roza. Solo está para que, si el vídeo trae una arista de
+     compresión en el borde del fotograma, no se corte en seco
+     contra el degradado del fondo.
+     Si tu vídeo llega limpio hasta el filo y prefieres el
+     rectángulo completo, pon aquí: none */
+  --hv-mask: radial-gradient(
+    ellipse 84% 80% at 50% 50%,
+    #000 72%,
+    transparent 100%
+  );
+
+}
+
+/* ---- el MARCO: la capa que React sí gobierna ----
+   El <video> de dentro es HTML inyectado y su nodo puede ser
+   reemplazado a espaldas de React (ver el comentario del JSX), así
+   que todo lo que debe SOBREVIVIR a eso — el fundido de entrada,
+   la máscara de bordes y el encuadre — vive aquí, en el marco, y
+   no en el vídeo. */
+.hero__right .hero-video__marco {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  -webkit-mask-image: var(--hv-mask);
+  mask-image: var(--hv-mask);
+
+  /* el retoque de encuadre (ver --hv-desplaza-* arriba). Es un
+     transform y no top/left porque el elemento no está
+     posicionado — y así tampoco interfiere con el transform de
+     viaje de .hero__right, que vive en el contenedor. */
+  transform: translate(var(--hv-desplaza-x), var(--hv-desplaza-y));
+
+  /* SIN opacity 0 ni fundido propio, a propósito: cualquier fase
+     invisible hace que Safari deniegue el autoplay al evaluar la
+     política (y no siempre re-evalúa al aparecer). Un <video> con
+     alfa y sin datos no pinta nada, así que no hay rectángulo que
+     tapar; la entrada la anima Home.css con .hero--enter. */
+}
+
+/* ---- el <video>: solo llena el marco ---- */
+/* la caja del componente de bucle: solo ocupa el marco, el
+   encuadre lo llevan las pistas */
+.hero__right .hero-video__caja {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+}
+
+.hero__right .hero-video__fuente {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  /* contain: el vídeo entra entero y no se deforma nunca, mida
+     lo que mida la ventana. cover recortaría la figura. */
+  object-fit: contain;
+
+  /* ============================================================
+     ENCUADRE DE LA OSTRA
+
+     ---- POR QUÉ HACE FALTA ----
+     El render llegaba antes en 16:9 (1920×1080). El nuevo es
+     CUADRADO (1440×1440), y eso cambia dos cosas de golpe:
+
+     1) TAMAÑO. Con `contain` en una caja de 806×900, un 16:9
+        daba 806×453 de contenido; un 1:1 da 806×806. La figura
+        pasó a medir 580px de alto donde antes cabía en 453 —un
+        28% más— y se salía 64px por el borde derecho de la
+        ventana.
+
+     2) CENTRADO. Medido el canal alfa del vídeo, la figura ocupa
+        838×1036 dentro del cuadro de 1440 y su centro cae en
+        (995, 530), no en (720, 720): está desplazada +275px a la
+        derecha y −190px hacia arriba dentro de su propio
+        fotograma.
+
+     Ese descentrado importa más de lo que parece. El acoplado
+     del scroll (useHeroScrollDock) alinea el centro de
+     `.hero__right` con la diana de HowWeWork, y `.hero__right`
+     es la CAJA. Si la figura no está en el centro de su caja, el
+     acoplado la deja desviada justo esa distancia.
+
+     ---- LAS CUENTAS ----
+     Escala:  453 / 580 = 0.78  → recupera el alto de antes
+     Centrado: el desplazamiento en pantalla es (+154, −106) px
+               —los 275 y 190 del vídeo por el factor 806/1440—
+               y al escalar se reduce a (+120, −83). Se compensa
+               moviendo lo mismo en sentido contrario.
+
+     El orden importa: en CSS los transforms se aplican de
+     derecha a izquierda, así que primero escala y después
+     traslada, y por eso la traslación va ya multiplicada por la
+     escala.
+
+     Los tres valores son diales: si mañana entra otro render,
+     se vuelven a medir y se cambian aquí. */
+  --ostra-escala: 0.78;
+  --ostra-x: -120px;
+  --ostra-y: 83px;
+
+  transform: translate(var(--ostra-x), var(--ostra-y))
+    scale(var(--ostra-escala));
+}
+
+/* Safari pinta un botón de play gigante encima del vídeo cuando
+   retrasa el autoplay, aunque no haya controles. Fuera: es
+   decoración sin sonido y el componente ya reintenta el play en
+   canplay y al primer gesto, así que el botón solo podía estorbar. */
+.hero__right .hero-video__fuente::-webkit-media-controls-start-playback-button,
+.hero__right .hero-video__fuente::-webkit-media-controls {
+  display: none !important;
+  -webkit-appearance: none;
+}

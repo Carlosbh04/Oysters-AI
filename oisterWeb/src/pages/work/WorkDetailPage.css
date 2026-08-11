@@ -1,219 +1,106 @@
-/* ======= WorkDetailPage: skeleton de carga ======= */
+/* ============================================================
+   DETALLE DE TRABAJO — capa de página
 
-.work-skeleton {
-  /* width 100%: sin esto, dentro de un PageSection que
-     centra hijos el skeleton colapsa al ancho de su
-     contenido y la tarjeta nace estrecha → salto feo
-     al entrar el contenido real */
-  width: 100%;
-  max-width: 1000px;
+   Aquí solo vive lo que hace falta para que la escena Cosmic
+   Data Flow quede DETRÁS del contenido. La maquetación entera
+   está en componentes/work/detalle/.
+   ============================================================ */
 
-  box-sizing: border-box;
-
-  margin: 30px auto 80px;
-  padding: 48px 50px;
-
-  border-radius: 28px;
-
-  /* la misma tarjeta glass del detalle real:
-     el contenido "aparece dentro" sin saltos */
-  background: rgba(255, 255, 255, 0.6);
-
-  border: 1px solid rgba(255, 255, 255, 0.65);
-
-  box-shadow:
-    0 20px 60px rgba(169, 106, 247, 0.18),
-    0 4px 14px rgba(217, 107, 197, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-/* ======= Bloque base =======
-   fondo lila suave + brillo que lo recorre */
-
-.skeleton {
-  display: block;
-
-  border-radius: 999px;
-
-  background: rgba(169, 106, 247, 0.12);
-
+.work-detail {
+  /* El fondo es `fixed` y ocupa la ventana; el contenido tiene
+     que quedar por encima. Sin position + z-index los dos están
+     en z 0 y gana el último del documento, que es esta sección
+     —funcionaría por casualidad—. Declararlo lo hace intencionado
+     y a prueba de reordenaciones. */
   position: relative;
-  overflow: hidden;
+  z-index: 1;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .skeleton::after {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    transform: translateX(-100%);
-
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.55),
-      transparent
-    );
-
-    animation: skeletonShimmer 1.4s ease infinite;
-  }
+/* ---- EL HUECO DE CARGA ----
+   Lo monta App.jsx mientras llega el chunk de la página. No
+   lleva la escena (ver el comentario de allí), solo su color de
+   base: así el relevo hueco → página es escena apareciendo sobre
+   negro, y no un fogonazo de morado a negro en toda la pantalla. */
+.work-detail-hueco {
+  background-color: #050418;
 }
 
-@keyframes skeletonShimmer {
-  to {
-    transform: translateX(100%);
-  }
+/* ============================================================
+   EL FONDO DE LA PÁGINA
+
+   La escena del hero, anclada al viewport. Va en z0 y sin
+   capturar el ratón: el contenido del detalle sube por encima con
+   su propio z-index, igual que hacía con el fondo anterior.
+   ============================================================ */
+.work-detail__fondo {
+  position: fixed;
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
 }
 
-/* ======= Formas (medidas del contenido real) ======= */
+/* ============================================================
+   EL CONTENIDO SE ESTRECHA PARA QUE SE VEA LA SALA
 
-.skeleton-back {
-  width: 160px;
-  height: 15px;
+   El resto del sitio usa el ancho de contenedor común (1280px al
+   90%). Aquí no sirve: sobre 1440 eso deja 72px libres a cada
+   lado, y la escena del fondo tiene su decoración justo ahí —
+   torre de paneles y logo a la izquierda, figura y cristal a la
+   derecha. Con el contenido a todo lo ancho, esas piezas quedan
+   tapadas o, peor, asomando por detrás del texto.
 
-  margin-bottom: 2rem;
+   A 860px el contenido ocupa el tercio central —que es
+   exactamente la franja que la escena deja oscura y despejada a
+   propósito— y libera unos 290px por banda para que la sala
+   respire. Es el mismo reparto que tiene el hero: geometría a los
+   lados, aire en el medio.
 
-  /* pegado a la izquierda, como el volver real */
-  align-self: flex-start;
-  margin-right: auto;
+   El 92% del ancho es el tope para pantallas estrechas: por
+   debajo de ~935px el contenido manda y la decoración se pierde,
+   que es lo correcto cuando no hay sitio para las dos cosas.
+   ============================================================ */
+.work-detail .page-section__inner {
+  width: min(860px, 92%);
 }
 
-.work-skeleton-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* ---- Y NECESITA SU PROPIO FONDO ----
+   Al estrecharse, el contenido se apoya en el centro de la
+   escena. Ese centro es oscuro pero no uniforme: lo cruzan el haz
+   de luz, la línea del horizonte y los reflejos del suelo. Un velo
+   muy tenue con desenfoque de fondo asienta el texto sin taparla
+   —se sigue viendo la sala a través— y sube el contraste allí
+   donde la escena se ilumina.
 
-  gap: 1rem;
+   Los bordes se desvanecen para que no aparezca una caja: lo que
+   tiene que leerse es una zona más calmada, no un panel.
 
-  margin-bottom: 40px;
-  padding-bottom: 24px;
+   ---- SIN backdrop-filter ----
+   Llevaba `blur(3px)`. Sobre un fondo fijo que se mueve al rodar,
+   ese desenfoque obliga a leer de vuelta el compositor en cada
+   fotograma, y era la mitad de los picos: quitándolo, el peor
+   fotograma del scroll baja de 166ms a 83. El velo se apaña con
+   el degradado, que no cuesta nada. */
+.work-detail .page-section__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0 -3.5%;
+
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(9, 3, 22, 0.62) 7%,
+    rgba(9, 3, 22, 0.62) 93%,
+    transparent 100%
+  );
+
+  z-index: -1;
+
+  pointer-events: none;
 }
 
-/* el título real es clamp(2rem, 5vw, 2.9rem) → ~46px */
-
-.skeleton-title {
-  width: min(540px, 80%);
-  height: clamp(34px, 4.6vw, 46px);
-
-  border-radius: 14px;
-}
-
-.skeleton-subtitle {
-  width: min(300px, 55%);
-  height: 18px;
-}
-
-/* el texto real ocupa ~30px por línea
-   (17px de barra + 13px de gap) */
-
-.work-skeleton-text {
-  display: flex;
-  flex-direction: column;
-
-  gap: 13px;
-
-  max-width: 760px;
-  margin: 0 auto 44px;
-}
-
-.skeleton-line {
-  width: 100%;
-  height: 17px;
-}
-
-.skeleton-line-short {
-  width: 62%;
-}
-
-/* la imagen real del carrusel es 700 × 400 */
-
-.skeleton-image {
-  width: min(700px, 100%);
-  height: 400px;
-
-  margin: 0 auto 18px;
-
-  border-radius: 20px;
-}
-
-/* dots */
-
-.work-skeleton-dots {
-  display: flex;
-  justify-content: center;
-
-  gap: 10px;
-
-  margin-bottom: 48px;
-}
-
-.skeleton-dot {
-  width: 9px;
-  height: 9px;
-}
-
-.skeleton-dot-active {
-  width: 26px;
-}
-
-/* el video real ocupa el 80% de ancho en 16:9 */
-
-.skeleton-video {
-  width: 80%;
-
-  aspect-ratio: 16 / 9;
-
-  margin: 0 auto 48px;
-
-  border-radius: 18px;
-}
-
-/* chips de IA con su título y la línea divisoria
-   de .chip-section */
-
-.work-skeleton-chips {
-  padding-top: 32px;
-
-  border-top: 1px solid rgba(169, 106, 247, 0.15);
-}
-
-.skeleton-chips-label {
-  width: 280px;
-  max-width: 60%;
-  height: 14px;
-
-  margin-bottom: 1.1rem;
-}
-
-.work-skeleton-chips-row {
-  display: flex;
-  flex-wrap: wrap;
-
-  gap: 12px;
-}
-
-.skeleton-chip {
-  width: 96px;
-  height: 36px;
-}
-
-/* ======= Responsive ======= */
-
-@media (max-width: 800px) {
-  .work-skeleton {
-    padding: 26px 22px;
-    margin: 20px auto 50px;
-
-    border-radius: 22px;
-  }
-
-  .skeleton-image {
-    height: 250px;
-  }
-
-  .skeleton-video {
-    width: 100%;
-  }
+.work-detail .page-section__inner {
+  position: relative;
+  isolation: isolate;
 }

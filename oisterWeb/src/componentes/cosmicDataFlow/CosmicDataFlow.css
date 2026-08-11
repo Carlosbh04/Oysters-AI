@@ -1,0 +1,110 @@
+/* ============================================================
+   COSMIC DATA FLOW — capas estáticas
+
+   Solo hay tres reglas con contenido visual, y las tres pintan
+   cosas que NO cambian nunca. Todo lo que se mueve está en el
+   canvas.
+   ============================================================ */
+
+.cosmic {
+  position: fixed;
+  inset: 0;
+
+  /* ---- z-index 0, NUNCA -1 ----
+     Un -1 aquí manda el elemento por detrás del fondo de su
+     contexto de apilamiento, y el <body> de este sitio tiene
+     fondo opaco (#402B5F, ver globales.css): el fondo
+     desaparecería entero sin dar ninguna pista de por qué.
+     Con 0 se queda delante del body y el contenido de la página
+     sube por encima con su propio z-index. */
+  z-index: 0;
+
+  /* no intercepta nada: el ratón atraviesa el fondo y llega a
+     los enlaces y botones que tenga encima */
+  pointer-events: none;
+
+  overflow: hidden;
+
+  /* el color más profundo va también aquí y no solo en la capa
+     de nebulosa: cubre el instante entre que monta el
+     componente y el navegador compone los degradados */
+  background-color: #050418;
+}
+
+/* ---- LA NEBULOSA ----
+   El encargo pedía desenfocar estas manchas 120-200px. No hace
+   falta y sería carísimo: un `filter: blur()` a pantalla
+   completa obliga a rasterizar y desenfocar la capa entera en
+   cada composición. Un degradado radial YA es un desenfoque
+   perfecto y gratis — la transición suave es su propia
+   definición. El blur solo haría falta si las manchas tuviesen
+   bordes duros, y no los tienen. */
+.cosmic__nebulosa {
+  position: absolute;
+  inset: 0;
+
+  background-color: #050418;
+  background-image:
+    /* violeta arriba-izquierda */
+    radial-gradient(
+      62% 46% at 16% 10%,
+      rgba(91, 33, 182, 0.6),
+      transparent 68%
+    ),
+    /* azul en el centro */
+    radial-gradient(
+      74% 54% at 46% 52%,
+      rgba(43, 30, 140, 0.5),
+      transparent 72%
+    ),
+    /* magenta en la banda derecha, bajo el punto focal */
+    radial-gradient(
+      58% 48% at 88% 42%,
+      rgba(139, 26, 122, 0.4),
+      transparent 70%
+    ),
+    /* un azul frío abajo-derecha para que la diagonal
+       ascendente tenga de dónde salir */
+    radial-gradient(
+      52% 42% at 76% 90%,
+      rgba(59, 91, 255, 0.26),
+      transparent 72%
+    );
+
+  /* screen y no la superposición normal: así las manchas se
+     SUMAN donde se cruzan, igual que hace la luz. Apiladas de
+     forma normal, la de arriba tapa a la de abajo y los cruces
+     quedan planos. */
+  background-blend-mode: screen;
+}
+
+.cosmic__lienzo {
+  position: absolute;
+  inset: 0;
+
+  /* el tamaño del búfer lo pone el JS a devicePixelRatio; aquí
+     solo se estira a la caja en píxeles CSS */
+  width: 100%;
+  height: 100%;
+
+  display: block;
+}
+
+/* ---- VIÑETA ----
+   Va por ENCIMA del canvas a propósito. Su trabajo no es
+   decorar, es garantizar la regla de composición: el 70% del
+   lienzo por debajo del 15% de luminancia para que el texto que
+   se ponga encima siga siendo legible. Si fuese por debajo, un
+   núcleo de luz de una cinta podría subir el brillo justo en la
+   esquina donde cae un párrafo. */
+.cosmic__vineta {
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    125% 95% at 50% 42%,
+    transparent 40%,
+    rgba(2, 1, 10, 0.5) 78%,
+    rgba(2, 1, 10, 0.85) 100%
+  );
+}
