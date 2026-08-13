@@ -69,15 +69,6 @@ const EscenaOraculoPage = lazyWithMin(() =>
   import("./pages/escenaOraculo/EscenaOraculoPage")
 );
 
-/* ---- LABORATORIO ----
-   Banco de pruebas de Prism Cloud, la nube cromática en GLSL.
-   Vive entero en componentes/laboratorio/ (componente + página),
-   para que el día que se apruebe o se descarte sea una sola
-   carpeta la que se mueve o se borra. */
-const PrismCloudPage = lazyWithMin(() =>
-  import("./componentes/laboratorio/PrismCloudPage")
-);
-
 import "./App.css";
 
 /* Los skeletons de /works, /works/:id y /contact se envuelven en
@@ -148,7 +139,6 @@ function getRouteChunk(pathname) {
   if (pathname === "/services") return precargaDe(ComoLoHacemosPage);
   if (pathname === "/fondo-trama") return precargaDe(FondoTramaPage);
   if (pathname === "/escena-oraculo") return precargaDe(EscenaOraculoPage);
-  if (pathname === "/lab/prism-cloud") return precargaDe(PrismCloudPage);
 
   /* El blog, en lazy como el resto: detalle y listado (suelto o
      paginado) tienen cada uno su chunk que precargar. */
@@ -393,7 +383,6 @@ function App() {
                 <Route path="/services" element={<ComoLoHacemosPage />} />
                 <Route path="/fondo-trama" element={<FondoTramaPage />} />
                 <Route path="/escena-oraculo" element={<EscenaOraculoPage />} />
-                <Route path="/lab/prism-cloud" element={<PrismCloudPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </div>

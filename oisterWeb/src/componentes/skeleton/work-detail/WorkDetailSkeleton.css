@@ -78,6 +78,20 @@
   margin: 10px 26px 0 auto;
 }
 
+/* en móvil el carrusel real mete las flechas DENTRO del marco y
+   suelta el relleno lateral (.wd-carrusel a ≤768px): el hueco
+   suelta el suyo o queda 26px más estrecho que la imagen que
+   llega */
+@media (max-width: 768px) {
+  .wd-hueco__marco {
+    margin-inline: 0;
+  }
+
+  .wd-hueco__contador {
+    margin-right: 0;
+  }
+}
+
 /* ---- ficha ---- */
 
 .wd-hueco__icono {
@@ -120,55 +134,6 @@
   font-size: 12px;
 
   color: transparent;
-}
-
-/* ---- destacado ---- */
-
-.wd-hueco__video {
-  aspect-ratio: 16 / 9;
-
-  border: 1px solid rgba(160, 120, 255, 0.18);
-  border-radius: 14px;
-
-  background: rgba(20, 12, 40, 0.55);
-}
-
-/* ---- tarjeta de cita ----
-   Mismos rellenos y misma tipografía que .wd-destacado__ficha /
-   .wd-destacado__cita. La altura la marca el texto real que va
-   dentro en color transparente, igual que en los párrafos. */
-.wd-hueco__cita-caja {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  height: 100%;
-
-  padding: 30px 32px;
-}
-
-.wd-hueco__comillas {
-  margin-bottom: 6px;
-}
-
-.wd-hueco__cita {
-  margin: 0;
-
-  font-size: clamp(16px, 1.5vw, 19px);
-  font-weight: 500;
-  line-height: 1.6;
-  letter-spacing: -0.01em;
-
-  color: transparent;
-
-  /* bandas al interlineado real: 19 × 1.6 = 30.4px */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(120, 96, 175, 0.26) 0,
-    rgba(120, 96, 175, 0.26) 20px,
-    transparent 20px,
-    transparent 30.4px
-  );
 }
 
 /* ---- cierre ---- */
@@ -293,18 +258,3 @@
   color: transparent;
 }
 
-/* El vídeo cuando rellena la columna derecha. NO lleva
-   `aspect-ratio: auto`: en la página el 16/9 sigue vigente y es
-   quien marca los 258px de partida. Poniéndolo en auto el hueco
-   se quedaba en su mínimo de 200px y salían 94px de salto. */
-.wd-hueco__video--relleno {
-  flex: auto;
-
-  min-height: 200px;
-}
-
-/* en columna única el bloque se estrecha (ver WorkDetail.css) y
-   el tope de 70ch sobra, igual que en la página */
-.wd-rejilla--estrecha .wd-hueco__parrafo {
-  max-width: none;
-}

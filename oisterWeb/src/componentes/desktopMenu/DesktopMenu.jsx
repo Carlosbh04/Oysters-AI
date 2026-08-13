@@ -31,14 +31,6 @@ const NAV_ITEMS = [
       { label: "Blog", to: "/blog" },
     ],
   },
-
-  /* ---- ENLACE DE TRABAJO, NO DE SITIO ----
-     Atajo al banco de pruebas de Prism Cloud para poder verlo
-     mientras se diseña. OJO: el menú es público, o sea que esta
-     entrada la ve CUALQUIERA que lo abra. Cuando la nube esté
-     decidida —dentro o fuera— se borra esta línea y la gemela
-     del menú móvil. */
-  { label: "Prism Cloud (lab)", to: "/lab/prism-cloud" },
 ];
 
 /* número editorial 01, 02... en mono — conecta con el tagline */

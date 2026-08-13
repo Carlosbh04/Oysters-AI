@@ -28,7 +28,6 @@ const NOMBRES = {
   "/contact": "CONTACT",
   "/fondo-trama": "FONDO TRAMA",
   "/escena-oraculo": "ESCENA ORÁCULO",
-  "/lab/prism-cloud": "PRISM CLOUD",
 };
 
 /* Lo que se enseña cuando no hay ruta que reconocer. Va aquí y

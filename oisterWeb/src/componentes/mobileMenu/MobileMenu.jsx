@@ -115,22 +115,6 @@ function MobileMenu({ isOpen, onClose }) {
             setOpenAccordion={setOpenAccordion}
           />
 
-          {/* ---- ENLACE DE TRABAJO, NO DE SITIO ----
-              Atajo al banco de pruebas de Prism Cloud mientras se
-              diseña. Va también aquí y no solo en el menú de
-              escritorio porque son dos componentes distintos: el
-              Header monta uno u otro según el ancho, así que un
-              enlace puesto solo allí no existe en móvil.
-              Se borra cuando la nube esté decidida. */}
-          <NavLink
-            className="mobile-menu__link"
-            to="/lab/prism-cloud"
-            onClick={closeMenu}
-          >
-            Prism Cloud (lab)
-            <span className="mobile-menu__arrow">→</span>
-          </NavLink>
-
         </nav>
 
         <div className="mobile-menu__footer">
