@@ -9,8 +9,7 @@ import "./EscenaOraculoPage.css";
    delante se lee. Mirándolo solo, se juzga como ilustración y se
    acaba dejando demasiado brillante.
 
-   Va fuera de /lab/, así que conserva el header del sitio y se
-   llega desde el menú.
+   Conserva el header del sitio y se llega desde el menú.
    ============================================================ */
 function EscenaOraculoPage() {
   return (

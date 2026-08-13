@@ -85,22 +85,13 @@ function WorksSkeleton() {
         </span>
       </header>
 
-      {/* ---- barra de métricas ---- */}
-      <div className="ws-skeleton__stats">
-        {[0, 1, 2, 3].map((i) => (
-          <div className="ws-skeleton__stat" key={i}>
-            <SkeletonPiece variant="block" className="ws-skeleton__stat-icon" />
-            <div className="ws-skeleton__stat-info">
-              <SkeletonPiece variant="line" width="46px" height="27px" />
-              <SkeletonPiece
-                variant="line"
-                width="80px"
-                className="ws-skeleton__stat-label"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* ---- AQUÍ IBA EL HUECO DE LA BARRA DE MÉTRICAS ----
+          Se va con ella, y no por limpieza: este esqueleto existe
+          para que lo que se ve durante la carga ocupe el MISMO
+          sitio que lo que llega después. Dejando el hueco de una
+          barra que ya no existe, la página daría un salto de casi
+          140px justo al aparecer — el defecto que este componente
+          está para evitar. */}
 
       {/* ---- píldoras de filtro ----
          ---- EL ANCHO NO SE ESTIMA: SE MIDE SOLO ----

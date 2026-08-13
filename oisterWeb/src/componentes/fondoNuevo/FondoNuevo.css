@@ -1,0 +1,637 @@
+/* ============================================================
+   FONDO NUEVO — degradado diagonal violeta → rosa que se invierte
+
+   Dos piezas y ya:
+
+     .fn        el marco. Recorta, y pinta el violeta de reserva.
+     .fn__giro  la capa con TODO el color, girando muy despacio.
+
+   Media vuelta = los colores invertidos (el oscuro y el rosa
+   están en extremos opuestos, así que al girar 180° cambian de
+   sitio). Vuelta entera = de nuevo como al principio.
+   ============================================================ */
+
+.fn {
+  /* ==========================================================
+     DIALES — LOS COLORES
+
+     Van en CANALES SUELTOS y no en hex por un motivo que se ve
+     en cuanto se toca: los radiales tienen que desvanecerse en
+     SU PROPIO color con alfa 0, no en `transparent`.
+
+     `transparent` es negro transparente, así que al interpolar
+     hacia él el navegador pasa por grises sucios y el rosa se
+     apaga con una sombra alrededor. Con `rgb(... / 0)` el color
+     es el mismo de principio a fin y solo cambia la opacidad:
+     el desvanecido queda limpio.
+     ========================================================== */
+
+  /* ---- LOS TRES BAJAN A LA VEZ Y EL MISMO FACTOR ----
+     El fondo se veía con demasiada claridad. Los tres colores
+     están multiplicados por 0,74 EN LUZ LINEAL, no retocados a
+     ojo uno por uno.
+
+     Eso importa: escalar los tres canales por la misma
+     constante en espacio lineal conserva la proporción R:G:B, o
+     sea el MATIZ y la SATURACIÓN exactos. Es el mismo rosa y el
+     mismo violeta de siempre con menos brillo — no son colores
+     nuevos, que es justo lo que no había que hacer.
+
+     Si hay que volver a moverlo, se mueve el factor y se
+     recalculan los tres juntos. Retocar uno solo rompe la
+     relación entre ellos y el degradado empieza a virar. */
+
+  /* el extremo oscuro: indigo */
+  --fn-rgb-oscuro: 44 32 79;
+
+  /* ---- EL VIOLETA DEL CENTRO, LA BISAGRA ----
+     Baja de `124 86 214` con el rosa y por el mismo motivo. Al
+     rebajar solo el rosa, el color MÁS CLARO del degradado pasó
+     a ser este —15,8% contra el 13,4% del rosa nuevo— y el techo
+     de luz del fondo lo acabó marcando él: medido, el respaldo
+     del texto se quedaba en 18-20% en vez de bajar con el rosa.
+
+     Los tres colores del campo quedan ahora en la misma banda
+     (12-13%), que es lo que hace que el texto aguante en
+     CUALQUIER fase del giro y no solo en algunas. */
+  --fn-rgb-violeta: 96 66 169;
+
+  /* ---- EL EXTREMO ROSA ----
+     Baja de `233 125 195` (#E97DC3) a este. No es un capricho
+     de tono: es el único de los tres colores que impedía leer
+     lo que se pone encima.
+
+     Medido, aquel rosa tenía 35,9% de luminancia. Los techos
+     que tolera el texto de "Nuestros trabajos" para pasar AA
+     son 14-20% según el elemento. O sea que el fondo iba al
+     doble de luz de lo que admite un párrafo encima.
+
+     ---- POR QUÉ SE ARREGLA AQUÍ Y NO EN LA SECCIÓN ----
+     Hubo una versión con un velo oscuro local debajo del texto
+     (ver LatestProjects.css). Funcionaba en los números y se
+     veía como una mancha, "un ojo" sobre el rosa. Y tenía un
+     fallo de fondo: ESTE DEGRADADO GIRA, así que la luz que
+     hay detrás de una palabra cambia a lo largo de la vuelta
+     de 48s. Un parche quieto solo acierta en algunas fases;
+     bajar el color acierta en todas.
+
+     El tono se mantiene —mismo rosa, misma familia— y solo se
+     le quita luz. Va en canales sueltos para no romper los
+     `rgb(... / 0)` de los desvanecidos. */
+  --fn-rgb-rosa: 131 67 109;
+
+  /* ---- LA VUELTA ----
+     Lo que tarda el giro COMPLETO. Los colores quedan invertidos
+     a la mitad, así que con 48s la inversión llega cada 24s.
+     Es el único dial del movimiento: subirlo lo calma, bajarlo lo
+     acelera. */
+  --fn-vuelta: 48s;
+
+  /* ---- EL REPARTO DEL DEGRADADO ----
+     Dónde arranca el oscuro, dónde está el violeta y dónde llega
+     el rosa, en % del recorrido del degradado. NO van en 0/50/100
+     y el porqué está abajo, en .fn__giro. */
+  --fn-parada-oscuro: 26%;
+  --fn-parada-media: 50%;
+  --fn-parada-rosa: 74%;
+
+  /* ==========================================================
+     COLOCACIÓN
+
+     absolute + inset y NO fixed: pegado al padre, que es lo que
+     lo hace reutilizable. Quien lo monte a pantalla completa
+     —el banco de pruebas— es quien pone el fixed en SU
+     contenedor, no el fondo en sí mismo.
+     ========================================================== */
+  position: absolute;
+  inset: 0;
+
+  /* recorta la capa que gira, que es MÁS GRANDE que este marco */
+  overflow: hidden;
+
+  /* decorado: los clics son de quien esté encima */
+  pointer-events: none;
+
+  /* ---- ESTO CONVIERTE A .fn EN UNIDAD DE MEDIDA ----
+     Sin esta línea, las unidades `cqmax` de la capa que gira no
+     tienen contra qué medirse. Con ella, 1cqmax = el 1% del lado
+     MAYOR de este marco, que es justo lo que hace falta para
+     calcular un cuadrado que lo tape gire como gire. */
+  container-type: size;
+
+  /* ---- DIALES DE LA LLEGADA ----
+     Lo que dura la entrada y cuándo entra cada pieza. Ver la
+     coreografía abajo, en "LA LLEGADA". */
+  --fn-entrada-dur: 1.9s;
+  --fn-entrada-curva: cubic-bezier(0.16, 0.84, 0.28, 1);
+
+  /* ---- EL BARRIDO Y LO QUE REVELA, UN SOLO RELOJ ----
+     Estos dos diales los comparten la franja de luz y la máscara
+     del circuito, y por eso están aquí arriba y no dentro de cada
+     regla: son DOS animaciones que tienen que ir clavadas la una a
+     la otra. Con los números escritos por separado, cambiar la
+     duración de una y olvidar la otra deja el circuito apareciendo
+     antes o después de que pase la luz, que es justo el efecto que
+     se quería. */
+  --fn-barrido-retardo: 0.45s;
+  --fn-barrido-dur: 1.45s;
+
+  /* desde qué ángulo llega el campo de color antes de enderezarse */
+  --fn-entrada-giro: -24deg;
+
+  /* color de reserva: lo único que se vería si la capa de encima
+     no llegara a pintar.
+
+     Es el indigo y no el violeta a propósito: durante el primer
+     cuarto de segundo de la llegada el color todavía no ha
+     entrado, y lo que se ve es esto. Arrancar en el tono OSCURO de
+     la paleta hace que la entrada sea un amanecer; arrancando en
+     el violeta medio, el fondo aparecía ya casi puesto y la
+     animación no tenía de dónde venir. */
+  background: rgb(var(--fn-rgb-oscuro));
+}
+
+/* ============================================================
+   LA CAPA QUE GIRA
+
+   ---- POR QUÉ ES UN CUADRADO Y POR QUÉ ES TAN GRANDE ----
+   Una capa del tamaño del marco, al girar, enseña las esquinas:
+   por muy grande que sea el rectángulo, si es más largo que ancho
+   hay ángulos en los que una punta del marco se queda fuera.
+
+   Lo que siempre tapa es un cuadrado cuyo lado llegue a la
+   DIAGONAL del marco, porque al girar barre un círculo de ese
+   diámetro. La diagonal de un rectángulo nunca pasa de 1,415
+   veces su lado mayor, así que con 150 se cubre con margen.
+   ============================================================ */
+.fn__giro {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  /* Reserva para navegadores sin unidades de contenedor: un
+     rectángulo del 220%, que tapa cualquier marco hasta 2:1 de
+     proporción. Más apaisado que eso se le verían las esquinas,
+     y por eso NO es la medida buena — es solo la red. */
+  width: 220%;
+  height: 220%;
+
+  /* la medida buena: cuadrado de lado 1,5 × el lado mayor del
+     marco. Los navegadores que entienden cqmax se quedan con
+     esta y descartan la de arriba. */
+  width: 150cqmax;
+  height: 150cqmax;
+
+  /* centrado y giro, en propiedades SEPARADAS: `translate`
+     coloca y `rotate` gira, sin pisarse. Con la sintaxis vieja
+     —transform: translate(...) rotate(...)— la animación del giro
+     tendría que repetir el centrado en cada fotograma, y olvidarlo
+     manda la capa a una esquina. */
+  translate: -50% -50%;
+  rotate: 0deg;
+
+  /* linear y no ease: es un giro continuo, no un viaje de ida y
+     vuelta. Cualquier curva de aceleración se notaría como un
+     tirón al cerrar cada vuelta. */
+  animation: fn-girar var(--fn-vuelta) linear infinite;
+
+  /* ---- POR QUÉ LAS PARADAS NO SON 0 / 50 / 100 ----
+     El degradado se pinta sobre el CUADRADO, que es bastante más
+     grande que el marco: por el recorte, lo que se ve es solo su
+     franja central —alrededor de la mitad—. Con las paradas en
+     los extremos, el oscuro del 0% y el rosa del 100% caerían
+     siempre fuera de cuadro y solo se vería la zona templada del
+     centro: un fondo lavado, sin los dos extremos que son justo
+     lo que define esta paleta.
+
+     Metidas al 26% y al 74%, la rampa entera ocurre DENTRO de lo
+     que se ve, y los dos colores llegan a su valor pleno.
+
+     ---- Y POR QUÉ LOS FOCOS VAN DESCENTRADOS ----
+     Los dos radiales tampoco están en el centro: si lo estuvieran,
+     girarían sobre sí mismos y no se movería nada. Puestos a un
+     lado, ORBITAN — entran y salen de cuadro con la vuelta, y son
+     los que hacen que además de invertirse, el fondo parezca
+     tener una luz viajando por dentro. */
+  background:
+    /* ---- AQUÍ ORBITABA UN FOCO ROSA, Y SE QUITÓ ----
+       Era `radial-gradient(34% 34% at 68% 68%, rosa/.75 → 0)`, y
+       es literalmente lo que el comentario de arriba llamaba
+       "una luz viajando por dentro". Cumplía ese papel; el
+       problema es DÓNDE lo cumplía.
+
+       Al girar la capa, ese foco barre la mitad izquierda del
+       marco — que es justo donde vive la columna de texto de
+       "Nuestros trabajos". Medido en un diferencial con y sin
+       él, aportaba una mancha ancha y suave de luz sobre esa
+       zona, y el texto la sufría de forma distinta según la
+       fase del giro. Un fondo que cambia de luz debajo de un
+       párrafo es un problema que no se arregla con colores del
+       texto: hay que quitar la luz.
+
+       El foco OSCURO de abajo se queda. Ese no estorba —solo
+       resta luz— y es el que sigue dando profundidad y sensación
+       de movimiento al girar. Con él solo, el fondo sigue sin
+       ser plano; lo que ya no tiene es un reflector paseándose
+       por encima de las letras. */
+
+    /* el peso oscuro, en la esquina contraria */
+    radial-gradient(
+      36% 36% at 32% 32%,
+      rgb(var(--fn-rgb-oscuro) / 0.75) 0%,
+      rgb(var(--fn-rgb-oscuro) / 0) 70%
+    ),
+    /* la diagonal, que es la que invierte al girar */
+    linear-gradient(
+      135deg,
+      rgb(var(--fn-rgb-oscuro)) var(--fn-parada-oscuro),
+      rgb(var(--fn-rgb-violeta)) var(--fn-parada-media),
+      rgb(var(--fn-rgb-rosa)) var(--fn-parada-rosa)
+    );
+}
+
+@keyframes fn-girar {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* ============================================================
+   LA LLEGADA
+
+   Lo que pasa al montarse, en orden:
+
+     0,00s  el marco está en indigo plano. Nada más.
+     0,00s  el campo de color entra girado 24° y ampliado, apagado
+            y sin saturar, y se endereza mientras se enciende.
+     0,45s  un barrido de luz cruza en diagonal, una sola vez.
+     0,55s  el circuito se funde encima — sus propias trazas ya
+            se están dibujando por debajo del fundido.
+     1,90s  todo colocado; a partir de aquí manda el giro lento.
+
+   ---- POR QUÉ ESCALONADO Y NO TODO A LA VEZ ----
+   Con las tres piezas entrando juntas, lo único que se percibe es
+   un fundido: el ojo no distingue capas si todas cambian a la vez.
+   Separadas medio segundo se leen las tres —primero el color,
+   luego la luz, luego el dibujo—, y esa lectura es la que hace
+   que parezca construido y no encendido de golpe.
+
+   ---- POR QUÉ NO HACE FALTA NI UNA LÍNEA DE JS ----
+   Una animación CSS sin `animation-play-state` arranca sola en
+   cuanto el elemento entra en el documento. Montar el componente
+   ES el disparador, así que no hay nada que sincronizar, ningún
+   estado que guardar y ningún efecto que limpiar.
+   ============================================================ */
+
+/* 1 · EL COLUMPIO — se endereza. Su giro se compone con el del
+   hijo, que sigue a lo suyo (ver el comentario del JSX). */
+.fn__entrada {
+  position: absolute;
+  inset: 0;
+
+  animation: fn-llega-giro var(--fn-entrada-dur) var(--fn-entrada-curva) both;
+}
+
+@keyframes fn-llega-giro {
+  from {
+    rotate: var(--fn-entrada-giro);
+  }
+  to {
+    rotate: 0deg;
+  }
+}
+
+/* 2 · EL COLOR — se enciende y se asienta.
+   Se anima `scale` y no `transform`: la capa ya usa `translate`
+   para centrarse y `rotate` para su vuelta, y las tres
+   propiedades sueltas conviven sin pisarse. Con `transform` habría
+   que reescribir las otras dos dentro de cada fotograma. */
+.fn__giro {
+  animation:
+    fn-girar var(--fn-vuelta) linear infinite,
+    fn-llega-color var(--fn-entrada-dur) var(--fn-entrada-curva) both;
+}
+
+@keyframes fn-llega-color {
+  from {
+    scale: 1.16;
+    opacity: 0;
+    /* apagado y desaturado: el color no "aparece", MADURA */
+    filter: brightness(0.45) saturate(0.35);
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* 3 · EL BARRIDO — una pasada de luz y se acabó.
+   Va en un pseudoelemento y no en un <div> porque no lleva nada
+   dentro: es una franja de luz y punto. `inset` negativo para que
+   entre y salga de cuadro sin que se le vean los cantos; el
+   overflow del marco lo recorta. */
+.fn::after {
+  content: "";
+  position: absolute;
+  inset: -25%;
+
+  background: linear-gradient(
+    102deg,
+    rgb(255 255 255 / 0) 43%,
+    rgb(255 255 255 / 0.16) 50%,
+    rgb(255 255 255 / 0) 57%
+  );
+
+  pointer-events: none;
+
+  animation: fn-llega-barrido var(--fn-barrido-dur) var(--fn-barrido-retardo)
+    ease-out both;
+}
+
+@keyframes fn-llega-barrido {
+  from {
+    translate: -55% 0;
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    translate: 55% 0;
+    opacity: 0;
+  }
+}
+
+/* 4 · EL CIRCUITO — lo trae la luz.
+   No se funde: lo REVELA el barrido. La trama lleva una máscara
+   con el mismo ángulo que la franja de luz (102°) y la máscara
+   viaja con ella: por delante del filo no hay nada, por detrás
+   queda el circuito puesto. Cuando la luz termina de cruzar, está
+   revelado entero.
+
+   ---- CÓMO ESTÁN CUADRADOS LOS NÚMEROS ----
+   La máscara mide 260% del ancho, o sea que la ventana visible
+   recorre 1,6 anchos de imagen al ir de `mask-position: 100%` a
+   `0%`. Con el filo de la máscara entre el 45% y el 58% de la
+   imagen, las dos posiciones extremas caen LIMPIAS:
+
+     al 100% · se ve la franja 61-100% de la máscara → todo
+               transparente. El circuito no existe todavía.
+     al 0%   · se ve la franja 0-38% → todo opaco, con margen de
+               sobra hasta el 45% donde empieza el filo.
+
+   Ese margen es lo que garantiza que al acabar NO quede una
+   esquina del circuito a medio revelar para siempre. Si se toca
+   el tamaño de la máscara, hay que rehacer esta cuenta.
+
+   ---- EL COSTE, ASUMIDO A SABIENDAS ----
+   Animar `mask-position` repinta la capa en cada fotograma, al
+   revés que `transform`. Se acepta aquí porque es UNA pasada de
+   segundo y medio que ocurre una sola vez, y porque la alternativa
+   —mover la máscara con un transform y contrarrestarlo en el hijo
+   para que el contenido no se mueva— son dos animaciones que hay
+   que mantener sincronizadas a mano para ahorrar unos fotogramas
+   en una entrada. No compensa. */
+.fn .fn__trama {
+  --fn-revela: linear-gradient(
+    102deg,
+    #000 0%,
+    #000 45%,
+    rgb(0 0 0 / 0) 58%
+  );
+
+  -webkit-mask-image: var(--fn-revela);
+  mask-image: var(--fn-revela);
+
+  -webkit-mask-size: 260% 100%;
+  mask-size: 260% 100%;
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  animation: fn-revela-trama var(--fn-barrido-dur) var(--fn-barrido-retardo)
+    ease-out both;
+}
+
+@keyframes fn-revela-trama {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+/* ============================================================
+   EL CIRCUITO ENCIMA
+
+   ---- POR QUÉ EL SELECTOR LLEVA .fn DELANTE ----
+   No es por gusto: es el mismo desempate que hace HowWeWork y por
+   el mismo motivo. `.ft` trae `position: relative` y `height: 100%`
+   de su propia hoja, y FondoTrama.css se carga DESPUÉS que esta
+   —el import del componente va por debajo del import del CSS en
+   el JSX—. Con un solo `.fn__trama` las dos reglas empatan en
+   especificidad y gana la suya: la trama se quedaría en relative,
+   sin altura resuelta, y no se vería nada. Con `.fn` delante,
+   esta gana.
+   ============================================================ */
+.fn .fn__trama {
+  position: absolute;
+  inset: 0;
+
+  /* ---- INTENSIDAD ----
+     Muy por encima de los valores de la trama en el home, y no es
+     exceso: allí el circuito va sobre un fondo oscuro y quieto, y
+     aquí sobre uno que pasa por rosas claros. Un blanco al 22%
+     sobre el rosa se queda en nada.
+
+     El blanco lleva un punto de azul (240 248 255 en vez de 255
+     255 255). Es poco, pero el fondo es morado y rosa: un blanco
+     frío no pertenece a esa familia y por eso se separa de ella,
+     mientras que uno neutro se emparenta con el rosa claro y se
+     funde justo donde peor viene. */
+  --ft-linea: rgba(240, 248, 255, 0.3);
+  --ft-punto: rgba(240, 248, 255, 0.25);
+  --ft-hex: rgba(240, 248, 255, 0.13);
+
+  /* punto más gordo y rejilla más apretada: a este tamaño los
+     puntos se leen como textura, no como puntos sueltos */
+  --ft-reticula-paso: 22px;
+  --ft-reticula-radio: 1.35px;
+}
+
+/* ---- QUE SE LEAN TAMBIÉN SOBRE EL ROSA ----
+   Subir la opacidad arregla la zona oscura pero NO la clara, y
+   conviene tener claro por qué antes de tocar los números otra
+   vez: el fondo va del indigo (luz 5%) al rosa (luz 35%). Un
+   blanco al 46% sobre el indigo llega al 49% de luz —contraste de
+   sobra— y sobre el rosa al 65%, que contra un 35% es casi nada.
+   Para igualarlo por opacidad haría falta un blanco al 70%, y ese
+   sobre la zona oscura sería un deslumbre.
+
+   O sea que NINGÚN valor único funciona en las dos zonas, porque
+   el fondo recorre las dos. La salida es no depender del color de
+   debajo: el trazo claro lleva pegada una sombra oscura. Sobre el
+   indigo la sombra no se ve —oscuro sobre oscuro— y manda el
+   trazo; sobre el rosa, la sombra es la que abre el hueco para
+   que el trazo se recorte. El dibujo se lee igual pase lo que
+   pase por debajo.
+
+   Los nodos quedan fuera a propósito: ya traen su propio halo
+   blanco, y una sombra alrededor de un halo lo emborrona. */
+.fn .fn__trama .ft__trazas,
+.fn .fn__trama .ft__reticula,
+.fn .fn__trama .ft__hex {
+  filter: drop-shadow(0 1px 1.5px rgba(20, 10, 38, 0.6));
+}
+
+/* ---- Y QUE NO SE BORRE EL CENTRO ----
+   La retícula trae una máscara que la apaga casi del todo en el
+   centro (velo 0,15), pensada para que la trama desaparezca bajo
+   las cintas de luz de su fondo. Aquí ese centro es justo por
+   donde pasa el degradado girando, y con la retícula borrada la
+   mitad del encuadre se quedaba sin puntos — que es la mitad que
+   se mira. */
+.fn .fn__trama .ft__reticula {
+  --ft-reticula-velo: 0.55;
+}
+
+/* ============================================================
+   MODIFICADOR: ONDA ARRIBA
+
+   Devuelve la curva orgánica entre secciones, pero de otra manera
+   que antes, y el cambio de método es el fondo del asunto.
+
+   ---- CÓMO SE HACÍA Y POR QUÉ YA NO SIRVE ----
+   Cada sección dibujaba un SVG con la curva RELLENO DEL COLOR de
+   su vecina. Funcionaba porque las secciones eran de color plano:
+   bastaba con copiar su tono. Con un fondo que gira no hay tono
+   que copiar, y ese relleno fijo se veía como una tira de un color
+   ajeno cruzada entre dos degradados.
+
+   ---- CÓMO SE HACE AHORA ----
+   Nadie pinta la curva: la curva RECORTA. El fondo de la sección
+   se estira hacia arriba, invadiendo la anterior justo la altura
+   de la onda, y una máscara lo corta por esa curva. Resultado en
+   esa franja: por encima del filo se ve el fondo de la sección de
+   arriba, por debajo el de la de abajo. Los dos degradados
+   engranan y no hay ningún color de por medio — ni puede
+   desincronizarse, porque no hay nada que copiar.
+
+   ---- LO QUE HAY QUE MIRAR AL PONERLO ----
+   La sección NO puede recortar por arriba, o el estirón se pierde:
+   con `overflow: hidden` el fondo se queda dentro de su caja y la
+   onda se come su propia sección en vez de invadir la anterior.
+   Si la sección necesita contener algo en horizontal, la fórmula
+   es `overflow-x: clip` —que no crea contenedor de scroll— con el
+   vertical libre.
+   ============================================================ */
+.fn--onda-arriba {
+  /* mismo alto que tenían las ondas del sitio, para que la curva
+     se lea igual de profunda que antes */
+  --fn-onda-alto: clamp(56px, 9vh, 120px);
+
+  /* el estirón: sube justo lo que mide la onda */
+  top: calc(-1 * var(--fn-onda-alto));
+
+  /* Dos capas de máscara:
+       1 · la curva, arriba y sin repetir
+       2 · negro macizo para todo el resto
+
+     La segunda mide 1px de más para solapar con la primera: sin
+     ese píxel, en algunos zooms aparece una raya clara entre las
+     dos capas. Es el mismo truco del `-1px` que llevaban las
+     ondas viejas. */
+  --fn-onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath d='M0,72 C220,118 470,26 740,48 C1010,70 1230,112 1440,56 L1440,120 L0,120 Z' fill='%23fff'/%3E%3C/svg%3E");
+
+  -webkit-mask-image: var(--fn-onda), linear-gradient(#000, #000);
+  mask-image: var(--fn-onda), linear-gradient(#000, #000);
+
+  -webkit-mask-size:
+    100% var(--fn-onda-alto),
+    100% calc(100% - var(--fn-onda-alto) + 1px);
+  mask-size:
+    100% var(--fn-onda-alto),
+    100% calc(100% - var(--fn-onda-alto) + 1px);
+
+  -webkit-mask-position:
+    top left,
+    bottom left;
+  mask-position:
+    top left,
+    bottom left;
+
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+}
+
+/* ---- EN ESPERA ----
+   Todo congelado en su primer fotograma: el color sin entrar, el
+   barrido fuera de cuadro y el circuito sin revelar. Al quitar la
+   clase, la llegada empieza desde el principio.
+
+   Incluye el giro lento (.fn__giro lleva las dos animaciones):
+   tampoco tiene sentido que el fondo gire mientras nadie lo ve. */
+.fn--en-pausa .fn__entrada,
+.fn--en-pausa .fn__giro,
+.fn--en-pausa .fn__trama,
+.fn--en-pausa::after {
+  animation-play-state: paused;
+}
+
+/* ---- Y DORMIDO CUANDO SU SECCIÓN ESTÁ LEJOS ----
+   La pone el propio componente con un IntersectionObserver (ver
+   FondoNuevo.jsx). Distinta de `fn--en-pausa` a propósito: aquella
+   es "todavía no ha nacido" (retiene la LLEGADA hasta que la
+   sección se alcanza) y esta es "nadie lo está mirando" (congela
+   los BUCLES a mitad de vuelta y los reanuda donde estaban).
+   Pausa también las animaciones de la trama de dentro — su pulso
+   ya era solo-activo, pero la retícula y las cintas de entrada
+   cuelgan de ella. */
+.fn--lejos .fn__entrada,
+.fn--lejos .fn__giro,
+.fn--lejos .fn__trama,
+.fn--lejos .fn__trama *,
+.fn--lejos::after {
+  animation-play-state: paused;
+}
+
+/* ---- MOTION REDUCIDO ----
+   Se para todo —el giro, la llegada, el barrido y la revelación—
+   y queda el fondo puesto en su posición de diseño, que es una
+   composición terminada por sí sola: no hace falta ninguna
+   alternativa.
+
+   ---- LA MÁSCARA HAY QUE QUITARLA A MANO ----
+   Con las demás basta `animation: none`, porque su estado natural
+   ES el bueno. La trama no: sin animación se queda con la máscara
+   puesta, y entonces el circuito depende de dónde caiga
+   `mask-position` por defecto. Hoy ese defecto (0% 0%) resulta ser
+   justo el extremo revelado, así que se vería entero de pura
+   suerte. `mask-image: none` lo saca de la lotería. */
+@media (prefers-reduced-motion: reduce) {
+  .fn__giro,
+  .fn__entrada,
+  .fn::after {
+    animation: none;
+  }
+
+  .fn .fn__trama {
+    animation: none;
+
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* el barrido no llega a pasar, así que no debe quedarse quieto
+     en mitad del encuadre tapando nada */
+  .fn::after {
+    opacity: 0;
+  }
+}

@@ -1,3 +1,20 @@
+/* ======= BlogCard: tarjeta de cristal OSCURO =======
+   Era blanca, herencia del blog-en-caja-clara. Con los tokens
+   del sitio (--color-text es #f6f0ff, casi blanco) el titular
+   quedaba blanco sobre blanco — el MISMO problema que ya contó
+   y resolvió WorkCard.css, y con la misma salida: la card se
+   oscurece y los tokens de texto funcionan como en el resto,
+   sin colores propios.
+
+   Los números de la superficie son los de WorkCard: casi opaca
+   (0.94) para que el glow y los orbes del fondo no la
+   atraviesen y la tiñan distinto según qué le toque detrás.
+
+   El modelo: imagen arriba, fila badge+fecha, titular, filete,
+   resumen y "Leer entrada" anclado abajo. Deliberadamente
+   COMPACTA — la referencia era una card a pantalla de móvil y
+   aquí conviven cuatro por fila. */
+
 .blog-card {
   display: flex;
   flex-direction: column;
@@ -5,52 +22,116 @@
   border-radius: 24px;
   overflow: hidden;
   color: inherit;
-  background: linear-gradient(140deg, rgba(255,255,255,.82), rgba(247, 240, 255, .88));
-  border: 1px solid rgba(255,255,255,.90);
+  background: rgba(18, 11, 31, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   text-decoration: none;
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.96),
-    0 12px 40px -24px rgba(23, 18, 43, .80);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 18px 44px -18px rgba(0, 0, 0, 0.6);
 }
 
 .blog-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(135, 87, 245, .60);
-  box-shadow: 0 16px 42px rgba(135, 87, 245, .20);
+  border-color: rgba(183, 148, 255, .55);
+  box-shadow: 0 16px 42px rgba(135, 87, 245, .28);
 }
 
+/* ---- imagen ----
+   aspect-ratio fijo: el hueco existe ANTES de que la foto
+   llegue, así el grid no salta al cargar. 16/9 y no el ~4/3 de
+   la referencia: es lo que recorta la card a tamaño compacto. */
+.blog-card-media {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+
+  /* ⚠️ Las rutas de foto de blog.json (/img/blog/...) aún no
+     tienen archivo en public/: mientras no se suban, este
+     degradado es lo que se ve — un hueco intencional, no una
+     imagen rota. Cuando la foto exista, la tapa por completo.
+     (El alt vacío del img evita además el icono de rota.) */
+  background:
+    radial-gradient(circle at 30% 20%, rgba(139, 92, 246, .35), transparent 60%),
+    radial-gradient(circle at 75% 80%, rgba(224, 112, 190, .18), transparent 55%),
+    linear-gradient(140deg, #2b1c44, #43305f);
+}
+
+.blog-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .35s ease;
+}
+
+.blog-card:hover .blog-card-media img {
+  transform: scale(1.04);
+}
+
+/* flex column + flex:1 para que el botón pueda anclarse abajo
+   con margin-top:auto aunque el resumen sea corto: todas las
+   cards de la fila cierran a la misma altura */
 .blog-card-content {
-  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 18px 18px 20px;
+}
+
+.blog-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .blog-card-category {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  margin-bottom: 14px;
+  padding: 5px 11px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
-  background: rgba(135, 87, 245, .10);
-  border: 1px solid rgba(135, 87, 245, .18);
-  color: var(--color-violet, #8757f5);
+  /* en lila de marca: el violeta medio de antes se hundía en la
+     superficie oscura */
+  background: rgba(183, 148, 255, .12);
+  border: 1px solid rgba(183, 148, 255, .28);
+  color: var(--color-primary-light, #b794ff);
+}
+
+.blog-card-date {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-text-muted, #afa0cc);
 }
 
 .blog-card-content h2 {
-  font-size: clamp(24px, 2.8vw, 30px);
-  line-height: 1.04;
-  color: var(--color-text, #17122b);
-  margin: 0 0 14px;
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.18;
+  color: var(--color-text, #f6f0ff);
+  margin: 0 0 12px;
+}
+
+/* el filete corto bajo el titular, como en la referencia */
+.blog-card-divider {
+  display: block;
+  width: 34px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(183, 148, 255, .45);
+  margin: 0 0 12px;
 }
 
 .blog-card-content p {
-  color: var(--color-text-light, #5c5673);
+  color: var(--color-text-light, #cdc1e2);
   font-size: 13px;
   line-height: 1.56;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -58,7 +139,8 @@
 }
 
 .blog-card-button {
-  color: var(--color-violet, #8757f5);
+  margin-top: auto;
+  color: var(--color-primary-light, #b794ff);
   font-weight: 800;
   font-size: 11px;
   letter-spacing: .14em;

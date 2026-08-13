@@ -105,60 +105,6 @@
   color: transparent;
 }
 
-/* 0.82rem × 1.2 ≈ 16px, y a dos líneas por debajo de 500px */
-.ws-skeleton__stat-label {
-  height: 16px !important;
-}
-
-@media (max-width: 500px) {
-  .ws-skeleton__stat-label {
-    height: 32px !important;
-  }
-}
-
-/* ---- barra de métricas ----
-   Misma altura que .work-list-stat: icono 44px + valor
-   (1.5rem×1.15 ≈ 27px) + etiqueta (0.82rem ≈ 13px). */
-
-.ws-skeleton__stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-
-  margin-bottom: 3rem;
-
-  border-radius: 22px;
-
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-}
-
-.ws-skeleton__stat {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-
-  padding: 1.4rem 1rem;
-}
-
-.ws-skeleton__stat + .ws-skeleton__stat {
-  border-left: 1px solid rgba(169, 106, 247, 0.12);
-}
-
-.ws-skeleton__stat-icon {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-
-  border-radius: 14px !important;
-}
-
-.ws-skeleton__stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
 /* ---- grid de cards ----
    Misma anatomía que la .work-card nueva (eco del home):
    card blanca, imagen ENMARCADA (margin 0.6rem arriba/lados,
@@ -299,8 +245,9 @@
 }
 
 /* ---- paginación ----
-   Eco de .work-pag: botones de 44px y el mismo margen negativo
-   de -16px que se come parte del hueco de la rejilla. */
+   Eco de .paginacion (paginacion/Paginacion.css) tal como se ve
+   en /works: botones de 44px y el mismo margen negativo de -16px
+   que le pone .work-list .paginacion (WorkList.css). */
 
 .ws-skeleton__pag {
   display: flex;
@@ -402,24 +349,6 @@
 @media (max-width: 1000px) {
   .ws-skeleton__grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .ws-skeleton__stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .ws-skeleton__stat + .ws-skeleton__stat {
-    border-left: none;
-  }
-
-  .ws-skeleton__stat:nth-child(even) {
-    border-left: 1px solid rgba(169, 106, 247, 0.12);
-  }
-
-  .ws-skeleton__stat:nth-child(n + 3) {
-    border-top: 1px solid rgba(169, 106, 247, 0.12);
   }
 }
 

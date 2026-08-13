@@ -1,0 +1,144 @@
+/* ============================================================
+   ENTRADA DESPLEGABLE DEL PIE
+
+   El botón reutiliza .pie-enlace, la misma clase que llevan sus
+   cuatro vecinas, así que no se le da aquí ni color ni tamaño ni
+   espaciado: si mañana cambia el aspecto de los enlaces del pie,
+   este cambia con ellos. Lo de este archivo es SOLO lo que la
+   entrada tiene de más — la flecha y el panel.
+   ============================================================ */
+
+.pie-desplegable {
+  position: relative;
+}
+
+/* un <button> no hereda tipografía ni caja del navegador: hay que
+   devolvérselas para que sea indistinguible de los <a> de al lado */
+.pie-desplegable__boton {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---- LA FLECHA, PEGADA AL ICONO ----
+   .pie-enlace es una columna (icono arriba, rótulo abajo), así
+   que una tercera pieza suelta caería en una tercera fila. Antes
+   la flecha iba metida en el <span> del rótulo para evitarlo, y
+   quedaba en la línea del texto.
+
+   Ahora acompaña al ICONO: esta caja envuelve al icono y cuelga
+   la flecha a su derecha en `absolute`. Al no ocupar sitio en el
+   flujo, el icono se queda centrado en la columna igual que el de
+   las demás entradas — metida en el flujo lo empujaría a la
+   izquierda y "Recursos" rompería la alineación de la fila. */
+.pie-desplegable__marca {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pie-desplegable__flecha {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 0.25rem;
+
+  /* el centrado vertical viaja en el transform, así que el estado
+     abierto tiene que repetirlo además de girar (si no, al abrir
+     la flecha saltaría media altura hacia abajo) */
+  transform: translateY(-50%);
+
+  transition: transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.pie-desplegable--abierto .pie-desplegable__flecha {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ---- EL PANEL ----
+   `bottom: 100%` lo despliega HACIA ARRIBA: esto es lo último de
+   la página y hacia abajo no hay ventana donde caber.
+
+   Centrado sobre el botón con left:50% + translateX(-50%) porque
+   las entradas del pie son columnas centradas; anclado a la
+   izquierda quedaría descolgado respecto a su propio rótulo. */
+.pie-desplegable__panel {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  left: 50%;
+  z-index: 5;
+
+  min-width: max-content;
+
+  margin: 0;
+  padding: 0.4rem;
+  list-style: none;
+
+  border: 1px solid rgb(var(--rgb-magenta, 232 121 249) / 0.28);
+  border-radius: 12px;
+
+  background: rgba(20, 12, 32, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  /* cerrado: invisible, sin interceptar el ratón y un pelo más
+     abajo, para que al abrirse suba. `visibility` además lo saca
+     del alcance del ratón aunque la opacidad se quede a medias. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 6px);
+
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.22, 0.8, 0.36, 1),
+    visibility 0.22s;
+}
+
+.pie-desplegable--abierto .pie-desplegable__panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.pie-desplegable__enlace {
+  display: block;
+
+  padding: 0.55rem 0.9rem;
+
+  border-radius: 8px;
+
+  color: rgba(232, 224, 250, 0.86);
+  font-size: 0.86rem;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.pie-desplegable__enlace:hover,
+.pie-desplegable__enlace:focus-visible {
+  background: rgb(var(--rgb-magenta, 232 121 249) / 0.14);
+  color: #fff;
+}
+
+.pie-desplegable__enlace:focus-visible {
+  outline: 2px solid var(--color-magenta, #e879f9);
+  outline-offset: 2px;
+}
+
+/* la ruta activa, marcada igual que en el resto del pie */
+.pie-desplegable__enlace.active {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pie-desplegable__panel,
+  .pie-desplegable__flecha {
+    transition: none;
+  }
+}

@@ -91,6 +91,14 @@
   .light-dust::after {
     animation: dustFall 40s linear infinite;
   }
+
+  /* dormido fuera de pantalla (la clase la pone su propio
+     observador, ver LightDust.jsx): la caída se congela donde
+     está y retoma al volver */
+  .light-dust--lejos::before,
+  .light-dust--lejos::after {
+    animation-play-state: paused;
+  }
 }
 
 /* caída: al avanzar +100vh la réplica coincide con el patrón

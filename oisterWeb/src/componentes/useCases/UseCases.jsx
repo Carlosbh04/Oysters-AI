@@ -1,7 +1,7 @@
-import { Brain, FileText, UserRound, TrendingUp, ChevronRight, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Brain, FileText, UserRound, TrendingUp, ChevronRight } from "lucide-react";
 import aiFirst from "../../assets/useCases/ai-first.webp";
 import Rotulo from "../rotulo/Rotulo";
+import TextoArena from "../textoArena/TextoArena";
 import "./UseCases.css";
 
 /* ============================================================
@@ -84,15 +84,19 @@ function UseCases({ dentro = false }) {
               lee como un sistema y no como dos bloques juntos. */}
           <Rotulo className="uc__rotulo">Casos de uso</Rotulo>
 
-          <h2 id="uc-titulo" className="uc__titulo">
-            AI-Human en acción:
-            <span> casos de uso</span>
-          </h2>
+          <TextoArena>
+            <h2 id="uc-titulo" className="uc__titulo">
+              AI-Human en acción:
+              <span> casos de uso</span>
+            </h2>
+          </TextoArena>
 
-          <p className="uc__entradilla">
-            Descubre cómo aplicamos Inteligencia Artificial para generar
-            impacto real en negocios de diferentes industrias.
-          </p>
+          <TextoArena>
+            <p className="uc__entradilla">
+              Descubre cómo aplicamos Inteligencia Artificial para generar
+              impacto real en negocios de diferentes industrias.
+            </p>
+          </TextoArena>
 
           {/* ---- LA PIEZA DE AI FIRST ----
               Decorativa: el mensaje que lleva escrito ya está en el
@@ -109,16 +113,21 @@ function UseCases({ dentro = false }) {
             src={aiFirst}
             alt=""
             aria-hidden="true"
-            width={900}
-            height={675}
+            width={400}
+            height={400}
             loading="lazy"
             decoding="async"
           />
 
-          <Link to="/contact" className="uc__cta">
-            Contactar
-            <ArrowRight strokeWidth={1.8} aria-hidden="true" />
-          </Link>
+          {/* Aquí iba el botón "Contactar", debajo de la pieza de
+              AI FIRST. Fuera por encargo.
+
+              Con él se van los dos únicos imports que lo servían
+              —Link de react-router y el icono ArrowRight— y, con
+              ellos, el último enlace de esta sección: lo que queda
+              es un bloque que solo se lee. Tenerlo en cuenta si
+              algún día se busca por dónde sale el visitante desde
+              casos de uso. */}
         </div>
 
         <ul className="uc__tarjetas">

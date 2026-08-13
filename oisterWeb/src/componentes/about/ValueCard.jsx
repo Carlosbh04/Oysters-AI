@@ -1,7 +1,7 @@
 import "./ValueCard.css";
 
 /* Tarjeta de valor: icono lucide arriba, título y descripción.
-   Mismo patrón que ServiceCard (tarjeta de cristal con barrido),
+   Tarjeta de cristal con barrido,
    pero sin enlace. Los datos vienen de data/about.js.
 
    El icono es decorativo — el significado lo lleva el título,

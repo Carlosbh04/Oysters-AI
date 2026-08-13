@@ -3,14 +3,15 @@ import "./Home.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import HeroRipples from "./HeroRipples";
+import FondoNuevo from "../../componentes/fondoNuevo/FondoNuevo";
 import LightDust from "../../componentes/lightDust/LightDust";
+import TextoArena from "../../componentes/textoArena/TextoArena";
 import HowWeWork from "../../componentes/howWeWork/HowWeWork";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import useEnPantalla from "../../hooks/useEnPantalla";
 import LatestProjects from "../../componentes/latestProjects/LatestProjects";
 import About from "../../componentes/about/About";
 import UseCases from "../../componentes/useCases/UseCases";
-import UseCasesBackground from "../../componentes/useCases/UseCasesBackground";
 
 /* HeroVideo: la ostra en vídeo con canal alfa real (ver
    HeroVideo.jsx). No hace falta cargarlo en lazy: el componente
@@ -28,7 +29,7 @@ const HERO_TITULO = "Crafting AI";
 /* a partir de qué carácter va el degradado violeta→rosa */
 const HERO_ACENTO_DESDE = HERO_TITULO.indexOf("AI");
 
-function HomePage({ introDone = true }) {
+function HomePage({ introDone = true, introSaliendo = false }) {
   /* mismo breakpoint que el CSS que oculta .hero__right: en
      móvil/tablet la escena ni se monta, así que el mp4 ni se
      descarga (son varios MB que en móvil se pagan caros y no
@@ -104,7 +105,43 @@ function HomePage({ introDone = true }) {
 
   return (
     <>
-      <section ref={heroRef} className={`hero ${introDone ? "hero--enter" : ""}`}>
+      {/* ---- LOS TRES ESTADOS DEL HERO ----
+          1 · intro con el telón OPACO → sin clase: el hero se
+              pinta entero debajo. Nadie lo ve, pero el navegador
+              sí — el LCP y el FCP se registran aquí, y además la
+              maquetación, la fuente y las capas llegan resueltas
+              al momento del descubrimiento.
+          2 · el telón arranca su fundido → hero--velado: todo a
+              opacity 0 debajo del telón todavía opaco, para que
+              el fundido descubra el fondo solo, como siempre.
+          3 · la intro termina → hero--enter: la coreografía de
+              entrada corre EXACTAMENTE igual que antes (sus
+              keyframes ya arrancan de opacity 0 con fill
+              backwards, no dependen del estado previo). */}
+      <section
+        ref={heroRef}
+        className={`hero ${
+          introDone ? "hero--enter" : introSaliendo ? "hero--velado" : ""
+        }`}
+      >
+        {/* ---- EL FONDO ----
+            Va PRIMERO en el marcado porque es el suelo de la
+            sección: todo lo demás se apila encima (ver la escala
+            de z-index en Home.css). Hasta ahora el hero no tenía
+            fondo propio y se veía el degradado del <body>.
+
+            SUSTITUYE a la trama suelta que había aquí: FondoNuevo
+            ya monta esa misma trama por dentro, sobre su degradado
+            que gira. Dejar las dos pondría el circuito dos veces,
+            una encima de otra.
+
+            `enPausa` mientras corre la intro: si no, su llegada
+            —el color entrando, el barrido y el circuito
+            revelándose— pasaría entera detrás del telón. Se suelta
+            en el mismo instante en que el hero recibe su clase de
+            entrada, así que las dos cosas entran juntas. */}
+        <FondoNuevo className="hero__fondo" enPausa={!introDone} />
+
         {/* ondas de agua bajo la ostra: escenario del hero,
             NO viajan con ella al hacer scroll */}
         <HeroRipples />
@@ -137,36 +174,40 @@ function HomePage({ introDone = true }) {
                 --i alimenta el retardo de cada letra en CSS, así
                 que el escalonado no depende de nth-child y da
                 igual cuántas letras tenga el titular. */}
-            <h1
-              className="hero__title hero__title--declaracion"
-              aria-label={HERO_TITULO}
-            >
-              {[...HERO_TITULO].map((caracter, i) =>
-                caracter === " " ? (
-                  <span key={i} className="hero__title-espacio" aria-hidden="true">
-                    {" "}
-                  </span>
-                ) : (
-                  <span
-                    key={i}
-                    className={`hero__title-letra${
-                      i >= HERO_ACENTO_DESDE ? " hero__title-letra--acento" : ""
-                    }`}
-                    style={{ "--i": i }}
-                    aria-hidden="true"
-                  >
-                    {caracter}
-                  </span>
-                )
-              )}
-            </h1>
+            <TextoArena>
+              <h1
+                className="hero__title hero__title--declaracion"
+                aria-label={HERO_TITULO}
+              >
+                {[...HERO_TITULO].map((caracter, i) =>
+                  caracter === " " ? (
+                    <span key={i} className="hero__title-espacio" aria-hidden="true">
+                      {" "}
+                    </span>
+                  ) : (
+                    <span
+                      key={i}
+                      className={`hero__title-letra${
+                        i >= HERO_ACENTO_DESDE ? " hero__title-letra--acento" : ""
+                      }`}
+                      style={{ "--i": i }}
+                      aria-hidden="true"
+                    >
+                      {caracter}
+                    </span>
+                  )
+                )}
+              </h1>
+            </TextoArena>
 
-            <p className="hero__description">
-              La creatividad evoluciona, y en OYSTERS estamos en el centro de
-              esa transformación. Combinamos la intuición humana con la
-              precisión de la IA para idear, planificar y ejecutar estrategias
-              publicitarias de marca de principio a fin.
-            </p>
+            <TextoArena>
+              <p className="hero__description">
+                La creatividad evoluciona, y en OYSTERS estamos en el centro de
+                esa transformación. Combinamos la intuición humana con la
+                precisión de la IA para idear, planificar y ejecutar estrategias
+                publicitarias de marca de principio a fin.
+              </p>
+            </TextoArena>
 
             <div className="hero__buttons">
               {/* CTA gota de agua: .btn-droplet es una GOTA de
@@ -278,7 +319,27 @@ function HomePage({ introDone = true }) {
           como prop. Ninguna de las dos necesita saber de la otra
           ni alcanzar sus clases desde su hoja de estilos. */}
       <section id="casos-de-uso" className="home-casos" ref={casosRef}>
-        <UseCasesBackground dentro={casosDentro} />
+        {/* ---- EL MISMO FONDO QUE LAS OTRAS TRES ----
+            Sustituye a UseCasesBackground, la escena propia que
+            tenía esta sección —paneles en perspectiva, retícula
+            de puntos, marcas y halo—. Era la última del home con
+            fondo distinto: las cuatro comparten ahora el mismo
+            degradado que gira con el circuito revelándose encima.
+
+            Se va también el FondoTrama suelto que había aquí
+            debajo: FondoNuevo lo monta por dentro, con el mismo
+            `ft--sin-base` que estaba puesto, así que montar los
+            dos sería dibujar el circuito dos veces.
+
+            `enPausa` cuelga del mismo observador que ya usaba la
+            sección para escalonar su entrada, así que la llegada
+            del fondo ocurre al alcanzarla scrolleando y no a
+            espaldas del visitante. */}
+        <FondoNuevo
+          className="home-casos__fondo fn--onda-arriba"
+          enPausa={!casosDentro}
+        />
+
         <UseCases dentro={casosDentro} />
       </section>
     </>

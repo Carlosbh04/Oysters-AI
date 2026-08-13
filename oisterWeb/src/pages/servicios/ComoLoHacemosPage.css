@@ -1,0 +1,37 @@
+/* ============================================================
+   CÓMO LO HACEMOS — el marco de la página
+
+   Solo colocación. Todo el aspecto del bloque vive en
+   InteligenciaIA.css (y su variante `iia--sobre-fondo`); aquí no
+   se repinta nada.
+   ============================================================ */
+
+.clh {
+  position: relative;
+
+  /* ---- EL HUECO DE LA CABECERA ----
+     La píldora del header es `absolute`, o sea que NO empuja al
+     contenido: sin este relleno, el rótulo del bloque le quedaría
+     por debajo. Es el mismo cálculo que hace PageSection para el
+     resto de las páginas del sitio; no se reutiliza ese componente
+     porque este bloque trae su propio ancho y su propio ritmo
+     vertical, y PageSection le impondría los suyos. */
+  padding-top: calc(var(--header-height) + clamp(0.5rem, 2vh, 1.5rem));
+
+  /* que el fondo llegue abajo aunque el contenido encoja */
+  min-height: 100dvh;
+}
+
+/* ---- EL FONDO ACOMPAÑA AL SCROLL ----
+   `fixed` y no `absolute`: la página mide varias pantallas y el
+   degradado solo cubre una. Fijo al viewport sigue detrás del
+   contenido hasta el final.
+
+   Es cosa de la PÁGINA, no del componente: FondoNuevo se coloca en
+   `absolute` contra su padre justamente para poder montarse dentro
+   de secciones normales, como en el home. */
+.clh__fondo {
+  position: fixed;
+  z-index: 0;
+}
+

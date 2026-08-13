@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./IntroAnimation.css";
 import LogoOverlay from "../logoOverlay/LogoOverlay.jsx";
+import { TEXTO_PLANO } from "../logoOverlay/logotipo";
 
 const COLORS = {
   bg: "#15161c",
@@ -19,7 +20,13 @@ const PARTICLE_DURATION = 2600; // partículas: ensamblaje + disolución
 const ASSEMBLE_END = 0.62;
 const DISSOLVE_END = 0.82;
 
-const TOTAL_CHARS = 9; // "OISTER" (6) + espacio (1) + "AI" (2)
+/* Cuántas piezas hay que teclear. Sale del propio logotipo (ver
+   LogoOverlay.jsx, que es donde está escrito) y NO de un número
+   a mano: los dos tienen que coincidir exactamente —si sobra,
+   el tipeo espera a una letra que no existe; si falta, la última
+   no llega a escribirse— y un literal aquí es una copia más que
+   mantener sincronizada. */
+const TOTAL_CHARS = TEXTO_PLANO.length;
 const TYPE_MS = 110; // ms por letra del tipeo
 /* Pausa con el logo completo antes de salir.
 
@@ -39,7 +46,10 @@ const TYPE_MS = 110; // ms por letra del tipeo
 const HOLD_MS = 260;
 const FADE_MS = 800; // fundido de salida (coincide con .is-leaving)
 
-const TEXT = "OISTER AI";
+/* el mismo logotipo que teclea LogoOverlay, en cadena: las
+   partículas tienen que formar EXACTAMENTE el texto que luego se
+   escribe encima, así que no puede ser otra copia */
+const TEXT = TEXTO_PLANO;
 
 /* Muestrea el texto en un canvas temporal y devuelve las
    coordenadas de los píxeles encendidos → targets de partículas.
@@ -74,7 +84,7 @@ function sampleText(dpr) {
   return points;
 }
 
-function IntroAnimation({ onFinish }) {
+function IntroAnimation({ onFinish, onLeaving }) {
   const canvasRef = useRef(null);
   const [logoOpacity, setLogoOpacity] = useState(0);
   const [charsShown, setCharsShown] = useState(0);
@@ -83,6 +93,7 @@ function IntroAnimation({ onFinish }) {
      queda desacoplado de su identidad — un re-render del padre
      NO vuelve a disparar el intro desde cero */
   const onFinishRef = useRef(onFinish);
+  const onLeavingRef = useRef(onLeaving);
 
   /* temporizadores del tipeo: en refs para poder limpiarlos
      si el componente se desmonta a mitad de secuencia */
@@ -93,6 +104,10 @@ function IntroAnimation({ onFinish }) {
   useEffect(() => {
     onFinishRef.current = onFinish;
   }, [onFinish]);
+
+  useEffect(() => {
+    onLeavingRef.current = onLeaving;
+  }, [onLeaving]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -274,6 +289,17 @@ function IntroAnimation({ onFinish }) {
         if (count >= TOTAL_CHARS) {
           clearInterval(typeTimerRef.current);
           holdTimerRef.current = setTimeout(() => {
+            /* ---- AVISO DE SALIDA, EN EL MISMO LOTE ----
+               `onLeaving` y `setFadeOut` van en el MISMO manejador
+               a propósito: React los agrupa en un único commit, así
+               que el velo del hero (que cuelga de este aviso, ver
+               App.jsx) y la clase de fundido del telón llegan al
+               mismo fotograma. Si fueran en commits distintos
+               podría colarse un fotograma con el telón ya
+               fundiendo y el hero aún destapado. */
+            if (typeof onLeavingRef.current === "function") {
+              onLeavingRef.current();
+            }
             setFadeOut(true);
             fadeTimerRef.current = setTimeout(() => {
               if (typeof onFinishRef.current === "function") {

@@ -36,7 +36,7 @@ export const TODAS = "todos";
 /* Convierte "Vídeo con IA" en "video-con-ia".
    Sin acentos y en minúsculas para que la URL se pueda escribir
    a mano y compartir sin que el navegador la llene de %C3%AD. */
-export function aSlug(nombre) {
+function aSlug(nombre) {
   return nombre
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")

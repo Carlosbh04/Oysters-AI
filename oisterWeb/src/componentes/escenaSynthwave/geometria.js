@@ -320,7 +320,7 @@ export function nubePath({ x, y, ancho, alto, bultos, rnd }) {
 /* el lado del cuadro, en unidades del mundo. Más pequeño =
    cuadrícula más densa, y las dos familias se densifican a la
    vez, así que la celda sigue siendo cuadrada. */
-export const CELDA = 0.4;
+const CELDA = 0.4;
 
 /* factor de la escala horizontal, despejado de la igualdad de
    arriba. NO se toca a mano: depende de CELDA. */

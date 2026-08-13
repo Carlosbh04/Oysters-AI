@@ -2,6 +2,8 @@
   {
     "id": 1,
     "titulo": "La inteligencia artificial explicada para todos",
+    "categoria": "Inteligencia Artificial",
+    "fecha": "10 Ene 2025",
     "entradas": [
       {
         "subtitulo": "Entender la IA sin necesidad de ser experto",
@@ -18,6 +20,8 @@
   {
     "id": 2,
     "titulo": "Inteligencia artificial generativa: mucho más que crear imágenes",
+    "categoria": "IA Generativa",
+    "fecha": "28 Ene 2025",
     "entradas": [
       {
         "subtitulo": "Una nueva forma de crear contenido",
@@ -34,6 +38,8 @@
   {
     "id": 3,
     "titulo": "IA y creatividad: nuevas herramientas para las marcas",
+    "categoria": "IA y Creatividad",
+    "fecha": "14 Feb 2025",
     "entradas": [
       {
         "subtitulo": "Más posibilidades para los equipos creativos",
@@ -50,6 +56,8 @@
   {
     "id": 4,
     "titulo": "IA para marcas: creatividad, estrategia y tecnología",
+    "categoria": "Marcas",
+    "fecha": "05 Mar 2025",
     "entradas": [
       {
         "subtitulo": "La inteligencia artificial como parte de la estrategia",
@@ -66,6 +74,8 @@
   {
     "id": 5,
     "titulo": "Cada empanada, una historia. Cuando lo sencillo conecta.",
+    "categoria": "Publicidad",
+    "fecha": "21 Mar 2025",
     "entradas": [
       {
         "subtitulo": "Convertir un producto cotidiano en una historia",
@@ -82,6 +92,8 @@
   {
     "id": 6,
     "titulo": "Esta Navidad.., Universos Que Cobran Vida: IA Generativa y Publicidad del Juguete.",
+    "categoria": "Publicidad",
+    "fecha": "09 Abr 2025",
     "entradas": [
       {
         "subtitulo": "La publicidad de juguetes entra en nuevos universos",
@@ -98,6 +110,8 @@
   {
     "id": 7,
     "titulo": "Oysters AI, una ‘Agency Worth a Look’",
+    "categoria": "Noticias",
+    "fecha": "30 Abr 2025",
     "entradas": [
       {
         "subtitulo": "Un nuevo modelo de agencia",
@@ -114,6 +128,8 @@
   {
     "id": 8,
     "titulo": "Kymatio: construcción de una factoría de contenidos para formación en ciberseguridad",
+    "categoria": "Casos de éxito",
+    "fecha": "12 May 2025",
     "entradas": [
       {
         "subtitulo": "Una factoría de contenidos para un sector especializado",
@@ -130,6 +146,8 @@
   {
     "id": 9,
     "titulo": "VTech lanza en TV ‘Granja Escuela: Mi Primera Excursión’",
+    "categoria": "Publicidad",
+    "fecha": "03 Jun 2025",
     "entradas": [
       {
         "subtitulo": "Una nueva experiencia audiovisual para VTech",
@@ -146,6 +164,8 @@
   {
     "id": 10,
     "titulo": "Google lanza Nano Banana Pro: la nueva era de la generación y edición de imágenes con IA.",
+    "categoria": "Noticias",
+    "fecha": "24 Jun 2025",
     "entradas": [
       {
         "subtitulo": "Una nueva generación de creación visual",
@@ -167,6 +187,8 @@
   {
     "id": 11,
     "titulo": "Generative UI: personalized interfaces that build themselves on the fly are coming",
+    "categoria": "Tendencias",
+    "fecha": "15 Jul 2025",
     "entradas": [
       {
         "subtitulo": "Interfaces que se adaptan al usuario",

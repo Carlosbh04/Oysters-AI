@@ -58,6 +58,10 @@ import { useEffect } from "react";
 /* la luna sobre la que hay que centrar la ostra */
 const DIANA = ".how-we-work__halo";
 
+/* la caja que la contiene: es la que se pega y la que marca hasta
+   dónde puede deslizarse */
+const PISTA = ".how-we-work__scene";
+
 /* Ya no hay diales de interpolación. Aquí llegó a haber un muelle
    (RIGIDEZ/AMORTIGUACION), una anticipación por velocidad
    (ANTICIPACION_MS/VELOCIDAD_MS) y un suavizado exponencial con
@@ -95,17 +99,89 @@ function useHeroScrollDock(ref, enabled = true) {
     let dockTop = 0;
     let dockLeft = 0;
     let acoplada = false;
+    let pegado = 0; /* cuánto scroll se quedan quietas las dos */
+    let dockScroll = 1; /* scroll al que se suelta el anclaje */
     const hero = right.closest(".hero");
 
     const medirGeometria = () => {
       vh = window.innerHeight;
 
-      const hww = document.getElementById("que-hacemos");
-      const docBottom = hww
-        ? hww.getBoundingClientRect().bottom + window.scrollY
+      /* ---- SE MIDE LA PISTA, NO LA SECCIÓN ENTERA ----
+         Aquí se medía el fondo de #que-hacemos, y funcionaba
+         mientras esa sección era corta: su final coincidía más o
+         menos con el sitio donde está la luna.
+
+         Al cambiar su contenido, la sección pasó de ~600px a más de
+         2000: con la medida vieja, el viaje de la ostra terminaba
+         al llegar el FINAL de la sección al borde de la pantalla,
+         o sea después de recorrer el bloque entero. Efecto: la
+         ostra se quedaba flotando arriba y no bajaba.
+
+         Lo que de verdad manda es dónde está la PISTA de
+         aterrizaje. Se mide ella y el fondo de la sección queda
+         como respaldo por si algún día no hubiera pista. */
+      const pista = document.querySelector(DIANA);
+      const seccion = document.getElementById("que-hacemos");
+      const referencia = pista || seccion;
+
+      const docBottom = referencia
+        ? referencia.getBoundingClientRect().bottom + window.scrollY
         : 0;
 
       dockEnd = Math.max(1, docBottom - vh);
+
+      /* ---- EL TRAMO PEGADO ----
+         Después de encontrarse, la ostra y su esfera se quedan
+         quietas en pantalla un rato mientras la página sigue
+         subiendo. Visto desde la sección, las dos BAJAN — que es
+         justo el hueco que quedaba libre debajo de la esfera.
+
+         Quien manda es la esfera, que se pega por CSS. Aquí se
+         calcula su recorrido y se le publica el `top` exacto al
+         que tiene que pegarse, para que las dos cosas empiecen en
+         el MISMO píxel de scroll: si la esfera se pegara antes o
+         después de que la ostra se detenga, se separarían.
+
+           · `top` = dónde está la esfera en pantalla en el
+             instante del encuentro
+           · pegado = cuánto puede deslizarse dentro de su columna
+             antes de llegar al fondo */
+      const escena = document.querySelector(PISTA);
+      const columna = escena?.parentElement;
+
+      if (escena && columna) {
+        const e = escena.getBoundingClientRect();
+        const c = columna.getBoundingClientRect();
+
+        const escenaDocTop = e.top + window.scrollY;
+        const columnaDocBottom = c.bottom + window.scrollY;
+
+        /* SIN redondear. El `top` del sticky y el punto en el que
+           se suelta el anclaje son la misma cuenta hecha desde dos
+           sitios; redondeando uno de los dos, el relevo se hacía
+           con hasta un píxel de desfase entre CSS y JS y se veía
+           como un salto pequeño de la esfera respecto a la ostra
+           —medido, 13px— justo al soltarse. */
+        const topPegado = Math.max(0, escenaDocTop - dockEnd);
+        escena.style.setProperty("--pista-pegada", `${topPegado}px`);
+
+        /* El margen inferior de la pista es su FRENO: sticky no
+           deja que el elemento salga de su contenedor contando
+           márgenes, así que ese hueco es terreno por el que la
+           esfera ya no se desliza. Se descuenta aquí para que la
+           ostra pare en el mismo punto — leerlo del CSS y no
+           escribirlo otra vez es lo que impide que los dos números
+           se separen el día que se ajuste el freno. */
+        const freno = parseFloat(getComputedStyle(escena).marginBottom) || 0;
+
+        pegado = Math.max(0, columnaDocBottom - e.height - freno - escenaDocTop);
+      } else {
+        pegado = 0;
+      }
+
+      /* el ANCLAJE al documento ocurre al final del tramo pegado,
+         no al encontrarse */
+      dockScroll = dockEnd + pegado;
 
       /* ---- EL VIAJE TERMINA ANTES DEL ACOPLE ----
          Aquí está la clave de que no se vea ningún reajuste.
@@ -132,7 +208,7 @@ function useHeroScrollDock(ref, enabled = true) {
       const cont = right.parentElement;
       if (cont) {
         const cr = cont.getBoundingClientRect();
-        dockTop = dockEnd - (cr.top + window.scrollY);
+        dockTop = dockScroll - (cr.top + window.scrollY);
         dockLeft = document.documentElement.clientWidth - right.offsetWidth - cr.left;
       }
     };
@@ -294,7 +370,10 @@ function useHeroScrollDock(ref, enabled = true) {
          conmutar: leía layout y disparaba un `:has()` que cambiaba
          el overflow de un elemento a pantalla completa. Ahora el
          anclaje va precalculado y la clase se pone directa. */
-      const debeAcoplar = scrollY >= dockEnd;
+      /* se ancla al TERMINAR el tramo pegado: hasta entonces sigue
+         `fixed`, que es lo que la mantiene quieta en pantalla junto
+         a la esfera */
+      const debeAcoplar = scrollY >= dockScroll;
       if (debeAcoplar !== acoplada) {
         acoplada = debeAcoplar;
         if (acoplada) {

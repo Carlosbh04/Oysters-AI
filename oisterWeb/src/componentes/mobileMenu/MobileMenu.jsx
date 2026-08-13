@@ -83,14 +83,18 @@ function MobileMenu({ isOpen, onClose }) {
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
-          <MobileAccordion
-            id="methodology"
-            title={dropdowns.methodology.title}
-            items={dropdowns.methodology.items}
-            onClose={closeMenu}
-            isOpen={openAccordion === "methodology"}
-            setOpenAccordion={setOpenAccordion}
-          />
+          {/* ---- DE ACORDEÓN A ENLACE ----
+              "Cómo lo hacemos" era un desplegable con cuatro
+              apartados dentro, y sus cuatro enlaces apuntaban a
+              /methodology/* — rutas que nunca han existido: los
+              cuatro acababan en "no encontrado".
+
+              Ahora es un enlace normal a la página que los contiene
+              a los cuatro, igual que en el menú de escritorio. */}
+          <NavLink className="mobile-menu__link" to="/services" onClick={closeMenu}>
+            Cómo lo hacemos
+            <span className="mobile-menu__arrow">→</span>
+          </NavLink>
 
           <NavLink className="mobile-menu__link" to="/use-cases" onClick={closeMenu}>
             Casos de uso
@@ -110,6 +114,23 @@ function MobileMenu({ isOpen, onClose }) {
             isOpen={openAccordion === "resources"}
             setOpenAccordion={setOpenAccordion}
           />
+
+          {/* ---- ENLACE DE TRABAJO, NO DE SITIO ----
+              Atajo al banco de pruebas de Prism Cloud mientras se
+              diseña. Va también aquí y no solo en el menú de
+              escritorio porque son dos componentes distintos: el
+              Header monta uno u otro según el ancho, así que un
+              enlace puesto solo allí no existe en móvil.
+              Se borra cuando la nube esté decidida. */}
+          <NavLink
+            className="mobile-menu__link"
+            to="/lab/prism-cloud"
+            onClick={closeMenu}
+          >
+            Prism Cloud (lab)
+            <span className="mobile-menu__arrow">→</span>
+          </NavLink>
+
         </nav>
 
         <div className="mobile-menu__footer">

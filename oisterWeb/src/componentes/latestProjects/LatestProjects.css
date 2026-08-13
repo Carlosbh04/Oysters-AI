@@ -22,9 +22,44 @@
      sumaba entero al de "Nosotros" (hasta 8.5rem) y dejaba unos
      216px de morado vacío entre las dos secciones. La sección
      termina en las tarjetas: no necesita despedirse tan largo. */
-  padding: clamp(4.5rem, 9vh, 6.5rem) 0 clamp(2rem, 4vh, 3rem);
+  /* ---- ARRIBA: DE 4.5-6.5rem A 2-3.25rem ----
+     Medido a 1440x900, el relleno de arriba valía 81px y por
+     debajo de él la sección tardaba otros 48 en enseñar el
+     cristal y 166 en enseñar el rótulo — el bloque de texto va
+     CENTRADO contra un cristal de 670px de alto, así que se
+     descuelga solo. Sumado, el arranque de la sección eran más de
+     240px de nada.
 
-  overflow: hidden; /* el LightDust no debe generar scroll extra */
+     Bajarlo sube las tres cosas a la vez y en la misma medida
+     —titular, cristal y tarjetas—, que es lo que se pedía, sin
+     tocar la composición interna: el texto sigue centrado contra
+     el cristal (ver el comentario de .latest-projects__intro, que
+     explica por qué) y las distancias entre las piezas no se
+     mueven. */
+  /* ---- ABAJO SUBE, DE 2-3rem A 3.5-5rem ----
+     Iba en 36px medidos, y las tarjetas quedaban prácticamente
+     pegadas al borde inferior de la sección: se leía como que se
+     salían por abajo en vez de terminar dentro. Ahora que el
+     recorte del cristal (ver .latest-projects__crystal) ha subido
+     todo el bloque unos 90px, hay de sobra para devolverle a las
+     tarjetas el aire que les faltaba y AUN ASÍ dejar la sección
+     más corta que antes. */
+  padding: clamp(2rem, 4.5vh, 3.25rem) 0 clamp(3.5rem, 7vh, 5rem);
+
+  /* ---- CLIP EN HORIZONTAL, LIBRE EN VERTICAL ----
+     Era `overflow: hidden` por el LightDust, que no debe generar
+     scroll extra. El problema es que también recortaba por arriba,
+     y su fondo necesita SALIRSE justo por ahí: la onda funciona
+     estirándolo hacia la sección anterior para recortarlo con la
+     curva (ver `.fn--onda-arriba`). Encerrado, la onda se comía
+     esta sección en vez de invadir la de encima.
+
+     `clip` en lugar de `hidden` mantiene la contención horizontal
+     —que es la que evitaba el scroll— SIN crear un contenedor de
+     scroll, y eso permite dejar el eje vertical visible. Con
+     `hidden` no se puede: obliga al otro eje a `auto`. */
+  overflow-x: clip;
+  overflow-y: visible;
 
   background: linear-gradient(
     180deg,
@@ -36,7 +71,18 @@
 
 /* la curva orgánica de entrada (el SVG vive en el JSX; aquí
    solo posición y color) — misma receta que la onda del hero */
+/* ---- LA ONDA DE ENTRADA, APAGADA ----
+   Misma historia que la de cierre del hero: se rellenaba con el
+   tono en que TERMINA "Qué hacemos" (--sec-lift) para fundirse con
+   ella. Esa sección ya no termina en un tono, termina en un
+   degradado que gira, así que la curva se veía como una tira de
+   violeta oscuro metida entre dos fondos que no lo tienen — la
+   segunda de las dos que quedaban a los lados de "Qué hacemos".
+
+   Apagada, no borrada: quitar este `display` la devuelve entera. */
 .latest-projects__wave {
+  display: none;
+
   position: absolute;
   left: 0;
   right: 0;
@@ -94,32 +140,22 @@
    sección anterior) y del contenido, que ya va en z-index 2. */
 /* selector doble por lo mismo que en HowWeWork: `.ft` trae
    `position: relative` y su hoja se carga después de esta */
-.latest-projects .latest-projects__trama {
-  /* mismos valores apagados que en "Qué hacemos", para que las
-     dos secciones se lean con la misma fuerza de trama */
-  --ft-linea: rgba(255, 255, 255, 0.18);
-  --ft-punto: rgba(255, 255, 255, 0.12);
-  --ft-hex: rgba(255, 255, 255, 0.09);
+/* ---- EL FONDO DE LA SECCIÓN ----
+   Aquí vivía `.latest-projects__trama`: el circuito suelto, con
+   sus intensidades bajadas, subido a z-index 2 para cruzar por
+   encima de la onda de entrada, y desvanecido abajo. Se fue con
+   ella: el suelo es ahora FondoNuevo, que trae ese circuito por
+   dentro y, debajo, el degradado que gira.
 
-  position: absolute;
-  inset: 0;
-
-  /* ---- POR ENCIMA DE LA ONDA ----
-     La onda de entrada (z-index 1) es opaca y tapaba los primeros
-     ~120px de trama. Sumado al desvanecido, dejaba un vacío de
-     dibujo en la juntura con "Qué hacemos". Subiendo la trama a 2
-     el circuito cruza por encima de la curva y sigue de una
-     sección a la otra; la onda conserva su trabajo, que es poner
-     el color, no tapar. */
-  z-index: 2;
-
-  pointer-events: none;
-
-  /* espejo de la de "Qué hacemos": ARRIBA a tope, para que el
-     dibujo entre desde la sección anterior sin corte, y solo se
-     desvanece abajo, que es donde la trama muere de verdad. */
-  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
-  mask-image: linear-gradient(180deg, #000 calc(100% - 70px), transparent 100%);
+   ---- Y SE QUEDA EN 0, POR DEBAJO DE LA ONDA ----
+   La trama subía a 2 porque era un dibujo transparente y la onda
+   la tapaba. Este fondo es OPACO: puesto encima no dejaría ver la
+   onda en absoluto, y con ella se iría la curva que separa esta
+   sección de "Qué hacemos". Debajo, la onda sigue haciendo su
+   trabajo de siempre —poner una curva de color en la juntura—
+   sobre el fondo nuevo. */
+.latest-projects .latest-projects__fondo {
+  z-index: 0;
 }
 
 .latest-projects__container {
@@ -166,7 +202,35 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
 }
+
+/* ============================================================
+   AQUÍ HUBO UN VELO OSCURO, Y SE QUITÓ
+
+   Era una elipse oscura debajo de esta columna, puesta para
+   rescatar el contraste cuando llegó el fondo rosa. Cumplía —
+   medido, subía el acento de 1,06 a 5,34— pero se veía: una
+   mancha oscura sobre el rosa, "como un ojo". Y esa es razón
+   suficiente para tirarlo.
+
+   ---- LO QUE HAY QUE RECORDAR DE AQUEL INTENTO ----
+   El problema que resolvía sigue siendo real, y se resuelve
+   ahora bajando la luz del FONDO ENTERO (ver --fn-rgb-rosa en
+   FondoNuevo.css) en vez de poner un parche local. Es mejor
+   solución por lo que pedía el encargo: el fondo gira, así que
+   un parche quieto solo acierta en algunas fases del giro,
+   mientras que bajar el color acierta en todas.
+
+   Y una cosa que aquel intento dejó aprendida, por si algún día
+   vuelve a hacer falta un velo en alguna parte: el degradado
+   TIENE que llegar a cero antes del borde de su elemento por
+   los cuatro lados. La primera versión tenía la elipse centrada
+   al 28% del ancho con el borde izquierdo a esa misma
+   distancia, así que el degradado llegaba vivo al canto y se
+   cortaba en seco — y un velo cortado no se lee como sombra,
+   se lee como una caja.
+   ============================================================ */
 
 /* mientras el render del cristal no exista (404), el bloque se
    queda a una columna en vez de dejar media rejilla desierta.
@@ -205,6 +269,30 @@
    zoom. Antes hacía además de lienzo para un mix-blend-mode que
    se quitó — ver el comentario del filtro en el JSX. */
 .latest-projects__crystal {
+  /* ---- SE RECORTA EL VACÍO DE ABAJO, NO EL CRISTAL ----
+     La caja es CUADRADA (aspect-ratio 1/1, 670x670 a 1440px)
+     porque el vídeo lo es, pero el dibujo no la llena: medido
+     sobre el recorte de la propia caja, los anillos mueren sobre
+     el píxel 560 y los ~110 finales son transparentes.
+
+     Esos 110px no se ven y sin embargo ocupan: el cristal es la
+     pieza más alta de la fila, así que es ÉL quien fija la altura
+     del bloque de intro y quien empuja las tarjetas hacia abajo
+     —hasta dejarlas a 36px del borde inferior de la sección—.
+
+     El margen negativo le quita a la CAJA lo que le sobra sin
+     tocar el vídeo: el cristal se sigue dibujando igual de grande,
+     solo deja de reservar el hueco muerto. Lo que asome por debajo
+     cae en el aire que hay antes de las tarjetas, y además la
+     máscara de desvanecido (--lp-crystal-fade) ya disuelve ese
+     borde, así que no hay corte que ver.
+
+     Va en % y no en rem para que se escale solo: el porcentaje se
+     resuelve contra el ancho de la celda, y como la caja es
+     cuadrada ese ancho ES su altura. Al estrecharse la ventana y
+     encoger el cristal, el recorte encoge con él. */
+  margin-bottom: -14%;
+
   --lp-crystal-size: 100%;
   /* ---- 0.88, NO 1.3 ----
      El zoom de 1.3 se calibró para el render anterior, donde el
@@ -252,10 +340,21 @@
   --lp-crystal-luz: 1.26;
   --lp-crystal-color: 1.42;
 
-  /* cuánto baja respecto al centro de su columna: sin esto, con
-     la caja más grande queda demasiado aire por debajo y el
-     conjunto se ve suelto en la sección */
-  --lp-crystal-baja: 3rem;
+  /* ---- CUÁNTO BAJA RESPECTO AL CENTRO DE SU COLUMNA ----
+     Ahora es NEGATIVO: sube. De 3rem a -1.5rem son 4,5rem = 72px
+     más arriba.
+
+     El valor positivo venía de cuando la caja del cristal era más
+     grande y dejaba demasiado aire por debajo; empujarlo hacia
+     abajo apretaba el conjunto contra las tarjetas. Ese motivo ya
+     no manda: se pide el cristal arriba.
+
+     Es el ÚNICO número que hay que tocar para moverlo. Lo leen
+     las tres reglas del cristal —el reposo, el estado previo a la
+     entrada (que le suma 34px) y la variante de motion
+     reducido—, así que las tres se mantienen coherentes solas.
+     Subir más: bajar este número; devolverlo: 3rem. */
+  --lp-crystal-baja: -1.5rem;
 
   position: relative;
   justify-self: center;
@@ -476,6 +575,30 @@
    suelo no se alcanzaría hasta pasados los 1300px y el título
    se quedaría clavado en su tamaño mínimo en casi todo
    portátil). 18ch para que rompa en dos líneas como el mockup. */
+/* ---- EL RÓTULO, UN PUNTO MÁS CLARO ----
+   No tiene color propio: lo pone el componente Rotulo con
+   --color-rotulo (#F7CCFF). Ese valor está calibrado contra los
+   fondos oscuros de las otras tres secciones del home y aquí se
+   quedaba en 4,08:1, justo por debajo del 4,5 que pide un texto
+   de 16px.
+
+   Se corrige por el DIAL del componente (--rotulo-color) y no
+   pisando su regla: así no hay pelea de especificidad y el
+   filete de delante viaja con el color, que es de lo que sirve
+   tener un dial. Y se corrige SOLO aquí — las otras tres
+   secciones siguen sobre fondo oscuro y allí el token va bien. */
+.latest-projects__eyebrow {
+  /* ---- SE FUE EL BLANCO ----
+     Aquí estuvo `--rotulo-color: #ffffff`. Lo puse para salvar
+     el contraste (4,26 no llegaba a 4,5) y funcionó a costa de
+     lo que se pedía: un rótulo blanco no es un acento de marca,
+     es una línea de texto más.
+
+     Ya no hace falta: el halo del componente es oscuro y el
+     rótulo se lee con su rosa. Sin regla propia, esta sección
+     usa el mismo color que las otras tres — que es lo que un
+     sistema debería hacer desde el principio. */}
+
 .latest-projects__title {
   max-width: 18ch;
 
@@ -502,11 +625,33 @@
 }
 
 /* "5 proyectos" en itálica con gradiente violeta → rosa:
-   el puente entre el sistema de la web y el rosa del mockup */
+   el puente entre el sistema de la web y el rosa del mockup.
+
+   ---- SUBE DE TONO: #b76df0→#ff5fce YA NO VALE ----
+   Aquellos dos se eligieron contra un morado oscuro. Sobre el
+   fondo rosa nuevo dan 1,04 y 1,16 de contraste: el 1,00 es
+   "idéntico al fondo", o sea que la palabra desaparecía.
+
+   Estos dos son los mismos colores subidos de luz hasta que el
+   más oscuro de los dos pasa el 3:1 que pide un texto de 52px
+   con el velo puesto. Se pierde algo de saturación —es
+   inevitable, un rosa saturado y un fondo rosa claro tienen la
+   misma luminancia por definición— pero la palabra vuelve a
+   leerse y sigue siendo violeta→rosa, no un blanco cualquiera. */
 .latest-projects__title span {
   font-style: italic;
 
-  background: linear-gradient(110deg, #b76df0, #ff5fce);
+  /* ---- VUELVE EL COLOR VIVO ----
+     Estos dos llegaron a ser #f0d0ff → #ffcce9, casi blancos.
+     Venían de dos correcciones encadenadas al mismo problema:
+     primero se subieron de luz para salvar el contraste sobre
+     el fondo rosa claro, y después se les puso el halo. Con las
+     dos cosas a la vez, el degradado dejó de leerse como rosa.
+
+     Ahora el fondo es bastante más oscuro que entonces y además
+     está el halo, así que el color puede volver a ser el que
+     era. */
+  background: linear-gradient(110deg, #c07cf5, #ff6fce);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -517,6 +662,15 @@
      quedaría detrás del texto — se vería a través de él, como una
      mancha borrosa dentro de cada letra. */
   text-shadow: none;
+
+  /* Lo que sí puede: `drop-shadow` sigue el ALFA de lo pintado,
+     no el glifo, así que hace la sombra con la forma exacta de
+     las letras y por fuera de ellas. El mismo halo que llevan
+     ahora los otros dos titulares en degradado del home — ver
+     el porqué largo en HowWeWork.css. */
+  filter:
+    drop-shadow(0 2px 4px rgba(16, 7, 30, 0.95))
+    drop-shadow(0 0 16px rgba(16, 7, 30, 0.85));
 }
 
 .latest-projects__description {
@@ -535,7 +689,15 @@
      sombra fuerte lo emborronaría en vez de separarlo */
   text-shadow: 0 2px 14px rgba(18, 9, 32, 0.5);
 
-  color: var(--color-text-light, #cdc1e2);
+  /* Sube de --color-text-light (#cdc1e2) a este lavanda casi
+     blanco. Aquel token está calibrado contra los fondos
+     oscuros del resto del sitio; aquí daba 3,09:1 contra los
+     4,5 que pide un cuerpo de 16px, y ni siquiera el velo lo
+     rescataba sin oscurecerlo tanto que se comiera el rosa.
+
+     No se toca el token global: el cambio es de ESTA sección,
+     que es la única que se ha quedado sobre fondo claro. */
+  color: #f7f3ff;
 }
 
 /* el CTA ya no vive a la derecha del titular, sino al final de
@@ -1163,7 +1325,16 @@
 
   /* claro, no saturado: a 0,66rem en versalitas es el texto más
      pequeño de la sección, y el rosa fuerte da 4,2:1 aquí */
-  color: var(--color-accent-light, #F090D4);
+  /* ---- SUBE DE #F090D4 ----
+     Medido sobre la superficie de la tarjeta (6,7% de luz):
+     3,44:1 contra los 4,5 que pide un texto de 10,5px. Y es el
+     tamaño más pequeño de toda la sección, o sea el que menos
+     margen tiene para fallar.
+
+     El token --color-accent-light no se toca: lo usan más
+     sitios y allí va bien. Se sube solo aquí, y lo justo para
+     pasar — sigue siendo el mismo rosa, no un blanco. */
+  color: #f9b8e4;
 }
 
 /* la card pasó de 280px a 344px: la tipografía sube con ella,
@@ -1219,7 +1390,10 @@
   font-weight: 600;
   text-decoration: none;
 
-  color: #F072C8;
+  /* de #F072C8, que daba 2,87:1 — el peor de toda la sección.
+     Y encima es un ENLACE: si algo tiene que verse que se
+     puede pinchar, es esto. */
+  color: #f9b8e4;
 
   transition: color 0.28s ease;
 }
@@ -1501,6 +1675,15 @@
   .latest-projects__crystal {
     order: -1;
     max-width: 25rem;
+
+    /* ---- AQUÍ EL RECORTE SE ANULA ----
+       Arriba el margen negativo le quita a la caja el vacío que
+       le sobra por abajo, y eso vale mientras el cristal esté al
+       LADO del texto: lo que asoma cae en el aire previo a las
+       tarjetas. En columna apilada no: con `order: -1` el cristal
+       va ENCIMA del texto, así que ese mismo margen tiraría del
+       titular hacia arriba y se lo metería por debajo. */
+    margin-bottom: 0;
   }
 }
 

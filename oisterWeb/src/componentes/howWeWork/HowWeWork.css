@@ -34,37 +34,27 @@
    La trama se quedaba en `relative` con su `height: 100%`, que sin
    una altura definida en el padre no resuelve: 0px de alto y
    sección sin fondo. Anteponer `.how-we-work` la desempata. */
-.how-we-work .how-we-work__trama {
-  /* ---- LA TRAMA, MÁS APAGADA QUE EN SU PÁGINA SUELTA ----
-     Los valores por defecto están calibrados para verse solos.
-     Aquí debajo hay titular, párrafo y cuatro tarjetas, y a esa
-     intensidad el circuito competía con el texto. Bajan a poco
-     más de la mitad: sigue leyéndose la trama, deja de pelear. */
-  --ft-linea: rgba(255, 255, 255, 0.18);
-  --ft-punto: rgba(255, 255, 255, 0.12);
-  --ft-hex: rgba(255, 255, 255, 0.09);
+/* ---- EL FONDO DE LA SECCIÓN ----
+   Aquí vivía `.how-we-work__trama`: el circuito suelto sobre el
+   degradado plano de la sección, con sus intensidades bajadas y
+   una máscara que lo desvanecía contra el hero.
 
-  position: absolute;
-  inset: 0;
+   Se fue entero con la trama. Ahora el suelo es FondoNuevo, que
+   trae ese mismo circuito por dentro con su propia calibración y,
+   debajo, el degradado que gira.
 
+   ---- LA MÁSCARA DE ARRIBA NO SE HEREDA, Y ES A PROPÓSITO ----
+   Aquella desvanecía la trama en los primeros 70px para que la
+   retícula no empezara de golpe contra el hero. Ya no hace falta y
+   además sería un error: el fondo nuevo es OPACO —trae su propio
+   color—, así que desvanecerlo por arriba no lo fundiría con el
+   hero, abriría una franja por la que asomaría el degradado plano
+   de respaldo. La juntura entre secciones la resuelve la onda, no
+   un desvanecido.
+
+   z-index 0: por debajo del contenedor (2) y del polvo de luz. */
+.how-we-work .how-we-work__fondo {
   z-index: 0;
-
-  pointer-events: none;
-
-  /* ---- SOLO SE DESVANECE ARRIBA ----
-     Arriba sí, porque ahí la trama nace: sin desvanecido la
-     retícula empezaría de golpe contra el hero.
-
-     ABAJO NO, y esto es lo que arregla la "separación". El borde
-     inferior de esta sección toca el superior de "Nuestros
-     trabajos", que también lleva trama. Si cada una se desvanece
-     en su borde, queda una franja lisa de ~140px sin retícula
-     justo en la juntura — y esa franja es lo que se leía como
-     corte, aunque el COLOR fuera continuo. Dejando las dos a tope
-     en el borde, el dibujo pasa de una sección a la otra sin
-     interrupción. */
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 70px);
-  mask-image: linear-gradient(180deg, transparent 0, #000 70px);
 }
 
 .how-we-work__container {
@@ -92,8 +82,40 @@
    se acopla visualmente sobre este hueco. El halo hace de
    "suelo" que la recibe. */
 
+/* ---- LA PISTA SE PEGA ----
+   Al aterrizar la ostra, la columna todavía tiene sitio por debajo
+   —es tan alta como el texto y el vídeo juntos— y las dos se iban
+   hacia arriba dejándolo vacío. Pegadas, se quedan quietas en
+   pantalla mientras la página sigue: vistas desde la sección,
+   bajan, y ese hueco se rellena.
+
+   El `top` NO está escrito aquí: lo publica useHeroScrollDock en
+   `--pista-pegada` con el valor exacto de la posición de la esfera
+   en el instante del encuentro. Es lo que garantiza que la esfera
+   se pegue en el mismo píxel de scroll en el que la ostra se
+   detiene — si cada una arrancara por su cuenta, se separarían.
+
+   El respaldo (22vh) solo actúa el primer fotograma, antes de la
+   primera medida. */
+/* ---- EL FRENO ----
+   Sin él, la esfera se desliza hasta el final de su columna, y ese
+   final es exactamente donde empiezan las tarjetas de misión y
+   visión: la esfera acababa metida por detrás de ellas.
+
+   El margen inferior es lo que la para antes. `sticky` no deja que
+   el elemento salga de su caja contenedora contando MÁRGENES, así
+   que este hueco reservado abajo es terreno por el que ya no puede
+   deslizarse.
+
+   ⚠️ useHeroScrollDock lo LEE para calcular hasta dónde acompaña la
+   ostra. Cambiar este número cambia las dos cosas a la vez, que es
+   lo que hay que querer: si se descontara solo en un sitio, la
+   ostra seguiría bajando con la esfera ya parada. */
 .how-we-work__scene {
-  position: relative;
+  position: sticky;
+  top: var(--pista-pegada, 22vh);
+
+  margin-bottom: clamp(90px, 14vh, 180px);
 
   min-height: 420px;
 }
@@ -254,7 +276,18 @@
 .how-we-work__title span {
   font-style: italic;
 
-  background: linear-gradient(110deg, var(--color-primary-light), #E68CE0);
+  /* Los dos tonos VIVOS. Sobre el fondo nuevo la frase se
+     quedaba en 2,46:1 contra los 3 que pide un texto de 36,8px,
+     y la primera corrección fue subirlos de luz (#c9a9ff /
+     #efa0e8) además de ponerles el halo. Error: dos remedios
+     para el mismo mal, y el rosa acabó lavado.
+
+     El halo solo basta —medido justo aquí: 3,94 sin él, 5,94
+     con él, y esa medición se hizo con estos colores vivos—.
+     Así que el color se queda vivo y el contraste lo pone la
+     sombra. El rosa sube un punto de saturación respecto al
+     #E68CE0 original: el fondo nuevo, más profundo, lo admite. */
+  background: linear-gradient(110deg, #b794ff, #f472d8);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -263,6 +296,20 @@
   /* la letra es transparente: una sombra se vería A TRAVÉS de
      ella, como una mancha borrosa dentro de cada trazo */
   text-shadow: none;
+
+  /* ---- POR ESO EL HALO VA EN drop-shadow ----
+     Lo que `text-shadow` no puede hacer aquí, `drop-shadow` sí:
+     sigue el ALFA de lo que el elemento pinta —el degradado
+     recortado contra la silueta— en vez de dibujarse detrás del
+     glifo. Sombra con la forma exacta de las letras, y por
+     fuera de ellas.
+
+     Medido en este mismo titular: el hueco entre letras pasa de
+     6,3% a 2,5% de luz y el contraste de 3,94 a 5,94. El
+     degradado no se rompe con el filtro. */
+  filter:
+    drop-shadow(0 2px 4px rgba(16, 7, 30, 0.95))
+    drop-shadow(0 0 16px rgba(16, 7, 30, 0.85));
 }
 
 .how-we-work__description {

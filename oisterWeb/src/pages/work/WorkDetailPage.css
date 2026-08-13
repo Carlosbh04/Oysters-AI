@@ -1,10 +1,44 @@
 /* ============================================================
    DETALLE DE TRABAJO — capa de página
 
-   Aquí solo vive lo que hace falta para que la escena Cosmic
-   Data Flow quede DETRÁS del contenido. La maquetación entera
-   está en componentes/work/detalle/.
+   Aquí solo vive lo que hace falta para que el fondo quede
+   DETRÁS del contenido. La maquetación entera está en
+   componentes/work/detalle/.
+
+   ---- QUÉ SE FUE CON LA ESCENA ANTIGUA ----
+   Antes el fondo era una escena decorativa (una sala con torre
+   de paneles, logo 3D, figura, cristales y un haz de luz). Esta
+   hoja llevaba TRES reglas que existían solo por ella, y se han
+   ido con la escena:
+
+     · el contenido estrechado a 860px, para dejar ver la
+       decoración de los lados;
+     · un velo en degradado bajo el texto, para tapar el haz de
+       luz que cruzaba justo por el centro;
+     · el `position: relative` + `isolation: isolate` que solo
+       estaban ahí para sostener ese velo.
+
+   El fondo de ahora es una nube uniforme y oscura (PrismCloud):
+   no tiene decoración lateral que enseñar ni zonas claras que
+   tapar, así que las tres sobraban.
+
+   Efecto secundario BUENO de quitar el estrechado: la maqueta
+   recupera su ancho nativo —los 1120px de .wd en WorkDetail.css,
+   que hasta ahora no llegaban a aplicarse nunca porque este
+   contenedor los recortaba antes—. Y de paso desaparece un salto
+   que había en la carga: el hueco de App.jsx se pintaba al ancho
+   común del sitio y la página real encogía a 860 al montarse.
    ============================================================ */
+
+/* El color con el que arranca la página: la base de la nube ya
+   oscurecida (ver LUZ_DEL_FONDO en WorkDetailPage.jsx). Vive en
+   un token porque lo necesitan DOS sitios —el hueco de carga y
+   la caja del fondo—, que son justo por donde se colaría un
+   fogonazo de color antes de que el shader pinte su primer
+   fotograma. */
+:root {
+  --wd-fondo-base: #07040d;
+}
 
 .work-detail {
   /* El fondo es `fixed` y ocupa la ventana; el contenido tiene
@@ -18,19 +52,24 @@
 
 /* ---- EL HUECO DE CARGA ----
    Lo monta App.jsx mientras llega el chunk de la página. No
-   lleva la escena (ver el comentario de allí), solo su color de
-   base: así el relevo hueco → página es escena apareciendo sobre
-   negro, y no un fogonazo de morado a negro en toda la pantalla. */
+   lleva la nube —montarla ahí la metería en el bundle principal,
+   y para un hueco basta el color—, así que el relevo hueco →
+   página es la nube apareciendo sobre su propio fondo y no un
+   salto de color en toda la pantalla. */
 .work-detail-hueco {
-  background-color: #050418;
+  background-color: var(--wd-fondo-base);
 }
 
 /* ============================================================
    EL FONDO DE LA PÁGINA
 
-   La escena del hero, anclada al viewport. Va en z0 y sin
-   capturar el ratón: el contenido del detalle sube por encima con
-   su propio z-index, igual que hacía con el fondo anterior.
+   La nube, anclada al viewport para que se quede quieta mientras
+   la página rueda por encima. Va en z0 y sin capturar el ratón:
+   el contenido del detalle sube por encima con su propio
+   z-index.
+
+   El background-color no es decoración: tapa el instante en que
+   el canvas todavía no ha pintado (ver Fondo() en el JSX).
    ============================================================ */
 .work-detail__fondo {
   position: fixed;
@@ -38,69 +77,7 @@
 
   z-index: 0;
 
-  pointer-events: none;
-}
-
-/* ============================================================
-   EL CONTENIDO SE ESTRECHA PARA QUE SE VEA LA SALA
-
-   El resto del sitio usa el ancho de contenedor común (1280px al
-   90%). Aquí no sirve: sobre 1440 eso deja 72px libres a cada
-   lado, y la escena del fondo tiene su decoración justo ahí —
-   torre de paneles y logo a la izquierda, figura y cristal a la
-   derecha. Con el contenido a todo lo ancho, esas piezas quedan
-   tapadas o, peor, asomando por detrás del texto.
-
-   A 860px el contenido ocupa el tercio central —que es
-   exactamente la franja que la escena deja oscura y despejada a
-   propósito— y libera unos 290px por banda para que la sala
-   respire. Es el mismo reparto que tiene el hero: geometría a los
-   lados, aire en el medio.
-
-   El 92% del ancho es el tope para pantallas estrechas: por
-   debajo de ~935px el contenido manda y la decoración se pierde,
-   que es lo correcto cuando no hay sitio para las dos cosas.
-   ============================================================ */
-.work-detail .page-section__inner {
-  width: min(860px, 92%);
-}
-
-/* ---- Y NECESITA SU PROPIO FONDO ----
-   Al estrecharse, el contenido se apoya en el centro de la
-   escena. Ese centro es oscuro pero no uniforme: lo cruzan el haz
-   de luz, la línea del horizonte y los reflejos del suelo. Un velo
-   muy tenue con desenfoque de fondo asienta el texto sin taparla
-   —se sigue viendo la sala a través— y sube el contraste allí
-   donde la escena se ilumina.
-
-   Los bordes se desvanecen para que no aparezca una caja: lo que
-   tiene que leerse es una zona más calmada, no un panel.
-
-   ---- SIN backdrop-filter ----
-   Llevaba `blur(3px)`. Sobre un fondo fijo que se mueve al rodar,
-   ese desenfoque obliga a leer de vuelta el compositor en cada
-   fotograma, y era la mitad de los picos: quitándolo, el peor
-   fotograma del scroll baja de 166ms a 83. El velo se apaña con
-   el degradado, que no cuesta nada. */
-.work-detail .page-section__inner::before {
-  content: "";
-  position: absolute;
-  inset: 0 -3.5%;
-
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(9, 3, 22, 0.62) 7%,
-    rgba(9, 3, 22, 0.62) 93%,
-    transparent 100%
-  );
-
-  z-index: -1;
+  background-color: var(--wd-fondo-base);
 
   pointer-events: none;
-}
-
-.work-detail .page-section__inner {
-  position: relative;
-  isolation: isolate;
 }

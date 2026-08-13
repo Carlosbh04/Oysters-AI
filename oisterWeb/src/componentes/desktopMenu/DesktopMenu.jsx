@@ -11,22 +11,16 @@ import { ChevronRight, ArrowUpRight } from "lucide-react";
 const NAV_ITEMS = [
   { label: "Nosotros", to: "/#nosotros", seccion: "nosotros" },
   { label: "Qué hacemos", to: "/#que-hacemos", seccion: "que-hacemos" },
-  {
-    label: "Cómo lo hacemos",
-    children: [
-      { label: "Aprendizaje impulsado por IA", to: "/services/aprendizaje-ia" },
-      /* Los cuatro tienen ya su página. Los tres de abajo montan
-         de momento solo el fondo compartido y un marcador: el
-         contenido llega después. */
-      { label: "Contenido impulsado por IA", to: "/services/contenido-ia" },
-      { label: "Personalización impulsada por IA", to: "/services/personalizacion-ia" },
-      { label: "Orquestación impulsada por IA", to: "/services/orquestacion-ia" },
-    ],
-  },
-  /* Ancla de la portada, no página propia: iba a /use-cases, que
-     no existe como ruta y caía en "no encontrado". `seccion`
-     activa el scroll suave, igual que "Nosotros" y "Qué
-     hacemos" — ver useIrASeccion. */
+  /* "Cómo lo hacemos" era un acordeón con los cuatro apartados
+     dentro. Se le quitaron los hijos y pasó a ser un enlace normal:
+     sin `children` el propio menú ya lo pinta como tal, con su
+     flecha de ir en vez del chevron de desplegar.
+
+     Y ya apunta a su sitio. Estuvo apuntando al primero de los
+     cuatro apartados (/services/aprendizaje-ia) porque /services no
+     existía como ruta; ahora sí existe y es la página que los
+     contiene a los cuatro. Era lo único que quedaba por cambiar. */
+  { label: "Cómo lo hacemos", to: "/services" },
   { label: "Casos de uso", to: "/#casos-de-uso", seccion: "casos-de-uso" },
 
   { label: "Trabajos", to: "/works" },
@@ -37,6 +31,14 @@ const NAV_ITEMS = [
       { label: "Blog", to: "/blog" },
     ],
   },
+
+  /* ---- ENLACE DE TRABAJO, NO DE SITIO ----
+     Atajo al banco de pruebas de Prism Cloud para poder verlo
+     mientras se diseña. OJO: el menú es público, o sea que esta
+     entrada la ve CUALQUIERA que lo abra. Cuando la nube esté
+     decidida —dentro o fuera— se borra esta línea y la gemela
+     del menú móvil. */
+  { label: "Prism Cloud (lab)", to: "/lab/prism-cloud" },
 ];
 
 /* número editorial 01, 02... en mono — conecta con el tagline */

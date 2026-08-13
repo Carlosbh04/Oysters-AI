@@ -1,0 +1,89 @@
+/* ============================================================
+   BANCO DE PRUEBAS DE PRISM CLOUD
+
+   Solo la caja del fondo y el texto que va encima para juzgar la
+   legibilidad. El aspecto de la nube no se toca desde aquí: eso
+   es del shader.
+   ============================================================ */
+
+.pcp {
+  position: relative;
+  min-height: 100vh;
+  /* dos pantallas de scroll: la nube reacciona al scroll y sin
+     recorrido no habría nada que ver */
+  padding-bottom: 100vh;
+  overflow: hidden;
+}
+
+/* El fondo es FIJO y ocupa la ventana: la nube se queda quieta
+   mientras la página rueda por encima, que es como se lee su
+   reacción al scroll (si viajara con el contenido, el
+   desplazamiento del shader y el de la página se cancelarían). */
+.pcp__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pcp__contenido {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+
+  /* el header del sitio flota encima: este hueco evita que el
+     titular se le meta debajo */
+  padding: calc(var(--header-height, 96px) + 4rem) 6vw 6rem;
+  max-width: 46rem;
+}
+
+.pcp__rotulo {
+  margin: 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #afa0cc);
+}
+
+.pcp__titulo {
+  margin: 0;
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: #fff;
+
+  /* sombra larga y suave, no un contorno: sobre una nube que se
+     mueve, un borde duro se ve como un recorte pegado */
+  text-shadow: 0 2px 40px rgba(23, 12, 38, 0.55);
+}
+
+.pcp__titulo em {
+  font-style: italic;
+  background: var(--gradient-title, linear-gradient(90deg, #b794ff, #d68cff, #f090d4));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pcp__texto {
+  margin: 0;
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 24px rgba(23, 12, 38, 0.5);
+}
+
+/* en táctil no hay cursor que arrastre el foco: se avisa, en vez
+   de pedir algo que no se puede hacer */
+@media (hover: none) {
+  .pcp__texto::after {
+    content: " (el foco sigue al dedo al arrastrar)";
+    color: var(--color-text-muted, #afa0cc);
+  }
+}

@@ -1,17 +1,10 @@
 import { useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-    Trophy,
-    TrendingUp,
-    Users,
-    Heart,
-    Sparkles,
-    ChevronLeft,
-    ChevronRight,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import WorkCard from "./WorkCard";
 import MarcasMarquee from "../marcas/MarcasMarquee";
 import FiltroCategorias from "./FiltroCategorias";
+import Paginacion from "../paginacion/Paginacion";
 import {
     PARAM_CATEGORIA,
     TODAS,
@@ -30,56 +23,6 @@ import {
 } from "./paginacion";
 import "./WorkList.css";
 
-/* Métricas de la barra: edita aquí valores e iconos.
-   Los iconos son componentes de lucide-react:
-   https://lucide.dev/icons — importa el que quieras arriba
-   y cámbialo aquí. */
-const metricas = [
-    { Icono: Trophy, valor: "+120", etiqueta: "Proyectos exitosos" },
-    { Icono: TrendingUp, valor: "35%", etiqueta: "Promedio de mejora" },
-    { Icono: Users, valor: "+2M", etiqueta: "Personas alcanzadas" },
-    { Icono: Heart, valor: "98%", etiqueta: "Clientes satisfechos" },
-];
-
-/* A partir de cuántas páginas se empieza a truncar. Por debajo
-   caben todas y listarlas es más cómodo que hacer pensar. */
-const PAGINAS_SIN_TRUNCAR = 7;
-
-/* Cuántas páginas se muestran a cada lado de la actual cuando sí
-   se trunca. Con 1 la tira es: 1 … 4 5 6 … 12 */
-const RADIO = 1;
-
-/* Devuelve qué pintar en la tira: números y "…" donde hay salto.
-   Sin esto, un portafolio de 200 trabajos generaría 34 botones
-   que se desbordarían de la pantalla. Se muestran SIEMPRE la
-   primera y la última —son los saltos que más se usan— más una
-   ventana alrededor de donde estás. */
-function tiraDePaginas(actual, total) {
-    if (total <= PAGINAS_SIN_TRUNCAR) {
-        return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
-    /* un Set porque los rangos se solapan cerca de los extremos:
-       en la página 2, "actual - 1" ya es la primera */
-    const numeros = new Set([1, total, actual]);
-    for (let i = 1; i <= RADIO; i++) {
-        if (actual - i > 1) numeros.add(actual - i);
-        if (actual + i < total) numeros.add(actual + i);
-    }
-
-    const tira = [];
-    let previa = 0;
-    for (const n of [...numeros].sort((a, b) => a - b)) {
-        /* hueco de UNA página: mejor el número que unos puntos
-           suspensivos que ocupan lo mismo y además no llevan a
-           ningún sitio */
-        if (n - previa === 2) tira.push(previa + 1);
-        else if (n - previa > 2) tira.push(`salto-${n}`);
-        tira.push(n);
-        previa = n;
-    }
-    return tira;
-}
 
 function WorkList({ trabajos }) {
     /* ---- LA PÁGINA VIVE EN LA URL, NO EN useState ----
@@ -220,35 +163,15 @@ function WorkList({ trabajos }) {
             </header>
 
 
-            {/* Barra de métricas */}
-            <div className="work-list-stats">
+            {/* ---- AQUÍ IBA LA BARRA DE MÉTRICAS ----
+                "+120 proyectos exitosos", "35% promedio de mejora",
+                "+2M personas alcanzadas" y "98% clientes
+                satisfechos". Se quita entera por decisión de
+                contenido.
 
-                {
-                    metricas.map(({ Icono, valor, etiqueta }, index) => (
-                        <div key={index} className="work-list-stat">
-
-                            <span className="work-list-stat-icon" aria-hidden="true">
-                                <Icono size={20} strokeWidth={2.2} />
-                            </span>
-
-                            <div className="work-list-stat-info">
-
-                                <span className="work-list-stat-value">
-                                    {valor}
-                                </span>
-
-                                <span className="work-list-stat-label">
-                                    {etiqueta}
-                                </span>
-
-                            </div>
-
-                        </div>
-                    ))
-                }
-
-            </div>
-
+                ⚠️ Los cuatro números eran de MARCADOR, no medidos:
+                si algún día vuelve una barra así, hay que traer las
+                cifras reales antes de publicarla. */}
 
             <FiltroCategorias
                 categorias={categorias}
@@ -293,66 +216,15 @@ function WorkList({ trabajos }) {
             </div>
 
 
-            {/* Paginación. No se pinta con una sola página: un
-                único botón "1" es ruido, no navegación. */}
-            {totalPaginas > 1 && (
-                <nav className="work-pag" aria-label="Paginación de trabajos">
-                    <button
-                        type="button"
-                        className="work-pag__flecha"
-                        onClick={() => irA(actual - 1)}
-                        disabled={actual === 1}
-                        aria-label="Página anterior"
-                    >
-                        <ChevronLeft size={18} strokeWidth={2.2} />
-                    </button>
-
-                    <ul className="work-pag__lista">
-                        {tiraDePaginas(actual, totalPaginas).map((n) =>
-                            typeof n === "string" ? (
-                                /* aria-hidden: los puntos son una pista
-                                   visual de "aquí faltan páginas", no
-                                   contenido que valga la pena escuchar */
-                                <li
-                                    key={n}
-                                    className="work-pag__salto"
-                                    aria-hidden="true"
-                                >
-                                    …
-                                </li>
-                            ) : (
-                                <li key={n}>
-                                    <button
-                                        type="button"
-                                        className={`work-pag__num${
-                                            n === actual ? " work-pag__num--activa" : ""
-                                        }`}
-                                        onClick={() => irA(n)}
-                                        /* aria-current es lo que le dice al
-                                           lector de pantalla en qué página
-                                           está; el color solo lo dice a quien
-                                           ve */
-                                        aria-current={n === actual ? "page" : undefined}
-                                        aria-label={`Página ${n}`}
-                                    >
-                                        {n}
-                                    </button>
-                                </li>
-                            )
-                        )}
-                    </ul>
-
-                    <button
-                        type="button"
-                        className="work-pag__flecha"
-                        onClick={() => irA(actual + 1)}
-                        disabled={actual === totalPaginas}
-                        aria-label="Página siguiente"
-                    >
-                        <ChevronRight size={18} strokeWidth={2.2} />
-                    </button>
-                </nav>
-            )}
+            {/* Paginación compartida con el blog (ver el porqué
+                en paginacion/Paginacion.jsx). Con una sola página
+                se oculta sola. */}
+            <Paginacion
+                actual={actual}
+                total={totalPaginas}
+                onIrA={irA}
+                ariaLabel="Paginación de trabajos"
+            />
 
 
             {/* Cinta de marcas: va DEBAJO de la rejilla y encima

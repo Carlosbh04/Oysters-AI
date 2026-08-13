@@ -1,0 +1,87 @@
+/* ============================================================
+   TEXTO DE ARENA
+
+   Dos estados y nada más:
+
+     reposo  → el elemento es texto normal. El lienzo ni siquiera
+               existe en el DOM; lo crea el primer hover.
+     activo  → el texto se vuelve transparente y lo que se ve es
+               el lienzo, con los mismos glifos hechos granos.
+
+   El relevo NO se cruza con una transición a propósito. Los
+   granos arrancan exactamente sobre su origen, con el color que
+   tomaron del propio texto, así que las dos imágenes son la misma
+   en ese instante: cambiar de una a otra de golpe es invisible.
+   Un fundido, en cambio, dejaría un tramo con las dos capas a
+   media opacidad — o sea el texto a medio tono.
+   ============================================================ */
+
+.arena {
+  position: relative;
+}
+
+/* El texto real se apaga, pero SIGUE OCUPANDO su sitio: nada de
+   display:none ni de vaciar el elemento. De él dependen la altura
+   de la línea, el ajuste de párrafo y la posición de todo lo que
+   viene detrás; y es el que leen los lectores de pantalla, que no
+   ven el lienzo (va con aria-hidden).
+
+   `!important` porque estos elementos traen su color de reglas
+   más específicas —los <span> de acento de cada sección— y aquí
+   hay que ganarles a todas sin enumerarlas. */
+.arena--activa,
+.arena--activa * {
+  color: transparent !important;
+
+  /* ---- APAGAR `color` NO BASTA ----
+     Varios titulares no se pintan con `color`: llevan un
+     degradado recortado a la forma de las letras
+     (`background-clip: text`) y su relleno YA está en
+     transparente. En ellos, poner el color a transparente no
+     cambia nada — lo que se ve viene del fondo.
+
+     Eso es lo que pasaba con "5 proyectos" y con el hero: la
+     arena se dibujaba encima, pero el texto de debajo seguía
+     entero, así que parecía que hacía el efecto sin deshacerse.
+
+     Hay que apagar las DOS vías: el relleno (que manda sobre
+     `color`) y la imagen de fondo que lo sustituía. Con las dos
+     fuera, el elemento no pinta un solo píxel y lo único que se
+     ve es el lienzo. */
+  -webkit-text-fill-color: transparent !important;
+  background-image: none !important;
+}
+
+/* la sombra iría a parar al texto invisible y se vería como una
+   mancha borrosa flotando donde estaban las letras */
+.arena--activa {
+  text-shadow: none !important;
+}
+
+/* ---- EL LIENZO ----
+   Lo coloca el JS con su propio left/top negativos: se sale del
+   elemento por los cuatro lados (ver HOLGURA), porque los granos
+   salen despedidos y contra el borde exacto se recortarían.
+
+   pointer-events: none es obligatorio: si el lienzo capturara el
+   ratón, el pointermove dejaría de llegar al elemento y la
+   simulación se congelaría bajo el propio cursor. */
+.arena__lienzo {
+  position: absolute;
+  z-index: 1;
+
+  pointer-events: none;
+
+  /* nace invisible y solo se enseña con el estado activo: entre
+     que se crea y que se dibuja el primer fotograma hay un
+     instante en el que está en blanco */
+  opacity: 0;
+}
+
+.arena--activa .arena__lienzo {
+  opacity: 1;
+}
+
+/* Con motion reducido el componente ni se monta (lo comprueba el
+   JS antes de escuchar nada), así que aquí no hay nada que
+   apagar. Se deja dicho para que no se busque. */

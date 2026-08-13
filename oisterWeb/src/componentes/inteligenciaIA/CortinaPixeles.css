@@ -1,0 +1,118 @@
+/* ============================================================
+   CORTINA DE PÍXELES
+
+   La rejilla la arma el JS (cuántas columnas y filas caben, y el
+   turno de cada cuadrado). Aquí solo se pinta y se mueve.
+   ============================================================ */
+
+.cortina {
+  position: fixed;
+  inset: 0;
+
+  /* ---- POR ENCIMA DE TODO, HEADER INCLUIDO ----
+     Estaba en 90 y la píldora del header (z-index 1000) se dibujaba
+     encima: se veía la cortina cerrada con el menú flotando sobre
+     ella. Una cortina que no tapa no sirve de nada, así que va por
+     encima del header y del botón hamburguesa (1200), y por encima
+     del propio vídeo en grande (1300), que es lo que esconde. */
+  z-index: 1320;
+
+  display: grid;
+  grid-template-columns: repeat(var(--cortina-columnas), var(--cortina-lado));
+  grid-auto-rows: var(--cortina-lado);
+
+  /* ---- NO SE PUEDE PULSAR A TRAVÉS, NI SOBRE ELLA ----
+     Mientras tapa, cualquier clic caería sobre lo que hay debajo
+     —el vídeo, un enlace— sin que se vea qué se está pulsando.
+     `none` no vale: con la cortina cubriendo, un clic pasaría de
+     largo. Se bloquea de verdad. */
+  pointer-events: auto;
+
+  /* la rejilla puede sobrar por el borde derecho o inferior: lo que
+     asome no debe crear scroll */
+  overflow: hidden;
+}
+
+/* ---- CADA CUADRADO ----
+   El color lo pone el JSX, repartido con el mismo revoltijo que
+   los turnos (ver TONOS en el JSX). Un solo tono se leería como un
+   telón liso; con tres, la trama se percibe como píxeles incluso
+   con la cortina cerrada del todo. */
+.cortina i {
+  /* el turno lo pone el JSX en --t */
+  animation-duration: var(--cortina-paso);
+  animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  animation-delay: var(--t);
+  animation-fill-mode: both;
+}
+
+/* ---- CERRANDO ----
+   Los cuadrados crecen desde el centro. `scale` y no `opacity`
+   porque una opacidad progresiva deja ver el fondo a medias
+   —parece un fundido sucio— mientras que el crecimiento se lee
+   como piezas que caen en su sitio. */
+.cortina--cerrando i {
+  animation-name: cortina-entra;
+}
+
+@keyframes cortina-entra {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---- ABRIENDO ---- */
+.cortina--abriendo i {
+  animation-name: cortina-sale;
+}
+
+@keyframes cortina-sale {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* ---- MOTION REDUCIDO ----
+   Sin animación por cuadrado, pero la cortina TIENE que seguir
+   tapando: el salto de tamaño del vídeo ocurre detrás de ella, y
+   sin cortina se vería el cambio en seco. Aparece y desaparece
+   entera, con un fundido corto. */
+@media (prefers-reduced-motion: reduce) {
+  .cortina i {
+    animation-delay: 0ms;
+    animation-duration: 160ms;
+  }
+
+  .cortina--cerrando i,
+  .cortina--abriendo i {
+    transform: none;
+  }
+
+  @keyframes cortina-entra {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes cortina-sale {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}

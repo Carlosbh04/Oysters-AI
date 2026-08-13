@@ -2,25 +2,47 @@ import { useParams } from "react-router-dom";
 import WorkDetail from "../../componentes/work/detalle/WorkDetail";
 import PageSection from "../../componentes/layout/PageSection";
 import trabajos from "../../data/trabajos";
-import HeroBackground from "../../componentes/heroBackground/HeroBackground";
+import PrismCloud from "../../componentes/prismCloud/PrismCloud";
 import "./WorkDetailPage.css";
 
 /* El skeleton del detalle lo muestra App.jsx mientras
    carga el chunk (WorkDetailSkeleton de skeleton/work),
    así que aquí ya no hay estado de carga propio. */
 
-/* ---- EL FONDO VA EN UNA CAJA FIJA ----
-   Antes aquí iba Cosmic Data Flow, que se posiciona solo con
-   `position: fixed`. La escena del hero es `absolute` porque está
-   pensada para llenar su sección, así que necesita esta caja que
-   la ancle al viewport y la deje quieta mientras la página rueda.
+/* ---- CUÁNTA LUZ LLEVA LA NUBE AQUÍ ----
+   Muy por debajo del 1 con que se ve en su banco de pruebas, y
+   a propósito: aquí la nube NO es el protagonista. Detrás van
+   fotos de campaña, vídeos y caras, y sobre un fondo a plena luz
+   competían con él — el ojo no sabía dónde mirar.
 
-   Cosmic Data Flow SIGUE en el proyecto y sigue viva en su ruta de
-   laboratorio (/cosmic): aquí solo se ha dejado de usar. */
+   Pero tampoco muy por debajo: el fondo tiene que seguir siendo
+   EL DEL HOME, y a plena luz el home mide un 47% de luminosidad
+   en sus zonas despejadas. Se probó a 0.38 y era un error: el
+   morado se iba a casi negro, las nubes apenas se intuían y la
+   página dejaba de parecerse al resto del sitio.
+
+   0.85 es el punto medio medido: mantiene el brillo y el color
+   del home y solo baja lo justo para no competir con las fotos
+   del proyecto. El shader oscurece con una curva que hunde las
+   sombras más que las luces (ver uLuz en PrismCloud.jsx), así que
+   la nube conserva su volumen en vez de aplanarse en un gris. */
+const LUZ_DEL_FONDO = 0.85;
+
+/* ---- EL FONDO VA EN UNA CAJA FIJA ----
+   Anclado al viewport para que la nube se quede quieta mientras
+   la página rueda por encima: si viajara con el contenido, su
+   reacción al scroll y el desplazamiento de la página se
+   cancelarían y no se notaría ninguna de las dos.
+
+   El color de la caja NO es decorativo: el canvas está en blanco
+   hasta que compila el shader y pinta su primer fotograma, y sin
+   este fondo se colaría el morado del body a pantalla completa
+   durante ese instante. Es el mismo color con el que arranca la
+   nube, así que el relevo es invisible. */
 function Fondo() {
   return (
     <div className="work-detail__fondo" aria-hidden="true">
-      <HeroBackground />
+      <PrismCloud luz={LUZ_DEL_FONDO} />
     </div>
   );
 }

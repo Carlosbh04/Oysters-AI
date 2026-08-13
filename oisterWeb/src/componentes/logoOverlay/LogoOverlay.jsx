@@ -1,18 +1,19 @@
 import { Fragment } from "react";
+import { TEXTO, INICIO_SUFIJO } from "./logotipo";
 import "./LogoOverlay.css";
 
 /* Logotipo del intro. Recibe:
    · opacity    — fundido del bloque completo (se enciende al
                   empezar el tipeo)
-   · charsShown — cuántas "piezas" están reveladas: las 6 letras
-                  de "OISTER" (0-5), el espacio (6) y las 2 de
-                  "AI" (7-8). El intro lo alimenta a 110ms/letra.
+   · charsShown — cuántas "piezas" están reveladas: las letras de
+                  la marca, el espacio y las del sufijo. El intro
+                  lo alimenta a 110ms/letra.
    · cursorApagado — apaga el cursor. Va atado al FUNDIDO de
                   salida, no al fin del tipeo: si se apagaba al
                   terminar de escribir, la pausa final se quedaba
                   sin un solo píxel en movimiento y la intro
                   parecía colgada. */
-const TEXTO = [..."OISTER", " ", ..."AI"]; // 9 piezas
+
 
 function LogoOverlay({ opacity = 0, charsShown = 0, cursorApagado = false }) {
   return (
@@ -20,7 +21,7 @@ function LogoOverlay({ opacity = 0, charsShown = 0, cursorApagado = false }) {
       <div className="logo-overlay__text">
         {TEXTO.map((ch, i) => {
           const on = i < charsShown;
-          const strong = i >= 7; // "AI" destaca sobre "OISTER"
+          const strong = i >= INICIO_SUFIJO; // "AI" destaca sobre la marca
 
           const piece =
             ch === "\u00B7" ? (

@@ -101,6 +101,26 @@
      de lavarlo. Con opacity el rosa se volvía blancuzco y perdía
      saturación justo donde más se ve. */
   mix-blend-mode: screen;
+
+  /* ---- CAPA PROPIA, Y CON MOTIVO MEDIDO ----
+     Estas cintas pasan por DOS feGaussianBlur (stdDeviation 34 y
+     52), y un filtro SVG se rasteriza en CPU. Sin capa propia,
+     ese rasterizado se repetía al hacer scroll —cada franja nueva
+     de página que entra en cuadro vuelve a pintar el trozo de
+     cintas que le toca— y costaba ~17ms por fotograma, medido
+     con el recorrido instrumentado sobre el build.
+
+     El translateZ(0) las aísla en su capa: el filtro se resuelve
+     UNA vez, queda cacheado como textura, y el scroll solo la
+     compone. El blending `screen` no se pierde — se aplica en la
+     composición de la capa contra lo que tiene detrás, que es
+     exactamente lo que hacía antes.
+
+     No es un will-change espolvoreado: es UNA capa por trama con
+     un coste concreto detrás. El precio es memoria de textura
+     del tamaño de la sección, que es lo que se paga por no
+     recalcular dos desenfoques gaussianos en cada fotograma. */
+  transform: translateZ(0);
 }
 
 /* ---- RETÍCULA ----
@@ -109,8 +129,20 @@
    lee más orgánico.
 
    La máscara la apaga en el centro, que es por donde pasan las
-   cintas: en la referencia la trama desaparece bajo la luz. */
+   cintas: en la referencia la trama desaparece bajo la luz.
+
+   ---- --ft-reticula-velo ----
+   Cuánta retícula sobrevive en ese centro. Es un dial y no un
+   número fijo porque el 0,15 está calibrado para ESTE fondo, el
+   suyo: un degradado apagado por el que cruzan las cintas. Sobre
+   un fondo más claro o más movido, borrar el centro deja la mitad
+   del encuadre sin trama y el dibujo parece incompleto.
+
+   El valor por defecto es el de siempre: quien no lo toque ve
+   exactamente lo que veía. */
 .ft__reticula {
+  --ft-reticula-velo: 0.15;
+
   z-index: 2;
 
   background-image:
@@ -123,13 +155,13 @@
 
   -webkit-mask-image: radial-gradient(
     75% 120% at 50% 45%,
-    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, var(--ft-reticula-velo)) 0%,
     rgba(0, 0, 0, 0.85) 60%,
     #000 100%
   );
   mask-image: radial-gradient(
     75% 120% at 50% 45%,
-    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, var(--ft-reticula-velo)) 0%,
     rgba(0, 0, 0, 0.85) 60%,
     #000 100%
   );

@@ -1,9 +1,10 @@
 import "./LatestProjects.css";
 import Rotulo from "../rotulo/Rotulo";
+import TextoArena from "../textoArena/TextoArena";
 import BucleVideo from "../bucleVideo/BucleVideo";
 import { Link, useNavigate } from "react-router-dom";
 import LightDust from "../lightDust/LightDust";
-import FondoTrama from "../fondoTrama/FondoTrama";
+import FondoNuevo from "../fondoNuevo/FondoNuevo";
 import trabajos from "../../data/trabajos";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import { useEffect, useRef, useState } from "react";
@@ -38,9 +39,38 @@ const MAX_PROYECTOS = 5;
      { src: ".../cristal.mov",  type: "video/quicktime" }, // Safari
      { src: ".../cristal.webm", type: "video/webm" },      // Chrome
    y el mp4 se queda el último como plan universal. */
-const CRISTAL_IMG = "/img/work/cristal.png";
+/* .webp: el mismo póster a un octavo del peso (324K → 40K). Es
+   la primera imagen que pide la portada después del hero, así que
+   su tamaño sí se nota en el LCP. El .png original sigue al lado. */
+const CRISTAL_IMG = "/img/work/cristal.webp";
 
+/* ---- LOS DOS FORMATOS, Y POR QUÉ EN ESTE ORDEN ----
+   Faltaba el .mov y por eso el cristal no giraba en Safari. Los
+   dos archivos estaban puestos en public/videos/work/ desde el
+   principio; lo que faltaba era declarar el primero.
+
+   No hay un formato que sirva para todos, y no es un capricho de
+   compresión sino de canal alfa:
+
+     cristal.mov    HEVC con alfa  → Safari e iOS
+     cristal.webm   VP9 con alfa   → Chrome, Firefox, Edge
+
+   Safari no lee alfa en webm: recibía el único formato que había,
+   no sabía qué hacer con él y se quedaba en el póster — un cristal
+   congelado, que es exactamente el síntoma.
+
+   El .mov va PRIMERO porque el navegador se queda con la primera
+   fuente que dice saber reproducir. Chrome responde "" a
+   `video/quicktime` y salta limpiamente a la siguiente; Safari lo
+   coge y ya no mira el webm. Mismo orden y mismo motivo que la
+   ostra del hero (ver HeroVideo.jsx), que es la referencia que ya
+   funcionaba en los dos.
+
+   ⚠️ El .mov tiene que salir TAL CUAL del codificador de Apple: si
+   se remultiplexa a .mp4, Safari lo acepta pero pierde el alfa.
+   Está explicado en public/videos/work/LEEME.md. */
 const CRISTAL_SOURCES = [
+  { src: "/videos/work/cristal.mov", type: "video/quicktime" },
   { src: "/videos/work/cristal.webm", type: "video/webm" },
 ];
 
@@ -317,10 +347,19 @@ function LatestProjects() {
         </svg>
       </div>
 
-      {/* trama tecnológica, misma variante que "Qué hacemos": sin
-          degradado propio, para que el color venga de la sección y
-          las dos se lean como un bloque continuo. */}
-      <FondoTrama className="latest-projects__trama ft--sin-base" />
+      {/* ---- EL FONDO ----
+          El mismo que el hero y "Qué hacemos". Sustituye a la
+          trama suelta que había aquí: FondoNuevo la monta por
+          dentro, sobre su degradado que gira.
+
+          `enPausa` colgado de `landed`, el observador que la
+          sección ya usaba para su propia entrada: la llegada del
+          fondo se dispara al alcanzarla scrolleando, no al cargar
+          la página con la sección aún fuera de pantalla. */}
+      <FondoNuevo
+        className="latest-projects__fondo fn--onda-arriba"
+        enPausa={!landed}
+      />
 
       {/* polvo de luz: el mismo aire que hero y HowWeWork */}
       <LightDust />
@@ -331,15 +370,19 @@ function LatestProjects() {
           <div className="latest-projects__intro-text">
             <Rotulo className="latest-projects__eyebrow">Nuestros trabajos</Rotulo>
 
-            <h2 className="latest-projects__title">
-              Nuestros últimos{" "}
-              <span>{proyectos.length} proyectos</span>
-            </h2>
+            <TextoArena>
+              <h2 className="latest-projects__title">
+                Nuestros últimos{" "}
+                <span>{proyectos.length} proyectos</span>
+              </h2>
+            </TextoArena>
 
-            <p className="latest-projects__description">
-              Transformamos ideas en soluciones reales. Así ayudamos a marcas
-              y empresas a crecer con IA, automatización y creatividad.
-            </p>
+            <TextoArena>
+              <p className="latest-projects__description">
+                Transformamos ideas en soluciones reales. Así ayudamos a marcas
+                y empresas a crecer con IA, automatización y creatividad.
+              </p>
+            </TextoArena>
 
             {/* la ruta real de App.jsx: /works → WorksPage */}
             <Link
@@ -406,7 +449,27 @@ function LatestProjects() {
               <BucleVideo
                 sources={CRISTAL_SOURCES}
                 poster={CRISTAL_IMG}
-                onError={() => setSinVideo(true)}
+                /* ---- SOLO SE RINDE SI FALLA EL <video>, NO UN <source> ----
+                   Esta comprobación no es una precaución teórica: sin
+                   ella, añadir el .mov para Safari APAGABA el cristal en
+                   Chrome, que es justo lo contrario de lo que se venía a
+                   arreglar.
+
+                   El motivo es que hay dos errores distintos con el
+                   mismo nombre. Cuando el navegador descarta UNA fuente
+                   que no sabe leer —Chrome con el .mov— dispara `error`
+                   en ese <source>, y es un trámite normal: sigue
+                   probando la siguiente. Solo cuando se le acaban las
+                   fuentes dispara `error` en el <video>, y ese sí
+                   significa "no hay vídeo".
+
+                   React los mezcla: como `error` no burbujea, escucha en
+                   la raíz y luego simula el burbujeo, así que el fallo
+                   de un <source> acaba llamando al onError del <video>.
+                   Mirando el elemento que falló se distinguen. */
+                onError={(e) => {
+                  if (e.target.tagName === "VIDEO") setSinVideo(true);
+                }}
               />
             ) : (
               <img

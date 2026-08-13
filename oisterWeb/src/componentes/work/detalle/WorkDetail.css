@@ -16,9 +16,24 @@
    ============================================================ */
 
 .wd {
-  /* superficies */
-  --wd-superficie: rgba(20, 12, 40, 0.55);
-  --wd-superficie-alta: rgba(30, 18, 55, 0.7);
+  /* ---- SUPERFICIES ----
+     Translúcidas a propósito: dejan intuir el fondo y por eso las
+     tarjetas no se leen como recortes pegados encima.
+
+     Pero el alfa NO es libre: se calibra contra el fondo que hay
+     detrás. Estaban en 0.55 / 0.70, medidas contra una escena
+     antigua que era casi negra. Al pasar el fondo a la nube —que
+     va a la luz del home, bastante más clara— ese 0.55 dejaba
+     pasar demasiada nube: las cajas se lavaban, y la que más se
+     notaba era la banda del CTA (es la más ancha y la que menos
+     texto lleva, así que casi todo su interior era fondo).
+
+     0.82 / 0.90 devuelve el contraste sin cerrarlas del todo: la
+     nube se sigue intuyendo por dentro y se distingue el borde.
+     Si algún día se cambia LUZ_DEL_FONDO en WorkDetailPage.jsx,
+     estos dos números hay que volver a mirarlos: van juntos. */
+  --wd-superficie: rgba(17, 10, 34, 0.82);
+  --wd-superficie-alta: rgba(26, 15, 48, 0.9);
   --wd-borde: rgba(160, 120, 255, 0.18);
   --wd-borde-activo: rgba(217, 70, 239, 0.6);
 
@@ -180,6 +195,20 @@
   text-align: center;
 }
 
+/* ---- EL ENLACE DE VOLVER SE APOYA EN EL FONDO, Y ESO IMPORTA ----
+   Casi todo lo del detalle vive dentro de una tarjeta con su
+   superficie detrás. El hero no: el enlace de volver, el titular
+   y la píldora de categoría se pintan DIRECTAMENTE sobre el
+   fondo. Mientras el fondo fue una escena casi negra bastaba un
+   texto tenue; con la nube —que va a la luz del home— ese texto
+   de 11px al 70% de opacidad se perdía sobre las zonas claras:
+   estaba, pero no se leía.
+
+   Se resuelve como la píldora de categoría, que tiene el mismo
+   problema y ya lo tenía resuelto: su propia superficie debajo.
+   Así el enlace se lee igual de bien caiga sobre una parte
+   oscura de la nube o sobre una iluminada, sin depender de por
+   dónde ande la nube en ese momento. */
 .wd-hero__volver {
   /* flex de bloque con ancho ajustado y `margin-right: auto`:
      así ocupa su propia línea y se alinea a la IZQUIERDA aunque
@@ -192,6 +221,12 @@
   gap: 0.45rem;
 
   margin: 0 auto 28px 0;
+  padding: 0.42rem 0.9rem;
+
+  border: 1px solid var(--wd-borde);
+  border-radius: 999px;
+
+  background: var(--wd-superficie);
 
   font-family: var(--wd-mono);
   font-size: 11px;
@@ -200,16 +235,20 @@
   text-transform: uppercase;
   text-decoration: none;
 
-  color: var(--wd-texto-suave);
+  /* a plena fuerza y no --wd-texto-suave: es el único camino de
+     vuelta de la página, no un pie de foto */
+  color: var(--wd-texto);
 
   transition:
     gap 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
-    color 0.25s ease;
+    border-color 0.25s ease,
+    background-color 0.25s ease;
 }
 
 .wd-hero__volver:hover {
   gap: 0.75rem;
-  color: var(--wd-texto);
+  border-color: var(--wd-borde-activo);
+  background: var(--wd-superficie-alta);
 }
 
 .wd-hero__volver svg {

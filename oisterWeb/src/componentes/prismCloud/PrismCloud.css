@@ -1,0 +1,32 @@
+/* ============================================================
+   PRISM CLOUD — la capa de fondo
+
+   El canvas llena su contenedor y nada más: todo lo que se ve
+   lo pinta el shader (ver PrismCloud.jsx). Aquí solo vive la
+   caja y el respaldo para cuando no hay WebGL.
+   ============================================================ */
+
+.prism-cloud {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  /* el color de arranque mientras el shader compila y pinta su
+     primer fotograma: el mismo --color-bg del sitio, así que el
+     salto es invisible */
+  background: var(--color-bg, #372550);
+}
+
+/* ---- SIN WEBGL ----
+   GPU en lista negra, aceleración desactivada o WebGL bloqueado
+   por privacidad. No se intenta imitar la nube con CSS —sería
+   otra cosa peor disfrazada de la misma—: se pone el MISMO
+   degradado de fondo del home, que es de donde sale la paleta
+   del shader. Queda un fondo correcto, sin nube. */
+.prism-cloud.is-sin-webgl {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(233, 124, 199, 0.23), transparent 45%),
+    radial-gradient(circle at 88% 22%, rgba(150, 100, 250, 0.23), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(224, 112, 190, 0.14), transparent 55%),
+    linear-gradient(135deg, #37254f 0%, #402b5f 50%, #4b3172 100%);
+}

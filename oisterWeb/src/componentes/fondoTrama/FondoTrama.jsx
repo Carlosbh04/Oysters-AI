@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 import "./FondoTrama.css";
 
 /* ============================================================
@@ -106,6 +106,20 @@ function Hexagono({ className }) {
    pantalla. Se puede apagar para usos donde el fondo ya está a la
    vista desde el principio y la animación no aportaría. */
 function FondoTrama({ className = "", animar = true }) {
+  /* ---- LOS FILTROS NECESITAN UN ID ÚNICO POR INSTANCIA ----
+     Iban fijos ("ft-difuso"), y con una sola copia en la página
+     funcionaba. Al montar el fondo en varias secciones a la vez
+     eso se rompe: quedan varios elementos con el MISMO id, y
+     `url(#id)` resuelve siempre al primero del documento. Todas
+     las copias acabarían usando el filtro de la primera y, si esa
+     se desmontara, las demás se quedarían sin él.
+
+     useId da un identificador estable y distinto por instancia,
+     igual en servidor y en cliente. */
+  const uid = useId().replace(/:/g, "");
+  const difuso = `ft-difuso-${uid}`;
+  const difusoSuave = `ft-difuso-suave-${uid}`;
+
   const raizRef = useRef(null);
 
   /* dos estados, porque son dos cosas distintas:
@@ -182,10 +196,10 @@ function FondoTrama({ className = "", animar = true }) {
           visualmente pese a ser solo cuatro paths. */}
       <svg className="ft__cintas" viewBox="0 0 2400 750" preserveAspectRatio="none">
         <defs>
-          <filter id="ft-difuso" x="-20%" y="-40%" width="140%" height="180%">
+          <filter id={difuso} x="-20%" y="-40%" width="140%" height="180%">
             <feGaussianBlur stdDeviation="34" />
           </filter>
-          <filter id="ft-difuso-suave" x="-20%" y="-40%" width="140%" height="180%">
+          <filter id={difusoSuave} x="-20%" y="-40%" width="140%" height="180%">
             <feGaussianBlur stdDeviation="52" />
           </filter>
         </defs>
@@ -193,11 +207,11 @@ function FondoTrama({ className = "", animar = true }) {
         {/* Sobre la base morada oscura el blanco puro se leía como
             un brochazo de tiza. Tintadas de lila, la luz parece
             del propio ambiente y no una capa pegada encima. */}
-        <g fill="none" strokeLinecap="round" filter="url(#ft-difuso)">
+        <g fill="none" strokeLinecap="round" filter={`url(#${difuso})`}>
           <path d="M-60,300 C420,250 900,120 1500,52" stroke="rgba(214,180,255,.26)" strokeWidth="46" />
           <path d="M-60,430 C480,400 1020,250 1720,140" stroke="rgba(214,180,255,.16)" strokeWidth="30" />
         </g>
-        <g fill="none" strokeLinecap="round" filter="url(#ft-difuso-suave)">
+        <g fill="none" strokeLinecap="round" filter={`url(#${difusoSuave})`}>
           <path d="M-40,360 C520,330 1080,190 1780,88" stroke="rgba(198,160,255,.18)" strokeWidth="96" />
           <path d="M980,742 C1300,690 1560,600 2000,470" stroke="rgba(198,160,255,.15)" strokeWidth="66" />
         </g>

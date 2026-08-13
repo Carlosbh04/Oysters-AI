@@ -46,7 +46,10 @@ const catalogo = [
       "Creatividades para canales corporativos",
     ],
 
-    imagenes: ["/img/acciona/halloween.png", "/img/acciona/ganzo.png"],
+    /* .webp y no .png: mismos renders, recodificados (1,6MB+1,4MB
+       → 56K+62K). Los .png originales siguen en public/img/acciona
+       por si hay que reexportar. */
+    imagenes: ["/img/acciona/halloween.webp", "/img/acciona/ganzo.webp"],
 
     videos: [
       "/videos/acciona/Acciona-fantasma_c-1_2.mp4",

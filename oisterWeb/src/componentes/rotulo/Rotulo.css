@@ -25,7 +25,24 @@
   margin: 0 0 1.4rem;
 
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 13.5px;
+
+  /* ---- DE 13,5px A 16px ----
+     El encargo era que el rótulo "se notara". Medido antes de
+     tocar nada, el contraste NO era el problema: 5,7:1 en casos
+     de uso, 5,8 en nosotros, 5,7 en trabajos y 6,3 en qué
+     hacemos — todos pasan AA con holgura y se leen bien.
+
+     Lo que le faltaba era PESO. Encima de un titular de 3rem,
+     una línea de 13,5px no pierde por color sino por tamaño: hay
+     un salto de más de 3 veces entre los dos y el ojo va directo
+     al grande. A 16px el salto baja a 2,6 y el rótulo entra en
+     la jerarquía en vez de quedar debajo de ella.
+
+     Va por variable porque el PIE usa este mismo componente para
+     las cabeceras de sus columnas, y allí 16px las pondría a
+     competir con los enlaces que encabezan. El pie se queda en
+     su cuerpo de siempre (ver .pie__titulo en Footer.css). */
+  font-size: var(--rotulo-cuerpo, 16px);
   font-weight: 700;
 
   /* 0.2em: el espaciado ancho es lo que convierte una línea de
@@ -38,7 +55,47 @@
 
   /* --rotulo-color lo pone quien lo usa, en un ancestro. Así no
      hace falta una regla por sitio compitiendo con esta. */
-  color: var(--rotulo-color, var(--color-rotulo, #f0abfc));
+  color: var(--rotulo-color, var(--color-rotulo, #f7ccff));
+
+  /* ---- EL HALO: AHORA OSCURO, Y ESA ES TODA LA HISTORIA ----
+     Esto era un resplandor MAGENTA
+     (`0 0 14px rgb(magenta / .35)`), pensado para despegar la
+     letra del violeta oscuro que había antes detrás. Con el
+     fondo nuevo dejó de funcionar por lo más simple: un halo
+     de color CLARO sobre un fondo CLARO añade luz, no separa.
+     El rótulo se quedaba flotando en su propio tono.
+
+     Cambiado a una sombra oscura en dos capas —una corta que
+     dibuja el filo y otra abierta que apaga el fondo alrededor—,
+     la misma receta que llevan los titulares en degradado del
+     home. Y es lo que permite lo importante: que el COLOR pueda
+     volver a ser rosa vivo en vez de tener que acercarse al
+     blanco para poder leerse.
+
+     ⚠️ EL AVISO DE SIEMPRE SIGUE EN PIE: en UseCases.css está
+     escrito que este rótulo va "sin caja, sin sombra y sin
+     movimiento", porque hubo una versión en píldora con
+     resplandor y punto pulsante que se descartó por parecer
+     hecha con plantilla. Esto no la contradice: una sombra
+     OSCURA no se lee como brillo, se lee como que la letra está
+     encima de algo. Lo que se descartó era el neón, y sigue
+     descartado.
+
+     Se apaga con `--rotulo-halo: none` en un sitio o en :root, y
+     desaparece de las cuatro secciones a la vez. */
+  /* Tres capas y no dos. La del medio, de radio corto (5px), es
+     la que de verdad cuenta a este cuerpo de letra: en 16px con
+     0.2em de interletrado, el hueco ENTRE caracteres es tan
+     estrecho que una sombra de 14px lo cruza entera y apenas lo
+     oscurece. Medido en "Nuestros trabajos" con dos capas: 4,35
+     contra los 4,5 que pide un texto de este tamaño — un roce.
+     La capa corta cierra ese hueco sin engordar el halo. */
+  text-shadow: var(
+    --rotulo-halo,
+    0 1px 2px rgba(16, 7, 30, 0.95),
+    0 0 5px rgba(16, 7, 30, 0.9),
+    0 0 15px rgba(16, 7, 30, 0.85)
+  );
 }
 
 /* El icono va en su color, distinto del texto: en el pie las
@@ -58,10 +115,15 @@
 
 /* El filete. 3px y no 2px: a un píxel lógico le pasa lo mismo
    que a la letra fina, se va en antialias y no llega a su color.
-   Un poco más corto y más grueso pesa más sin ocupar más sitio. */
+   Un poco más corto y más grueso pesa más sin ocupar más sitio.
+
+   Crece con la letra (32x3 -> 40x4): es la pieza que anuncia el
+   rótulo antes de que se lea ninguna palabra, y dejarla igual
+   mientras el texto sube un 19% la habría dejado de acompañante
+   a apéndice. */
 .rotulo i {
-  width: 32px;
-  height: 3px;
+  width: 40px;
+  height: 4px;
   flex: 0 0 auto;
 
   border-radius: 2px;
@@ -78,11 +140,16 @@
 @media (max-width: 600px) {
   .rotulo {
     gap: 11px;
-    font-size: 12.5px;
+
+    /* mismo reparto que arriba: el fallback baja para el móvil,
+       pero quien haya fijado --rotulo-cuerpo (el pie) sigue
+       mandando. Si aquí fuera un `font-size: 14px` pelado, se
+       comería ese ajuste. */
+    font-size: var(--rotulo-cuerpo, 14px);
     letter-spacing: 0.16em;
   }
 
   .rotulo i {
-    width: 24px;
+    width: 30px;
   }
 }

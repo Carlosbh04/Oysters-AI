@@ -1,0 +1,48 @@
+/* ============================================================
+   LA LUZ QUE RECORRE EL ANILLO
+
+   Solo la pinta. El recorrido lo lleva el JS (LuzAnillo.jsx).
+   ============================================================ */
+
+/* Encima de los hilos —que ya van encima de las tarjetas— porque
+   la luz tiene que verse llegar hasta el remache del borde. Y sin
+   `pointer-events`: es una capa a todo lo ancho del mapa y no
+   puede robar el cursor a las tarjetas que tiene debajo. */
+.luz-anillo {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  pointer-events: none;
+
+  overflow: visible;
+}
+
+/* ---- DOS CÍRCULOS Y NO UNO ----
+   El núcleo pequeño y casi blanco es lo que se lee como "una luz";
+   el halo grande y transparente es lo que la hace brillar. Con un
+   solo círculo hay que elegir: pequeño y duro (se lee como un
+   punto pintado) o grande y difuso (se lee como una mancha). */
+.luz-anillo__nucleo {
+  fill: #fff;
+
+  /* el resplandor de verdad. En dos radios: el corto le da filo al
+     punto y el largo lo funde con el aro por el que viaja */
+  filter:
+    drop-shadow(0 0 4px rgb(var(--rgb-magenta, 232 121 249) / 0.95))
+    drop-shadow(0 0 12px rgb(var(--rgb-magenta, 232 121 249) / 0.7));
+}
+
+.luz-anillo__halo {
+  fill: rgb(var(--rgb-magenta, 232 121 249) / 0.22);
+}
+
+/* Con movimiento reducido el componente ni siquiera arranca su
+   bucle (lo comprueba el JS), así que la luz se quedaría clavada
+   en un punto del aro. Mejor no enseñarla: un punto suelto sin
+   explicación se lee como un fallo de pintado. */
+@media (prefers-reduced-motion: reduce) {
+  .luz-anillo {
+    display: none;
+  }
+}

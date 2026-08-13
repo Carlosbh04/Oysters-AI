@@ -1,0 +1,1536 @@
+/* ============================================================
+   INTELIGENCIA QUE IMPULSA RESULTADOS
+
+   ---- POR QUÉ ESTA HOJA NO USA LOS TOKENS DEL SITIO ----
+   El sitio es oscuro y esta maquetación es CLARA. Si tirara de
+   --color-text, --surface y compañía, cada uno traería su valor
+   de tema oscuro y habría que pelear con cada uno. Así que el
+   bloque define su propia paleta en .iia y de ahí no sale nada:
+   se puede pegar en cualquier página, clara u oscura, sin que la
+   de fuera se le cuele.
+
+   Los únicos valores que se comparten con el resto del sitio son
+   los morados de marca, y van escritos aquí a propósito — son
+   los de la referencia, que no coinciden exactamente con los
+   tokens del tema oscuro.
+   ============================================================ */
+
+.iia {
+  /* ---- EL FONDO ES UNA SOLA LÍNEA ----
+     Va a ser un rosado que se está preparando aparte. Mientras
+     tanto, este gris casi blanco. NO hay ningún otro color de
+     fondo escrito en la hoja: cambiar esta variable cambia la
+     página entera. */
+  --iia-fondo: #faf8fd;
+
+  --iia-tinta: #1b1130;
+  --iia-tinta-media: #55496b;
+  --iia-tinta-suave: #6f6486;
+
+  --iia-morado: #7c3aed;
+  --iia-morado-claro: #a855f7;
+  --iia-enlace: #6d3fd1;
+
+  --iia-tarjeta: #ffffff;
+  --iia-filo: #ece7f6;
+  --iia-filo-fuerte: #ddd4ee;
+
+  --iia-sombra: 0 18px 50px rgba(46, 22, 88, 0.07);
+  --iia-radio: 22px;
+
+  /* la medida de la maquetación: todo lo de dentro se alinea
+     contra este ancho */
+  --iia-ancho: 1180px;
+
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2.5rem)
+    clamp(3rem, 7vw, 5rem);
+
+  background: var(--iia-fondo);
+  color: var(--iia-tinta);
+
+  font-family: inherit;
+}
+
+.iia section {
+  width: min(var(--iia-ancho), 100%);
+  margin-inline: auto;
+}
+
+/* ============================================================
+   BLOQUE 1 — COMBINAMOS
+   ============================================================ */
+
+/* ============================================================
+   BLOQUE 1 — DOS COLUMNAS, Y LA IZQUIERDA ES UN SITIO RESERVADO
+
+   ---- QUÉ VA DÓNDE ----
+   Izquierda: la ESFERA con la ostra y la estatua. No está en este
+   componente —llega aparte, igual que el fondo—, pero su sitio se
+   guarda aquí: es lo que permite juzgar la composición de verdad
+   en vez de una versión provisional que luego habría que rehacer.
+
+   ⚠️ Que se vea vacía mientras tanto NO es un fallo ni un hueco
+   que haya que rellenar estirando el contenido. Se probó a llevar
+   el bloque a todo el ancho para "aprovechar" ese espacio y fue
+   un error: cuando entre la esfera no habría dónde ponerla.
+
+   Derecha: el texto y, DEBAJO, el vídeo. Apilados y no uno al
+   lado del otro — repartir esa columna entre los dos los apretaba
+   a ambos.
+   ============================================================ */
+.iia__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
+  align-items: start;
+
+  /* el hueco entre el texto y el vídeo (fila) es mayor que el
+     lateral: son dos piezas distintas, no dos párrafos */
+  gap: clamp(2rem, 4.5vh, 3.5rem) clamp(1.75rem, 4vw, 3.25rem);
+}
+
+/* las dos piezas, apiladas en la columna de la derecha */
+.iia__intro-texto,
+.iia__marco {
+  grid-column: 2;
+}
+
+/* ---- LO QUE OCUPA LA COLUMNA RESERVADA ----
+   Se estira a las dos filas —texto y vídeo— porque lo que va aquí
+   es una pieza alta: en la home, la pista donde aterriza la ostra
+   del hero, que además se pega y se desliza por ella.
+
+   ---- `span 2` Y NO `1 / -1` ----
+   Lo natural sería `grid-row: 1 / -1`, "de la primera línea a la
+   última". No vale aquí: el -1 se refiere al final de la rejilla
+   EXPLÍCITA, y esta no declara filas —las dos que hay las crea el
+   navegador sobre la marcha—. Con filas implícitas, `-1` acaba
+   resolviéndose a la primera línea y la celda se queda en una sola
+   fila.
+
+   Se veía así: la columna medía 420px en vez de 895, o sea lo
+   mismo que la esfera, y el deslizamiento no tenía por dónde
+   ocurrir — la ostra se anclaba nada más aterrizar. */
+.iia__pista {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+
+  position: relative;
+  align-self: stretch;
+}
+
+/* Aquí vivía `.iia__rotulo`, el "03 · Inteligencia que impulsa
+   resultados" con su filete morado. Se fue con él.
+
+   ⚠️ No confundir con `.iia__rotulo-centro`, más abajo: ese es el
+   "¿CÓMO LO HACEMOS?" del segundo bloque y sigue en pie. */
+
+/* ---- EL TITULAR ----
+   Baja de tope: 2,85rem → 2,55rem (de 45,6 a 40,8px a 1440). En
+   una columna de ~530px, tres líneas a 45px llenaban la caja de
+   borde a borde y el bloque se leía apelmazado; con 40 sobra un
+   poco de aire al final de cada línea, que es lo que las separa
+   unas de otras.
+
+   ---- Y SE ESTIRA, QUE ES OTRA COSA QUE EL TAMAÑO ----
+   El cuerpo se queda donde está (40,8px): el problema no era que
+   fuese pequeño sino que las tres líneas iban una encima de otra.
+   Con la interlínea en 1,16 —116% del cuerpo, o sea 47px para una
+   letra de 41— apenas quedaba aire entre renglones y el titular se
+   leía como un bloque macizo, tres pedazos pegados.
+
+   Sube a 1,34 (55px). Son 24px más de alto en total, que es
+   justamente lo que hace que se lea como tres líneas y no como una
+   masa.
+
+   El interletrado pasa de -0,015em a cero, y eso alarga las líneas
+   HORIZONTALMENTE: cada palabra ocupa lo suyo en vez de ir
+   comprimida. Los apretados negativos son para titulares de una
+   línea; aquí solo estrujaban. */
+.iia__titulo {
+  margin: 0 0 1.75rem;
+
+  font-size: clamp(1.8rem, 1.05rem + 2vw, 2.55rem);
+  font-weight: 700;
+  line-height: 1.34;
+  letter-spacing: 0;
+
+  color: var(--iia-tinta);
+}
+
+/* ---- SOLO LAS LÍNEAS SON BLOQUE ----
+   Antes la regla era `.iia__titulo span`, o sea TODOS los spans de
+   dentro: eso metía también al acento en su propia línea y era lo
+   que obligaba al titular a tener tres.
+
+   Ahora el bloque lo llevan solo los envoltorios de línea, y el
+   acento queda en línea dentro del primero. Sigue siendo UN
+   titular —un solo <h1> con dos spans de presentación—, que es lo
+   que oye un lector de pantalla. */
+.iia__titulo,
+.iia__titulo-linea {
+  display: block;
+}
+
+.iia__titulo-acento {
+  color: var(--iia-morado);
+}
+
+/* medida de lectura: el párrafo largo es el que decide, y sin
+   tope se estiraría hasta el borde de la columna.
+
+   66ch y 15,5px, no 56 y 14,5: con el vídeo debajo, esta columna
+   pasa de ~530 a ~700px, y la medida corta dejaba el párrafo
+   flotando en su mitad izquierda. */
+.iia__parrafo {
+  margin: 0 0 1.35rem;
+
+  max-width: 66ch;
+
+  font-size: 15.5px;
+  line-height: 1.75;
+
+  color: var(--iia-tinta-media);
+}
+
+.iia__parrafo--fuerte {
+  margin-bottom: 0;
+  font-weight: 700;
+  color: var(--iia-tinta);
+}
+
+/* ---- EL HUECO DEL VÍDEO ----
+   16/9 declarado y no una altura: reserva el sitio exacto antes
+   de que haya nada dentro, así que el día que entre la pieza no
+   habrá salto de maquetación. */
+.iia__marco {
+  overflow: hidden;
+
+  border-radius: var(--iia-radio);
+
+  background: #0f1622;
+  box-shadow: 0 24px 60px rgba(46, 22, 88, 0.16);
+}
+
+/* el lienzo pasa a ser el ANCLA del vídeo y del botón grande, que
+   va encima */
+.iia__marco-lienzo {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  aspect-ratio: 16 / 9;
+
+  /* Un degradado, no un gris plano: el gris plano se lee como
+     "falta la imagen" y esto no es un error, es un hueco
+     reservado. */
+  background:
+    radial-gradient(
+      ellipse 70% 80% at 50% 40%,
+      rgba(126, 92, 200, 0.28),
+      transparent 70%
+    ),
+    linear-gradient(160deg, #2a2140 0%, #14192a 55%, #0f1622 100%);
+}
+
+/* ---- EL VÍDEO ----
+   `cover` y no `contain`: la pieza ya viene recortada a 16:9
+   (ver el LEEME de su carpeta), así que llena el marco exacto. Si
+   algún día entra una con otra proporción, `cover` la recorta —
+   preferible a dejar franjas negras dentro de una tarjeta con
+   esquinas redondeadas. */
+.iia__video {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  /* el vídeo entero es el botón de play/pausa */
+  cursor: pointer;
+}
+
+/* ---- EL BOTÓN GRANDE ----
+   Ya no es un adorno: es un <button> de verdad. Se le quitan los
+   estilos de botón del navegador y se queda con los de la maqueta.
+   `position: absolute` porque ahora tiene el vídeo debajo. */
+.iia__play {
+  position: absolute;
+  z-index: 1;
+
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  width: clamp(52px, 5vw, 68px);
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+
+  color: var(--iia-morado);
+}
+
+.iia__play svg {
+  width: 40%;
+  height: 40%;
+  /* el triángulo de play es visualmente pesado a la izquierda:
+     un pelín a la derecha y se lee centrado */
+  margin-left: 8%;
+}
+
+/* ---- LOS MANDOS ----
+   Antes eran iconos sueltos dentro de una barra decorativa. Ahora
+   cada uno es un botón, así que necesitan su propio reseteo: sin
+   él llegan con el fondo gris, el borde y el relleno que les pone
+   el navegador y la barra se descuadra. */
+.iia__mando {
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  color: inherit;
+
+  transition: color 0.2s ease;
+}
+
+.iia__mando:hover {
+  color: #fff;
+}
+
+.iia__mando:focus-visible,
+.iia__play:focus-visible,
+.iia__barra:focus-visible {
+  outline: 2px solid var(--iia-morado-claro);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.iia__mandos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 11px 16px;
+
+  background: #0b1018;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.iia__mando-icono {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.iia__tiempo {
+  flex: 0 0 auto;
+
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* ============================================================
+   LA BARRA DE AVANCE
+
+   Es un <input type="range"> disfrazado. La versión dibujada eran
+   dos <span> —el carril y el relleno—, y para hacerla funcionar
+   habría que añadirle a mano el arrastre, la pulsación en un punto
+   y el manejo por teclado. El input trae las tres cosas de fábrica
+   y además un lector de pantalla sabe qué es y cómo moverlo.
+
+   Lo único que hay que hacer es quitarle su aspecto de serie y
+   pintarle el de la maqueta.
+
+   ---- EL RELLENO VA EN EL FONDO, NO EN OTRO ELEMENTO ----
+   Un degradado con un corte duro en `--avance` (que publica el
+   JSX) hace de barra de progreso sin un segundo nodo que mantener
+   en su sitio. Firefox tiene `::-moz-range-progress` para esto,
+   pero WebKit no tiene equivalente: el degradado funciona en los
+   dos.
+   ============================================================ */
+.iia__barra {
+  -webkit-appearance: none;
+  appearance: none;
+
+  flex: 1 1 auto;
+  height: 3px;
+  margin: 0;
+
+  border-radius: 999px;
+  cursor: pointer;
+
+  background: linear-gradient(
+    90deg,
+    var(--iia-morado-claro) 0 var(--avance, 0%),
+    rgba(255, 255, 255, 0.22) var(--avance, 0%) 100%
+  );
+}
+
+/* el punto de la cabeza. Va por duplicado —una regla por motor—
+   porque estos pseudoelementos NO se pueden agrupar en una sola
+   lista de selectores: si el navegador no reconoce uno, descarta
+   la regla entera y se quedaría sin tirador en los dos. */
+.iia__barra::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 11px;
+  height: 11px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(124 58 237 / 0.35);
+
+  cursor: pointer;
+}
+
+.iia__barra::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(124 58 237 / 0.35);
+
+  cursor: pointer;
+}
+
+.iia__proposito {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
+
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.iia__proposito-mitad {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.15rem;
+
+  padding: clamp(1.5rem, 2.6vw, 2.1rem);
+
+  border: 1px solid var(--iia-filo);
+  border-radius: var(--iia-radio);
+
+  background: var(--iia-tarjeta);
+  box-shadow: var(--iia-sombra);
+}
+
+.iia__medallon {
+  display: grid;
+  place-items: center;
+
+  width: 48px;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: linear-gradient(140deg, #f3ecff, #e9defb);
+
+  color: var(--iia-morado);
+}
+
+.iia__medallon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.iia__proposito-mitad h2 {
+  margin: 0 0 0.45rem;
+
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+
+  color: var(--iia-tinta);
+}
+
+.iia__proposito-mitad p {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.65;
+
+  color: var(--iia-tinta-suave);
+}
+
+/* ============================================================
+   BLOQUE 3 — ¿CÓMO LO HACEMOS?
+   ============================================================ */
+
+.iia__metodo {
+  margin-top: clamp(3rem, 7vw, 5.5rem);
+  text-align: center;
+}
+
+.iia__rotulo-centro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  margin: 0 0 1rem;
+
+  /* Versalitas, como en la referencia. El interletrado sube a
+     .08em porque en caja alta las letras se tocan: el valor
+     que vale para minúsculas aprieta las mayúsculas.
+
+     De 11,5 a 13px: a 11,5 la línea quedaba por debajo del cuerpo
+     de un pie de foto y se leía como una nota al margen, no como
+     el rótulo que abre el bloque. */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  color: var(--iia-morado);
+}
+
+/* las guías a los lados del rótulo: una raya en degradado que
+   nace de la nada y muere en la flecha */
+.iia__rotulo-centro::before,
+.iia__rotulo-centro::after {
+  content: "";
+
+  width: clamp(40px, 8vw, 105px);
+  height: 1px;
+
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(124, 58, 237, 0.55)
+  );
+}
+
+.iia__rotulo-centro::after {
+  background: linear-gradient(to left, transparent, rgba(124, 58, 237, 0.55));
+}
+
+.iia__rotulo-flecha {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.iia__rotulo-flecha--der {
+  transform: rotate(180deg);
+}
+
+/* ---- UNA LÍNEA, NO TRES ----
+   Estaba en 22ch, o sea 427px de un contenedor de 1180, y la
+   frase se partía en tres líneas cortas: se leía como un
+   titular estrecho metido en una página ancha.
+
+   En la referencia ocupa el 72% del ancho de una tirada. Los
+   dos números de abajo salen de ahí:
+
+     · 55rem (880px) es el 74% de los 1180 del contenedor, el
+       sitio que necesitan los 74 caracteres de la frase;
+     · 1.4rem (22,4px) es el cuerpo al que esos 74 caracteres
+       caben justo en esos 880px. Más grande y vuelve a partir.
+
+   Los dos van juntos: tocar uno sin el otro devuelve el salto
+   de línea. Por debajo de ~1260px de ventana el contenedor
+   encoge y el titular pasa a dos líneas, que es lo correcto —
+   lo que no vale es partirlo teniendo sitio.
+
+   `balance` es para esas dos líneas de ventana estrecha: en una
+   sola no hace nada. */
+.iia__metodo-titulo {
+  margin: 0 auto 0.75rem;
+
+  max-width: min(100%, 55rem);
+
+  /* Sube de 1,4rem a 1,75rem de tope (22,4 → 28px a 1440). Es el
+     titular que abre el bloque más largo de la página —los cuatro
+     apartados y el anillo— y a 22px no pesaba más que el texto que
+     lleva debajo.
+
+     `text-wrap: balance` se queda: al crecer, la frase parte en dos
+     líneas y sin él la segunda se quedaba con dos palabras. */
+  font-size: clamp(1.3rem, 0.8rem + 1.5vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+
+  color: var(--iia-tinta);
+}
+
+/* La entradilla va MÁS ESTRECHA que el titular —53rem contra
+   55— y no al revés: así el bloque se cierra hacia abajo en
+   pirámide, que es como está en la referencia. Con la
+   entradilla más ancha que el titular, el conjunto se abre y
+   parece descuadrado.
+
+   Son dos líneas de ~120 caracteres, por encima del rango
+   cómodo de lectura (60-75). Es lo que pide la maquetación y
+   funciona porque es UNA frase de entrada centrada, no un
+   cuerpo de texto que haya que seguir párrafo a párrafo. */
+.iia__metodo-entrada {
+  margin: 0 auto clamp(2rem, 4vw, 3rem);
+
+  max-width: min(100%, 53rem);
+
+  /* 15px, no 13,5: es un párrafo de introducción centrado y a ancho
+     largo, y a 13,5 se leía como un pie. Sube con él la interlínea,
+     que en líneas largas es lo que evita que el ojo salte de renglón. */
+  font-size: 15px;
+  line-height: 1.72;
+  text-wrap: pretty;
+
+  color: var(--iia-tinta-suave);
+}
+
+.iia__metodo-entrada b {
+  font-weight: 600;
+  color: var(--iia-enlace);
+}
+
+/* ---- LA REJILLA DEL MAPA ----
+   Tres columnas: tarjetas, anillo, tarjetas. La del medio con
+   `minmax` y no fija — tiene que poder encogerse antes de que
+   las tarjetas se estrangulen, porque el anillo aguanta
+   cualquier tamaño y un párrafo no. */
+.iia__mapa {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.78fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1rem, 2vw, 1.75rem);
+
+  text-align: left;
+}
+
+.iia__columna {
+  display: grid;
+  gap: clamp(0.85rem, 1.6vw, 1.25rem);
+}
+
+/* ---- LOS HILOS VAN POR ENCIMA, NO POR DEBAJO ----
+   Estaban en z-index 0, debajo de las tarjetas, y eso escondía
+   justo lo que da sentido al dibujo: el punto de enganche se
+   calcula EN EL BORDE de la tarjeta (ver `medir` en el JSX), así
+   que la mitad de cada punto quedaba tapada por ella. El hilo
+   parecía morir contra la tarjeta en vez de engancharse a ella.
+
+   Subirlos es seguro porque las curvas no cruzan nada: nacen en el
+   borde interior de cada tarjeta y se van hacia el centro, por el
+   hueco vacío. Lo único que pasa a verse por encima son los cuatro
+   puntos y el tramo que aterriza en el aro — que es exactamente lo
+   que tiene que verse. */
+.iia__hilos {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  pointer-events: none;
+}
+
+.iia__hilos path {
+  fill: none;
+  stroke: rgba(124, 58, 237, 0.32);
+  stroke-width: 1.4;
+}
+
+.iia__hilos circle {
+  fill: #fff;
+  stroke: var(--iia-morado-claro);
+  stroke-width: 2;
+}
+
+/* ---- TARJETAS ---- */
+
+.iia__tarjeta {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95rem;
+
+  padding: clamp(1rem, 1.5vw, 1.3rem);
+
+  border: 1px solid var(--iia-filo);
+  border-radius: 18px;
+
+  /* recorta el barrido de luz que la cruza al llegar la luz del
+     anillo: sin esto, la banda se sale por los lados */
+  overflow: hidden;
+
+  background: var(--iia-tarjeta);
+  box-shadow: var(--iia-sombra);
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.iia__tarjeta:hover {
+  border-color: var(--iia-filo-fuerte);
+  box-shadow: 0 22px 55px rgba(46, 22, 88, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   EL BARRIDO QUE DEJA LA LUZ AL LLEGAR
+
+   Una banda de luz inclinada que cruza la tarjeta POR DENTRO. Es
+   el mismo recurso que usan las tarjetas de "Qué hacemos"
+   (ServiceCard.css) al pasar el ratón; aquí lo dispara la llegada
+   de la luz en vez del cursor.
+
+   ---- POR QUÉ ESTO Y NO LA ONDA QUE HABÍA ----
+   Antes salía un anillo desde el borde. Se leía como un aviso
+   —"algo ha tocado esta tarjeta"— y lo que se busca es otra cosa:
+   que la luz que viene por el hilo ENTRE en la tarjeta y la
+   recorra. Una banda que cruza el cristal cuenta eso; una onda que
+   sale del borde cuenta lo contrario, que algo rebota hacia fuera.
+
+   ---- LOS DOS DETALLES QUE LO HACEN CRISTAL ----
+     · `overflow: hidden` en la tarjeta: sin él la banda se ve
+       cruzando por fuera y el efecto se rompe. Va en la regla base
+       de .iia__tarjeta, no aquí.
+     · el `skewX`: una banda recta se lee como una persiana. La
+       inclinación es lo que la hace un reflejo.
+   ============================================================ */
+.iia__tarjeta::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 55%;
+  height: 100%;
+
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 42%,
+    rgba(255, 240, 252, 0.22) 55%,
+    transparent 100%
+  );
+
+  /* fuera de cuadro por la izquierda, esperando su turno */
+  transform: translateX(-110%) skewX(-18deg);
+  pointer-events: none;
+}
+
+/* La clase la pone y la quita el JS cuando LuzAnillo avisa. La
+   animación —y no una transición como en ServiceCard— porque aquí
+   no hay un estado que se mantenga: es un disparo suelto que tiene
+   que volver solo a su sitio.
+
+   ---- SE MUEVE CON `transform`, NO CON `left` ----
+   El barrido de ServiceCard mueve `left`, y aquí se hizo igual al
+   principio. Se cambió a `transform` porque es lo que corresponde:
+   mover una capa con `left` obliga al navegador a recolocarla en
+   cada fotograma, mientras que con `transform` se pinta una vez y
+   a partir de ahí solo se desplaza. En una tarjeta de cristal —con
+   `backdrop-filter` debajo— esa diferencia se nota.
+
+   Los porcentajes van sobre SU PROPIO ancho, no sobre el de la
+   tarjeta: la banda mide el 55% de la tarjeta, así que 182% de sí
+   misma es el ancho completo. De -110% a 200% la cruza entera con
+   margen por los dos lados. */
+.iia__tarjeta--pulso::after {
+  animation: iia-barrido 1.5s cubic-bezier(0.32, 0, 0.24, 1);
+}
+
+@keyframes iia-barrido {
+  from {
+    transform: translateX(-110%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(200%) skewX(-18deg);
+  }
+}
+
+/* ============================================================
+   LA TARJETA SE LEVANTA Y LAS DEMÁS SE APAGAN
+
+   El barrido solo dice "la luz ha entrado aquí". Esto dice "y
+   mientras, lo demás no importa": la tarjeta que recibe se
+   despega del plano y sus tres compañeras bajan de intensidad.
+   Es la diferencia entre un adorno y un foco.
+
+   ---- POR QUÉ UNA ANIMACIÓN Y NO UNA TRANSICIÓN ----
+   El movimiento no es simétrico: sube de golpe —el impacto— y baja
+   despacio, como algo que se posa. Una transición usa la misma
+   curva y la misma duración en los dos sentidos; para partirla en
+   tres tiempos (sube, se mantiene, baja) hacen falta keyframes.
+
+   El reparto: 18% subiendo, hasta el 45% arriba, y el 55% restante
+   bajando. O sea que la bajada dura tres veces lo que la subida.
+   ============================================================ */
+.iia__tarjeta--pulso {
+  animation: iia-alza 1.6s cubic-bezier(0.33, 0.8, 0.4, 1);
+
+  /* mientras dura, esta manda sobre las demás */
+  z-index: 2;
+}
+
+/* ---- SOLO `transform`, NADA DE SOMBRA ----
+   La primera versión también animaba `box-shadow` para reforzar el
+   despegue, y estaba mal: la sombra de la tarjeta depende del
+   fondo sobre el que se monte —la clara del componente o la de
+   cristal del banco, que además lleva un filo interior—. Al
+   animarla, los keyframes imponían la suya y la tarjeta perdía su
+   canto iluminado justo mientras es el centro de atención.
+
+   La elevación se lee igual de bien solo con el movimiento. */
+@keyframes iia-alza {
+  0% {
+    transform: translateY(0);
+  }
+
+  18% {
+    transform: translateY(-10px);
+  }
+
+  45% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* ---- Y LAS OTRAS TRES SE RETIRAN ----
+   La clase la lleva el CONTENEDOR, no cada tarjeta: así el CSS
+   puede decir "todas menos la encendida" con un `:not()` y no hay
+   que ir marcando y desmarcando tres nodos en cada llegada.
+
+   La transición es asimétrica: 0,35s para apagarse (aquí) y 0,7s
+   para volver (en la regla base de la tarjeta). Acompaña a la que
+   se levanta — si volvieran de golpe, su bajada lenta no se
+   notaría. */
+.iia__mapa--enfoque .iia__tarjeta:not(.iia__tarjeta--pulso) {
+  opacity: 0.42;
+  transition: opacity 0.35s ease;
+}
+
+/* con movimiento reducido no hay luz viajando, así que tampoco hay
+   nada que anunciar */
+@media (prefers-reduced-motion: reduce) {
+  .iia__tarjeta--pulso {
+    animation: none;
+  }
+
+  .iia__mapa--enfoque .iia__tarjeta:not(.iia__tarjeta--pulso) {
+    opacity: 1;
+  }
+}
+
+.iia__tarjeta-icono {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+
+  border: 1px solid #ece2fb;
+  border-radius: 12px;
+
+  background: linear-gradient(140deg, #f6f0ff, #efe6fd);
+
+  color: var(--iia-morado);
+}
+
+.iia__tarjeta-icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+.iia__tarjeta-cuerpo {
+  min-width: 0;
+}
+
+.iia__tarjeta h3 {
+  margin: 0 0 0.5rem;
+
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+
+  color: var(--iia-tinta);
+}
+
+.iia__tarjeta h3 span {
+  display: block;
+}
+
+.iia__tarjeta p {
+  margin: 0;
+
+  font-size: 12.2px;
+  line-height: 1.62;
+
+  color: var(--iia-tinta-suave);
+}
+
+/* los nombres de herramienta: van en <b> en el JSX y aquí se
+   pintan como enlace. No SON enlaces —no llevan href— y por eso
+   no llevan subrayado: el color los destaca como marcas citadas
+   sin prometer que se pueda pinchar en ellas */
+.iia__tarjeta p b {
+  font-weight: 500;
+  color: var(--iia-enlace);
+}
+
+/* ---- EL NÚCLEO ---- */
+
+.iia__nucleo {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  place-items: center;
+
+  /* cuadrado: el radio que miden los conectores sale de aquí */
+  aspect-ratio: 1;
+  width: 100%;
+}
+
+.iia__nucleo-brillo {
+  position: absolute;
+  inset: -14%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(168, 85, 247, 0.22) 0%,
+    rgba(196, 132, 252, 0.12) 42%,
+    transparent 70%
+  );
+
+  filter: blur(18px);
+}
+
+.iia__nucleo-aro {
+  position: absolute;
+  inset: 0;
+
+  border: 1px solid rgba(124, 58, 237, 0.16);
+  border-radius: 50%;
+}
+
+.iia__anillo {
+  position: relative;
+
+  width: 78%;
+  height: auto;
+
+  /* el render viene sobre transparente pero muy plano; la
+     sombra de color lo asienta sobre el fondo claro */
+  filter: drop-shadow(0 14px 34px rgba(109, 63, 209, 0.28));
+}
+
+/* ============================================================
+   AQUÍ IBA LA BANDA DE CIERRE
+
+   La franja morada con "IA y talento humano..." y sus dos
+   botones. Se quitó por encargo, y con ella .iia__cierre* y
+   toda la familia .iia__btn* —solo la usaba ella— más sus
+   reglas en los dos saltos de responsive.
+
+   Con esa banda se fue el ÚNICO degradado saturado de la
+   página. Si al ver el bloque de "¿Cómo lo hacemos?" cerrando
+   la página se echa en falta un remate, el sitio es este.
+   ============================================================ */
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* ---- SE ACABAN LAS CURVAS ----
+   1080px es la misma medida que lee el JS (matchMedia en
+   InteligenciaIA.jsx) para dejar de calcular los conectores. Van
+   escritas las dos porque son dos sistemas distintos: si se
+   cambia una sola, o quedan curvas dibujadas sobre una rejilla
+   apilada, o desaparecen antes de tiempo. */
+@media (max-width: 1079px) {
+  .iia__mapa {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* el anillo se va ARRIBA del todo y no al medio: en columna,
+     dejarlo entre la segunda y la tercera tarjeta partiría la
+     lista en dos por la mitad */
+  .iia__nucleo {
+    order: -1;
+
+    width: min(280px, 62%);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .iia__intro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* ---- Y HAY QUE SOLTARLOS DE LA COLUMNA 2 ----
+     Arriba van clavados a `grid-column: 2` para apilarse a la
+     derecha de la esfera. Aquí solo queda UNA columna, y una pieza
+     clavada a la segunda no cae en la primera: el navegador se
+     inventa una columna implícita para alojarla y el bloque acaba
+     con media pantalla vacía a la izquierda. */
+  .iia__intro-texto,
+  .iia__marco {
+    grid-column: auto;
+  }
+
+  /* el vídeo primero: es lo que engancha, y en columna el
+     titular tiene todo el ancho justo debajo */
+  .iia__marco {
+    order: -1;
+  }
+
+  .iia__parrafo {
+    max-width: none;
+  }
+
+  .iia__proposito {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.4rem;
+  }
+
+  /* en columna el filete pasa de vertical a horizontal */
+  .iia__proposito-mitad + .iia__proposito-mitad {
+    border-left: 0;
+    border-top: 1px solid var(--iia-filo);
+    padding-top: 1.4rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .iia__titulo span {
+    display: inline;
+  }
+
+  /* el cuerpo sube: 12,2px se lee bien en una tarjeta de
+     escritorio y mal en la mano */
+  .iia__tarjeta p,
+  .iia__proposito-mitad p {
+    font-size: 13.5px;
+  }
+
+  .iia__metodo-entrada,
+  .iia__parrafo {
+    font-size: 14px;
+  }
+}
+
+/* ---- MOVIMIENTO ----
+   Ya solo se mueve una cosa en toda la página: el realce de las
+   tarjetas al pasar por encima, 2px hacia arriba. Con motion
+   reducido se queda quieta y el realce lo hacen el filo y la
+   sombra, que no se tocan. */
+@media (prefers-reduced-motion: reduce) {
+  .iia__tarjeta {
+    transition: none;
+  }
+
+  .iia__tarjeta:hover {
+    transform: none;
+  }
+}
+
+
+/* ============================================================
+   VARIANTE `iia--sobre-fondo`: LA MAQUETACIÓN SOBRE FONDO OSCURO
+
+   Todo lo que cambia respecto a la versión clara está dentro de
+   esta clase: sin ella, el bloque es exactamente el de antes.
+   La usan el banco de pruebas y la página real, así que se toca
+   en un solo sitio.
+   ============================================================ */
+
+.iia--sobre-fondo {
+  /* fuera el gris de relleno: lo que se ve por debajo es el fondo
+     de la home */
+  background: transparent;
+}
+
+/* ---- Y TAMBIÉN EL DEL COMPONENTE ----
+   `.iia` pinta su propio `--iia-fondo` de pared a pared. Sin esta
+   línea el fondo de la home queda montado y tapado: se cargaría,
+   giraría y no se vería ni un píxel. */
+/* ---- TRANSPARENTE, Y POR ENCIMA DEL FONDO ----
+   Lo primero es lo obvio: quitar el gris de pared a pared para que
+   se vea lo que hay debajo.
+
+   Lo segundo NO es obvio y costó un rato encontrarlo: el bloque
+   tiene que POSICIONARSE. Los fondos con los que se monta van en
+   `position: absolute` con z-index, y un elemento posicionado se
+   pinta por encima de todo lo que NO lo está. Sin esta línea, el
+   fondo tapa el bloque entero y solo asoman las piezas que tienen
+   posición propia por su cuenta —el halo de la pista, la barra del
+   vídeo—, que es un síntoma de lo más desconcertante: parece que
+   falte contenido, no que esté detrás.
+
+   Va aquí y no en cada página que lo monte: las tres lo
+   necesitaban, y repetirlo era esperar a que la cuarta se
+   olvidara.
+
+   ---- POSICIÓN SÍ, Z-INDEX NO ----
+   Aquí había además un `z-index: 1`, y sobraba: los fondos van en
+   z-index 0 y el bloque viene DESPUÉS en el marcado, así que estando
+   posicionado ya se pinta encima sin número.
+
+   Y no solo sobraba: hacía daño. Un z-index sobre un elemento
+   posicionado abre un CONTEXTO DE APILAMIENTO, y dentro de él
+   ningún hijo puede subir por encima de lo que hay fuera —da igual
+   lo alto que sea su número—. Con él puesto, el vídeo a pantalla
+   completa y la cortina de píxeles (1300 y 1320) seguían quedando
+   POR DEBAJO de la píldora del header (1000): se veía el menú
+   flotando sobre la cortina cerrada. */
+.iia--sobre-fondo {
+  position: relative;
+
+  background: transparent;
+}
+
+/* ---- EL FONDO ACOMPAÑA AL SCROLL ----
+   `fixed` y no `absolute`: la página mide varias pantallas y el
+   fondo solo cubre una. Fijo al viewport, el degradado sigue
+   detrás del contenido hasta el final.
+
+   Es una excepción del banco, no del componente: FondoNuevo se
+   coloca en `absolute` contra su padre justamente para poder
+   reutilizarse dentro de secciones normales. */
+/* el contenido, por encima del fondo */
+/* ---- LA TINTA DE LO QUE CAE SOBRE EL FONDO ----
+   Y SOLO de eso. El resto de la página vive dentro de tarjetas
+   blancas —misión y visión, los cuatro apartados— y ahí la tinta
+   oscura sigue siendo la correcta: cambiar las variables del
+   componente en bloque dejaría el texto blanco sobre tarjeta
+   blanca, es decir, invisible.
+
+   Por eso esto va elemento a elemento y no a golpe de `--iia-tinta`. */
+.iia--sobre-fondo .iia__titulo,
+.iia--sobre-fondo .iia__parrafo--fuerte,
+.iia--sobre-fondo .iia__metodo-titulo {
+  color: var(--color-text, #f6f0ff);
+}
+
+/* ---- LA MISMA TRAMPA DEL ALFA, AQUÍ TAMBIÉN ----
+   Estos dos se quedaron en `rgba(..., .86)` cuando se arregló el
+   texto de las tarjetas, y por eso el bloque de "¿cómo lo
+   hacemos?" seguía sin notarse: medido, su párrafo daba 5,9 de
+   contraste local frente a los 10,8 del de las tarjetas. Lo mismo
+   que allí — color apagado elegido a propósito, alfa a tope. */
+/* ---- Y UN PASO MÁS DE LUZ ----
+   #ddd3f2 pasaba de "apagado a propósito" a apagado y punto: sobre
+   el degradado, un lila grisáceo se lee tenue aunque el contraste
+   dé el número. Sube a un lila casi blanco, que es lo que hace que
+   el párrafo se lea como texto y no como pie de foto. */
+.iia--sobre-fondo .iia__parrafo,
+.iia--sobre-fondo .iia__metodo-entrada {
+  color: #e8e0fb;
+}
+
+/* ============================================================
+   TODO LO QUE ESTABA DIBUJADO EN MORADO OSCURO
+
+   Esta es la parte que se me quedó corta al montar el fondo la
+   primera vez, y conviene entender el patrón para no repetirlo:
+   la maquetación es CLARA, así que sus trazos decorativos están
+   dibujados con el morado de marca a baja opacidad. Sobre blanco
+   eso es una línea sutil; sobre el fondo oscuro es morado sobre
+   morado, o sea NADA.
+
+   No basta con cambiar los textos: hay que repasar TODO lo que
+   dibuja —bordes, filetes, hilos, aros— porque cada uno se apaga
+   por el mismo motivo.
+   ============================================================ */
+
+/* el acento del titular. El lila (#c9a8ff) se quedaba corto sobre
+   el morado del fondo; el rosa de marca es el que sube de verdad,
+   y además es el mismo acento que usa el hero */
+.iia--sobre-fondo .iia__titulo-acento {
+  color: var(--color-magenta, #e879f9);
+}
+
+/* ---- EL RÓTULO USA SU PROPIO TOKEN ----
+   Iba en --color-secondary, el lila de apoyo. El proyecto tiene
+   un token creado EXACTAMENTE para este caso —versalitas
+   pequeñas sobre los fondos oscuros— con toda su historia escrita
+   en variables.css: el lila se lee pero no se NOTA, porque una
+   línea de 11,5px compite con un titular de 40px justo debajo.
+   --color-rotulo es un rosa que sí levanta la cabeza. */
+.iia--sobre-fondo .iia__rotulo-centro {
+  color: var(--color-rotulo, #ff9be8);
+}
+
+/* ---- LA NEGRITA NO PUEDE COPIAR A LA DE LAS TARJETAS ----
+   Primero le puse el mismo lila (--color-primary-light) que a los
+   nombres de herramienta, buscando que "destacado dentro de un
+   párrafo" significara lo mismo en toda la página. Medido, EMPEORÓ:
+   de 4,57 a 4,02.
+
+   El motivo es que no están en el mismo sitio. En las tarjetas el
+   lila cae sobre cristal OSCURO y destaca; aquí cae sobre el
+   degradado, que es morado medio — un lila sobre morado es el
+   mismo tono con otro nombre.
+
+   Así que lo que se copia es el CRITERIO, no el color: un tono que
+   destaque sobre lo que tenga detrás. Aquí eso es un rosa claro,
+   emparentado con el del rótulo de encima.
+
+   ---- Y TIENE QUE IR POR ENCIMA DEL PÁRRAFO, NO SOLO SER OTRO
+        COLOR ----
+   Con el párrafo en #e8e0fb, el rosa anterior (#f3c2ff) se quedaba
+   POR DEBAJO en luz: destacaba por tono pero se leía más flojo que
+   el texto que lo rodea, que es justo lo contrario de destacar.
+   Este sube por encima y además gana peso — un destacado dentro de
+   un párrafo se nota por las dos cosas a la vez, no por una. */
+.iia--sobre-fondo .iia__metodo-entrada b {
+  color: #ffcdf9;
+  font-weight: 700;
+}
+
+/* ---- LOS FILETES DEL RÓTULO "¿CÓMO LO HACEMOS?" ----
+   Son dos degradados que nacen del morado oscuro y mueren en
+   transparente: sobre el fondo no se veía ni el nacimiento. */
+.iia--sobre-fondo .iia__rotulo-centro::before,
+.iia--sobre-fondo .iia__rotulo-centro::after {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--rgb-secondary, 201 168 255) / 0),
+    rgb(var(--rgb-secondary, 201 168 255) / 0.55)
+  );
+}
+
+.iia--sobre-fondo .iia__rotulo-centro::after {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--rgb-secondary, 201 168 255) / 0.55),
+    rgb(var(--rgb-secondary, 201 168 255) / 0)
+  );
+}
+
+.iia--sobre-fondo .iia__rotulo-flecha {
+  color: rgb(var(--rgb-magenta, 232 121 249) / 0.9);
+}
+
+/* ---- LOS HILOS QUE VAN DE LAS TARJETAS AL ANILLO ----
+   Iban a rgba(124,58,237,.32) — el morado oscuro al 32%. Sobre el
+   fondo quedaban por debajo del propio degradado. */
+.iia--sobre-fondo .iia__hilos path {
+  stroke: rgb(var(--rgb-secondary, 201 168 255) / 0.55);
+}
+
+/* ---- LOS PUNTOS DE ENGANCHE ----
+   El relleno blanco ya se veía; lo que faltaba era que se leyeran
+   como un remache encendido y no como un punto pegado. El halo es
+   lo que los separa del canto de la tarjeta: sin él, un círculo
+   blanco sobre un borde claro se funde con el borde. */
+.iia--sobre-fondo .iia__hilos circle {
+  fill: #fff;
+  stroke: rgb(var(--rgb-magenta, 232 121 249) / 0.9);
+
+  filter: drop-shadow(0 0 5px rgb(var(--rgb-magenta, 232 121 249) / 0.85));
+}
+
+/* ---- EL ARO ALREDEDOR DEL ANILLO ----
+   1px de morado oscuro al 16%: sobre claro es un círculo apenas
+   insinuado, sobre oscuro no existe. */
+.iia--sobre-fondo .iia__nucleo-aro {
+  border-color: rgb(var(--rgb-secondary, 201 168 255) / 0.28);
+}
+
+/* ---- Y EL FILETE QUE PARTÍA LAS TARJETAS DE MISIÓN/VISIÓN ----
+   Ya no hace falta: ahora son dos tarjetas separadas. Se queda
+   apuntado por si alguien busca por qué no está. */
+
+/* ============================================================
+   LAS TARJETAS, EN CRISTAL
+
+   ---- POR QUÉ UNA TARJETA BLANCA NO VALE AQUÍ ----
+   Sobre el fondo claro original, blanco sobre blanco roto es una
+   superficie que apenas se despega. Sobre el fondo de la home es
+   otra cosa: seis rectángulos blancos macizos flotando sobre un
+   degradado morado, sin nada en común con él. Se leen como
+   recortes pegados encima, no como parte de la página.
+
+   El cristal resuelve eso porque deja pasar el color de debajo:
+   cada tarjeta se tiñe de la zona del degradado sobre la que cae,
+   así que las de arriba salen violetas y las de abajo rosadas —y
+   como el fondo GIRA, van cambiando con él—.
+
+   ---- CRISTAL OSCURO, NO CLARO. ESTE FUE EL ERROR ----
+   El primer intento tintaba el cristal de BLANCO (10% → 4%) para
+   que se leyera como vidrio iluminado. Con texto claro encima eso
+   es una contradicción: el velo blanco SUBE la luz de la
+   superficie y la letra clara se queda a la misma altura que su
+   fondo. Medido, el párrafo de las tarjetas se quedaba en 4,1 de
+   contraste local y el nombre de herramienta en 3,4 — se veían
+   lavadas, que es exactamente lo que se apreciaba.
+
+   El sitio ya tiene resuelto esto y la receta está en el pie
+   (Footer.css): tinte OSCURO al 86% + desenfoque. El cristal se
+   nota igual —sigue dejando pasar el color de debajo y el
+   desenfoque sigue ahí— pero baja la superficie en vez de
+   subirla, así que la letra clara despega.
+
+   ---- LOS INGREDIENTES, Y PARA QUÉ ES CADA UNO ----
+     · el `backdrop-filter` difumina lo que hay detrás. Sin él
+       esto no es cristal, es un panel translúcido: el circuito
+       del fondo se leería nítido a través del texto.
+     · el tinte va en DEGRADADO y no plano (78% → 66%): la
+       superficie tiene así una cara, con más cuerpo arriba. Un
+       velo uniforme se lee plano.
+     · el filo interior de arriba (`inset 0 1px 0`) es el canto
+       iluminado. Es el detalle que hace que parezca un cristal de
+       verdad y no un rectángulo con opacidad.
+   ============================================================ */
+
+.iia--sobre-fondo .iia__proposito-mitad,
+.iia--sobre-fondo .iia__tarjeta {
+  border-color: rgba(255, 255, 255, 0.14);
+
+  background: linear-gradient(
+    160deg,
+    rgba(16, 8, 32, 0.78),
+    rgba(16, 8, 32, 0.66)
+  );
+
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+
+  box-shadow:
+    0 20px 50px rgba(10, 4, 24, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.iia--sobre-fondo .iia__tarjeta:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    0 26px 60px rgba(10, 4, 24, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* ---- Y AHORA LA TINTA DE DENTRO ----
+   Esto NO es opcional ni un retoque: el texto de estas tarjetas
+   está en tinta oscura porque el fondo era blanco. Al volverlas
+   cristal, dejarlo así es dejarlo ilegible. Cada elemento que
+   vive dentro tiene que cambiar de lado. */
+.iia--sobre-fondo .iia__proposito-mitad h2,
+.iia--sobre-fondo .iia__tarjeta h3 {
+  color: var(--color-text, #f6f0ff);
+
+  /* la sombra corta despega la letra del cristal: sobre una
+     superficie translúcida el texto tiende a "hundirse" en lo que
+     se ve por debajo, y basta un píxel de sombra para que vuelva
+     a estar delante */
+  text-shadow: 0 1px 3px rgba(10, 4, 24, 0.55);
+}
+
+/* ---- Y LA TINTA, SIN ALFA ----
+   Iba a `rgba(..., .86)`. Un 14% de transparencia sobre un fondo
+   translúcido es transparencia sobre transparencia: la letra
+   dejaba pasar el cristal, que a su vez dejaba pasar el fondo. El
+   color apagado se elige DIRECTAMENTE, con el alfa a tope, y así
+   se sabe exactamente qué se está viendo. */
+.iia--sobre-fondo .iia__proposito-mitad p,
+.iia--sobre-fondo .iia__tarjeta p {
+  color: #ddd3f2;
+  text-shadow: 0 1px 2px rgba(10, 4, 24, 0.5);
+}
+
+/* los nombres de herramienta. Iban en el morado de enlace
+   (#6d3fd1): sobre cristal oscuro se apagaban hasta desaparecer */
+/* los nombres de herramienta eran los peor parados de todos
+   (3,4 de contraste). Suben al lila claro de marca, que es el
+   token pensado para texto sobre oscuro, y ganan medio punto de
+   peso: son nombres propios sueltos dentro del párrafo y hay que
+   distinguirlos sin que griten. */
+.iia--sobre-fondo .iia__tarjeta p b {
+  color: var(--color-primary-light, #b794ff);
+  font-weight: 600;
+}
+
+/* ---- LOS MEDALLONES Y LOS ICONOS ----
+   Eran discos de violeta CLARO con el icono en morado oscuro: la
+   receta exacta para desaparecer sobre cristal. Se invierten —caja
+   translúcida, icono claro— y se les deja su propio filo. */
+.iia--sobre-fondo .iia__medallon,
+.iia--sobre-fondo .iia__tarjeta-icono {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  background: linear-gradient(
+    140deg,
+    rgb(var(--rgb-primary-light, 183 148 255) / 0.3),
+    rgb(var(--rgb-primary, 139 92 246) / 0.16)
+  );
+
+  color: #fff;
+}
+
+/* ---- EL TITULAR Y LOS TEXTOS QUE VAN SUELTOS SOBRE EL FONDO ----
+   Los de las tarjetas ya tienen su cristal detrás; estos caen
+   directamente sobre el degradado, que además gira: por debajo de
+   una misma palabra pasa el indigo y el rosa a lo largo de la
+   vuelta. La sombra es lo que los sostiene en las dos fases.
+
+   Es el mismo criterio que se aplicó al titular del hero, y por el
+   mismo motivo. */
+.iia--sobre-fondo .iia__titulo {
+  text-shadow:
+    0 1px 2px rgba(14, 6, 26, 0.7),
+    0 3px 18px rgba(14, 6, 26, 0.5);
+}
+
+/* la sombra sube de 0,6/0,45 a 0,75/0,6: este bloque no tiene
+   cristal detrás, así que el único apoyo que tiene contra el
+   degradado —que además gira— es este */
+.iia--sobre-fondo .iia__parrafo,
+.iia--sobre-fondo .iia__metodo-titulo,
+.iia--sobre-fondo .iia__metodo-entrada,
+.iia--sobre-fondo .iia__rotulo-centro {
+  text-shadow:
+    0 1px 2px rgba(14, 6, 26, 0.75),
+    0 2px 14px rgba(14, 6, 26, 0.6);
+}
+
+
+/* ============================================================
+   EL VÍDEO EN GRANDE
+
+   No es pantalla completa del navegador: es el mismo marco,
+   agrandado hasta ocupar la ventana.
+
+   ---- POR QUÉ SE AGRANDA EL MARCO Y NO SE MUEVE EL VÍDEO ----
+   Lo natural sería llevar el <video> a una capa aparte. Y es justo
+   lo que no se puede: mover un <video> de sitio en el DOM lo
+   reinicia —vuelve a cargar y pierde el minutado— en la mayoría de
+   navegadores. Duplicarlo en un segundo elemento tampoco, porque
+   serían dos descargas del mismo archivo.
+
+   Creciendo su propio contenedor, el elemento no se mueve del árbol:
+   sigue siendo el mismo, con su búfer y su tiempo. Y el salto de
+   tamaño no se ve porque ocurre detrás de la cortina.
+
+   ---- POR ENCIMA DEL HEADER ----
+   Estas tres capas estaban en 80/85/90 y con eso la píldora del
+   header (1000) y el botón hamburguesa (1200) se dibujaban ENCIMA
+   del vídeo a pantalla completa —y encima de la cortina, que
+   entonces dejaba de tapar justo lo que tiene que tapar—.
+
+   Se suben por encima de los dos. Mientras el vídeo está en grande
+   el header no hace falta: el scroll está bloqueado y se sale con
+   la X o con Escape.
+   ============================================================ */
+.iia__marco--grande {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  border-radius: 0;
+
+  background: #05070d;
+  box-shadow: none;
+}
+
+/* el lienzo deja de mandar su proporción por el ancho y se ajusta a
+   lo que quepa: en una ventana apaisada manda el alto, y si no, el
+   ancho. `object-fit: contain` para no recortar la película. */
+.iia__marco--grande .iia__marco-lienzo {
+  width: min(100%, calc((100vh - 120px) * 16 / 9));
+  margin-inline: auto;
+}
+
+.iia__marco--grande .iia__video {
+  object-fit: contain;
+}
+
+.iia__marco--grande .iia__mandos {
+  width: min(100%, calc((100vh - 120px) * 16 / 9));
+  margin-inline: auto;
+
+  background: transparent;
+}
+
+/* ---- CERRAR ----
+   Arriba a la derecha y por encima de todo lo del marco. Con
+   `position: fixed` y no absolute: el marco en grande ya ocupa la
+   ventana, pero fijo se queda donde se espera aunque algún día el
+   contenido de dentro haga scroll. */
+.iia__cerrar {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  z-index: 1310;
+
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  aspect-ratio: 1;
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  cursor: pointer;
+
+  background: rgba(10, 6, 20, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  color: rgba(255, 255, 255, 0.85);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.iia__cerrar:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(10, 6, 20, 0.85);
+  color: #fff;
+}
+
+.iia__cerrar svg {
+  width: 19px;
+  height: 19px;
+}
+
+.iia__cerrar:focus-visible {
+  outline: 2px solid var(--iia-morado-claro);
+  outline-offset: 3px;
+}

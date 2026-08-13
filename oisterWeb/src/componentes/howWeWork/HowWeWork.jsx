@@ -1,24 +1,34 @@
 import "./HowWeWork.css";
-import Rotulo from "../rotulo/Rotulo";
-import ServiceCard from "./ServiceCard";
 import LightDust from "../lightDust/LightDust";
-import FondoTrama from "../fondoTrama/FondoTrama";
-import howWeWork from "../../data/howWeWork";
+import FondoNuevo from "../fondoNuevo/FondoNuevo";
+import InteligenciaIA from "../inteligenciaIA/InteligenciaIA";
 import { useEffect, useRef, useState } from "react";
 
 function HowWeWork() {
   const sectionRef = useRef(null);
   const [landed, setLanded] = useState(false);
 
-  /* La sección detecta por sí misma cuándo está en pantalla
-     (≈ cuando la ostra completa su viaje y se acopla) y
-     enciende halo + sombra.
+  const pistaRef = useRef(null);
+
+  /* Enciende el halo y la sombra cuando la ostra está llegando.
      Reset ASIMÉTRICO: solo se apaga si sale del viewport por
      ABAJO (top > 0 = has vuelto arriba) → al volver a bajar
      rehace su entrada. Si sale por ARRIBA (top < 0 = sigues
-     bajando), se queda encendida. */
+     bajando), se queda encendida.
+
+     ---- SE OBSERVA LA PISTA, NO LA SECCIÓN ----
+     Antes vigilaba la sección entera con un umbral del 45% de su
+     superficie. Eso valía cuando medía ~600px; con el contenido
+     nuevo pasa de 2000px, y el 45% de 2000 son 900px de sección
+     visible a la vez — o sea que en una pantalla de portátil el
+     umbral no se alcanza NUNCA. Consecuencias: el halo no se
+     encendía y, como el fondo tiene su llegada atada a este mismo
+     estado, tampoco arrancaba.
+
+     La pista mide unos 420px y es lo que de verdad interesa: se
+     enciende cuando ella está a la vista. */
   useEffect(() => {
-    const el = sectionRef.current;
+    const el = pistaRef.current;
     if (!el) return;
 
     const observer = new IntersectionObserver(
@@ -42,58 +52,64 @@ function HowWeWork() {
       className={`how-we-work ${landed ? "how-we-work--landed" : ""}`}
       id="que-hacemos"
     >
-      {/* trama tecnológica. `ft--sin-base` le quita su degradado
-          propio: aquí manda el de la sección, que es el que enlaza
-          sin costura con el hero de arriba y con "Nuestros
-          trabajos" de abajo. La trama solo pone el dibujo. */}
-      <FondoTrama className="how-we-work__trama ft--sin-base" />
+      {/* ---- EL FONDO ----
+          El mismo que el hero: degradado que gira e invierte sus
+          colores, con el circuito revelándose encima. Sustituye a
+          la trama suelta que había aquí —FondoNuevo ya la monta
+          por dentro—, y tapa el degradado plano de la sección, que
+          se queda como color de respaldo.
+
+          `enPausa` atado a `landed`, que es el observador que esta
+          sección ya tenía para encender su halo: así la llegada
+          del fondo no se gasta a espaldas del visitante mientras
+          la sección está fuera de pantalla, sino que ocurre justo
+          cuando se llega scrolleando. */}
+      <FondoNuevo
+        className="how-we-work__fondo fn--onda-arriba"
+        enPausa={!landed}
+      />
 
       {/* polvo de luz cayendo: llena el aire de la sección */}
       <LightDust />
 
-      <div className="how-we-work__container">
-        {/* ===== Columna izquierda: PISTA DE ATERRIZAJE =====
-            Aquí NO se renderiza nada 3D: es el hueco reservado
-            donde la ostra del hero (position:fixed en desktop)
-            aterriza al completar el scroll. Solo lleva el halo
-            de suelo que la recibe. */}
-        <div className="how-we-work__scene" aria-hidden="true">
-          {/* halo de luz + sombra de agua: invisibles hasta que
-              la sección entra en pantalla */}
-          <div className="how-we-work__halo" />
-          <div className="how-we-work__glow" />
-          <div className="how-we-work__shadow" />
-        </div>
+      {/* ---- EL CONTENIDO ES AHORA EL BLOQUE DE "CÓMO LO HACEMOS" ----
+          Aquí vivía el contenido propio de la sección: rótulo,
+          titular, párrafo y las cuatro tarjetas (Automatización
+          Inteligente, Marketing con IA, Desarrollo de Soluciones y
+          Consultoría Tecnológica). Se ha sustituido por el bloque
+          de InteligenciaIA — titular con vídeo,
+          misión y visión, y el mapa de los cuatro apartados
+          alrededor del anillo con su luz recorriéndolo.
 
-        {/* ===== Columna derecha: contenido ===== */}
-        <div className="how-we-work__content">
-          <Rotulo className="how-we-work__eyebrow">Qué hacemos</Rotulo>
+          ---- POR QUÉ LA SECCIÓN SE QUEDA Y SOLO CAMBIA LO DE
+               DENTRO ----
+          Porque esta sección hace tres cosas que no se ven y que se
+          habrían perdido al borrarla:
 
-          <h2 className="how-we-work__title">
-            Soluciones de IA y marketing
-            <br />
-            que generan <span>resultados reales.</span>
-          </h2>
+            · lleva el `id="que-hacemos"`, al que apunta el menú y
+              que además MIDE useHeroScrollDock para saber dónde
+              termina el viaje de la ostra;
+            · contiene la PISTA DE ATERRIZAJE — el halo que la
+              recibe. El hook busca `.how-we-work__halo` por
+              selector: sin ese elemento, la ostra viaja y no se
+              acopla a nada;
+            · monta el fondo con su onda de entrada y el polvo de
+              luz, que cosen esta sección con el hero de arriba.
 
-          <p className="how-we-work__description">
-            Combinamos estrategia, creatividad y tecnología para ayudar a
-            marcas a crecer, automatizar procesos y conectar con las personas
-            correctas. Desde la inteligencia artificial hasta el análisis de
-            datos, creamos soluciones personalizadas y medibles que impulsan
-            resultados reales y sostenibles en el tiempo.
-          </p>
-
-          <div className="how-we-work__cards">
-            {howWeWork.map((service) => (
-              /* el wrapper lleva la animación de aparición:
-                 así no pisa el transform del hover de la card */
-              <div className="how-we-work__reveal" key={service.id}>
-                <ServiceCard {...service} />
-              </div>
-            ))}
+          La pista va en la COLUMNA IZQUIERDA que el bloque ya
+          reservaba para la esfera. O sea que la ostra del hero
+          aterriza justo en el sitio que estaba guardado para ella. */}
+      <InteligenciaIA
+        sobreFondo
+        pista={
+          <div className="how-we-work__scene" ref={pistaRef} aria-hidden="true">
+            <div className="how-we-work__halo" />
+            <div className="how-we-work__glow" />
+            <div className="how-we-work__shadow" />
           </div>
-        </div>
-      </div>
+        }
+      />
+
     </section>
   );
 }

@@ -1,12 +1,33 @@
+/* ============================================================
+   El blog ya NO es una caja blanca: la sección entera es el
+   lienzo. El cuadro translúcido de antes confinaba el glow, la
+   nieve de estrellas y los ✦ a su interior; ahora esas capas se
+   anclan a .blog-page (la <section> a ancho completo que pone
+   PageSection) y el contenido —título, rejilla, paginación—
+   sigue acotado por .blog-list.
+
+   Para eso .blog-list DEJA de ser position:relative: sus capas
+   absolutas (starfield, ::before/::after, .blog-deco) suben a
+   anclarse al primer ancestro posicionado, que es .blog-page.
+   El parallax del ratón no se pierde: las variables
+   --blog-shift/--blog-drift se siguen fijando en .blog-list
+   (ahí está el onMouseMove) y heredan hacia sus hijas.
+   ============================================================ */
+
+.blog-page {
+  position: relative;
+
+  /* mismo criterio que el overflow-x:clip de .page-section,
+     aquí en ambos ejes: las capas del fondo se salen a propósito
+     (inset negativos) y esto las recorta en el borde de la
+     sección sin crear un contenedor de scroll */
+  overflow: clip;
+}
+
 .blog-list {
   width: min(100%, 1240px);
   margin: 0 auto;
-  position: relative;
-  color: var(--color-text, #17122b);
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(255,255,255,.42), rgba(246,232,255,.75));
-  border-radius: 30px;
-  padding: clamp(24px, 4vw, 58px);
+  color: var(--color-text, #f6f0ff);
 }
 
 .blog-list::before {
@@ -77,18 +98,32 @@
 .blog-star {
   position: absolute;
   font-size: 26px;
-  color: rgba(135, 87, 245, .92);
+  color: rgba(183, 148, 255, .92);
   text-shadow: 0 0 12px rgba(255,255,255, .90);
-  animation: starFall 5s linear infinite;
+  /* ya no caen los 340px que medía la caja: cruzan la pantalla
+     entera. Más lento a propósito — a 5s un viaje de un viewport
+     completo era una lluvia, no nieve. */
+  animation: starFallPantalla 9s linear infinite;
 }
 
 .blog-star--one { left: 18%; top: -64px; animation-delay: -2s; }
-.blog-star--two { left: 34%; top: -140px; font-size: 20px; animation-delay: -1.2s; }
-.blog-star--three { left: 61%; top: -96px; font-size: 24px; animation-delay: -1.6s; }
-.blog-star--four { left: 82%; top: -120px; font-size: 18px; animation-delay: -2.1s; }
-.blog-star--five { left: 48%; top: -150px; font-size: 28px; animation-delay: -3s; }
-.blog-star--six { left: 10%; top: -110px; font-size: 20px; animation-delay: -1.7s; }
+.blog-star--two { left: 34%; top: -140px; font-size: 20px; animation-delay: -3.4s; }
+.blog-star--three { left: 61%; top: -96px; font-size: 24px; animation-delay: -6.2s; }
+.blog-star--four { left: 82%; top: -120px; font-size: 18px; animation-delay: -1.1s; }
+.blog-star--five { left: 48%; top: -150px; font-size: 28px; animation-delay: -7.6s; }
+.blog-star--six { left: 10%; top: -110px; font-size: 20px; animation-delay: -4.8s; }
 
+/* la de los ✦ grandes: recorre el viewport de arriba abajo y se
+   apaga al llegar, para no acumularse en el borde inferior */
+@keyframes starFallPantalla {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  12% { opacity: .9; }
+  100% { transform: translateY(112vh) scale(1.06); opacity: 0; }
+}
+
+/* la de la malla de puntos del starfield: un bucle corto que, al
+   repetirse sobre un patrón que ya cubre todo el fondo, se lee
+   como nevada continua */
 @keyframes starFall {
   0% { transform: translateY(-30px) scale(1); opacity: .0; }
   20% { opacity: .9; }
@@ -120,7 +155,10 @@
   margin: 12px 0 8px;
   font-size: clamp(44px, 7.8vw, 116px);
   line-height: .93;
-  color: var(--color-text, #17122b);
+  /* el token del sitio ES claro (#f6f0ff): sobre la caja blanca
+     quedaba lavado y ahora, sobre el fondo oscuro, por fin rinde.
+     El fallback se corrige para contar la verdad. */
+  color: var(--color-text, #f6f0ff);
 }
 
 .blog-list-title-glow {
@@ -194,57 +232,19 @@
   transform: translateY(-2px);
 }
 
-.blog-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 34px 0 0;
-}
-
-.blog-pagination__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  padding: 9px 14px;
-  border-radius: 999px;
-  color: var(--color-text, #17122b);
-  border: 1px solid rgba(135, 87, 245, .32);
-  background: rgba(255,255,255,.30);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .14em;
-}
-
-.blog-pagination__numbers {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.blog-pagination__number {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(135, 87, 245, .24);
-  color: var(--color-text-soft, #5c5673);
-  text-decoration: none;
-  font-size: 11px;
-}
-
-.blog-pagination__number.is-active {
-  color: white;
-  background: var(--color-violet, #8757f5);
-  border-color: transparent;
+/* La paginación es la compartida de paginacion/Paginacion.css
+   (la misma de /works). Aquí solo va lo contextual: el hueco
+   respecto a la rejilla, que es el que dejaba la antigua. */
+.blog-list .paginacion {
+  margin-top: 34px;
 }
 
 .blog-deco {
   position: absolute;
   pointer-events: none;
-  color: rgba(135, 87, 245, .55);
+  /* sube del violeta medio al lila de marca: sobre el fondo
+     oscuro el anterior casi desaparecía */
+  color: rgba(183, 148, 255, .60);
   font-size: 34px;
 }
 

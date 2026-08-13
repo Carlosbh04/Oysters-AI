@@ -19,14 +19,16 @@
 const NOMBRES = {
   "/": "LOOKING SHARP TODAY",
   "/works": "WORKS",
+  /* sin esto el rótulo se deduciría del segmento y diría
+     "SERVICES", que es la URL pero no el nombre del apartado */
+  "/services": "CÓMO LO HACEMOS",
   "/resources": "RESOURCES",
   "/blog": "BLOG",
   "/about": "ABOUT",
   "/contact": "CONTACT",
-  "/cosmic": "COSMIC DATA FLOW",
-  "/lab/hero-background": "HERO BACKGROUND",
   "/fondo-trama": "FONDO TRAMA",
   "/escena-oraculo": "ESCENA ORÁCULO",
+  "/lab/prism-cloud": "PRISM CLOUD",
 };
 
 /* Lo que se enseña cuando no hay ruta que reconocer. Va aquí y

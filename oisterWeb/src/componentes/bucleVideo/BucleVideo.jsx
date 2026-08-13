@@ -88,7 +88,16 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
     }
 
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (quieto) return;
+    if (quieto) {
+      /* Con motion reducido no se reproduce nada y se ve el primer
+         fotograma. Ese fotograma hay que TRAERLO: el marcado va en
+         `preload="none"` (ver abajo por qué), así que sin esta
+         línea el hueco se quedaría en el póster — o en nada.
+         Solo la pista visible; el suplente jamás llega a verse. */
+      uno.preload = "auto";
+      uno.load();
+      return;
+    }
 
     let raf = null;
     let activo = uno;
@@ -97,6 +106,42 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
     let vivo = false;
     let aLaVista = false;
     let cancelado = false;
+
+    /* ============================================================
+       LA DESCARGA, EN DOS TIEMPOS
+
+       El marcado declara `preload="none"`: montar el componente ya
+       no cuesta ni un byte de vídeo. Antes iba en "auto", y con el
+       doble búfer eso significaba bajar CADA clip DOS VECES nada
+       más montar, estuviera o no en pantalla — medido en la
+       portada: la ostra del hero y el cristal de proyectos
+       sumaban ~15,6MB de descarga inmediata, la mitad duplicada y
+       el cristal entero bajo el pliegue.
+
+       1º tiempo — la pista TITULAR se ceba cuando el observador
+       de visibilidad dispara (600px antes de entrar en cuadro,
+       para que la descarga gane la carrera al scroll).
+
+       2º tiempo — el SUPLENTE se ceba cuando la titular avisa de
+       que tiene cuerda (`canplaythrough`), con una red por si el
+       aviso no llega: a media primera vuelta lo ceba el
+       vigilante. Así las dos descargas van EN FILA y no en
+       paralelo — y la segunda suele salir del caché de disco que
+       acaba de llenar la primera. El relevo del bucle no corre
+       peligro: el suplente tiene toda la primera reproducción
+       para cargarse, y no le hacen falta más que los primeros
+       fotogramas para arrancar su turno.
+       ============================================================ */
+    const cebar = (v) => {
+      if (v.preload !== "none") return;
+      v.preload = "auto";
+      /* load() solo si aún no hay nada: con datos ya pedidos
+         reiniciaría la descarga y el tiempo */
+      if (v.readyState === 0) v.load();
+    };
+
+    const cebarSuplente = () => cebar(dos);
+    uno.addEventListener("canplaythrough", cebarSuplente, { once: true });
 
     const reproducir = (v) => {
       const p = v.play();
@@ -118,6 +163,11 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
       if (!fin || !isFinite(fin)) return;
 
       const restante = fin - activo.currentTime;
+
+      /* la red del 2º tiempo: si `canplaythrough` no llegó (hay
+         navegadores que lo callan con el clip ya en caché), a
+         media vuelta el suplente se ceba igual */
+      if (restante <= fin * 0.5) cebar(espera);
 
       if (!lanzado && restante <= ADELANTO) {
         lanzado = true;
@@ -145,6 +195,7 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
     const arrancar = () => {
       if (vivo || document.hidden || !aLaVista) return;
       vivo = true;
+      cebar(activo); /* 1º tiempo: la titular, al hacerse visible */
       reproducir(activo);
       raf = requestAnimationFrame(vigilar);
     };
@@ -168,22 +219,41 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
     const alCambiarPestana = () => (document.hidden ? parar() : arrancar());
     document.addEventListener("visibilitychange", alCambiarPestana);
 
+    /* ---- DOS OBSERVADORES, DOS TRABAJOS ----
+       El de 600px CEBA (arranca la descarga con ventaja para que
+       gane la carrera al scroll). El de 10% REPRODUCE: medido, un
+       vídeo con alfa decodificando costaba ~11ms por fotograma, y
+       con el margen único de 600px los clips reproducían —y
+       decodificaban— desde tres cuartos de pantalla antes de
+       verse y hasta mucho después de salir. Ahora la descarga
+       conserva su colchón y la decodificación solo corre cuando
+       el clip está de verdad en pantalla (o a un 10% de entrar:
+       el primer fotograma visible ya llega en marcha, como
+       siempre). */
+    const ioCeba = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) cebar(uno); },
+      { rootMargin: "600px" }
+    );
+    ioCeba.observe(contenedor);
+
     const io = new IntersectionObserver(
       ([e]) => {
         aLaVista = e.isIntersecting;
         if (aLaVista) arrancar();
         else parar();
       },
-      { rootMargin: "200px" }
+      { rootMargin: "10%" }
     );
     io.observe(contenedor);
 
     return () => {
       cancelado = true;
       io.disconnect();
+      ioCeba.disconnect();
       document.removeEventListener("visibilitychange", alCambiarPestana);
       uno.removeEventListener("canplay", alPoder);
       dos.removeEventListener("canplay", alPoder);
+      uno.removeEventListener("canplaythrough", cebarSuplente);
       parar();
     };
   }, [src, sources]);
@@ -196,7 +266,10 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
   const comun = {
     muted: true,
     playsInline: true,
-    preload: "auto",
+    /* "none": montar no descarga nada. La descarga la administra
+       el efecto en dos tiempos — ver "LA DESCARGA, EN DOS
+       TIEMPOS" arriba. */
+    preload: "none",
     disablePictureInPicture: true,
     "aria-hidden": true,
     tabIndex: -1,

@@ -28,6 +28,24 @@
      este tono de la familia --color-dark rinde ~8.5:1. */
   --h-ink-deep: #261a38;
 
+  /* ---- SOMBRA DE LA TINTA ----
+     El fondo del hero gira y por debajo del texto pasa tanto el
+     indigo como el rosa claro. El texto es claro sobre los dos, y
+     medido sobre la página el párrafo se quedaba en 1,4:1 en la
+     fase rosa —el mínimo legible es 4,5—.
+
+     El fondo no se toca (es el del banco de pruebas, tal cual), o
+     sea que la única pieza que queda para arreglarlo es la TINTA:
+     una sombra oscura pegada al texto le fabrica su propio fondo
+     allá donde caiga.
+
+     Dos capas y cada una hace su trabajo: la corta define el filo
+     de la letra y la larga y difusa despega el bloque entero del
+     fondo. Con una sola, o el texto se ve sucio (si es fuerte) o
+     no separa (si es suave). */
+  --h-sombra-corta: rgba(14, 6, 26, 0.85);
+  --h-sombra-larga: rgba(14, 6, 26, 0.65);
+
   /* el cristal ya no es blanco lechoso: sobre oscuro basta un
      velo mínimo de blanco para leerse como vidrio */
   --h-glass: rgba(255, 255, 255, 0.06);
@@ -95,6 +113,29 @@
       3    → grano de película (.hero::after)
      10+   → TU NAVBAR (position: fixed; z-index: 10 o más)
    ═══════════════════════════════════════════════════════════ */
+
+/* ---- AQUÍ NO VA NINGÚN VELO ----
+   Hubo uno: un oscurecido en diagonal para levantar el contraste
+   del texto sobre el fondo nuevo. Se quitó por decisión de diseño
+   —el fondo tiene que verse EXACTAMENTE como en su banco de
+   pruebas, sin capas que le cambien el color— y esta nota se
+   queda para que no lo reinvente nadie sin saber lo que cuesta.
+
+   Medido en la propia página, en el hueco limpio entre el párrafo
+   y el botón, con el texto claro del hero encima:
+
+     degradado antiguo del <body> ......... 5,7 : 1
+     fondo nuevo, fase oscura ............. 2,2 : 1
+     fondo nuevo, fase rosa ............... 1,4 : 1
+
+   El mínimo recomendado para texto de cuerpo es 4,5. Como el
+   fondo gira, por debajo del texto pasa tanto el indigo como el
+   rosa claro, y el texto es claro sobre los dos: hay una parte
+   del ciclo en la que el párrafo se lee mal.
+
+   Si algún día se quiere arreglar SIN tocar el fondo, lo que hay
+   que mover es la tinta, no el fondo: una sombra bajo el texto, o
+   subir el peso y el tono del párrafo. */
 
 /* ---- grano de película ----
    Rompe el banding de los gradientes blureados y quita el
@@ -197,7 +238,25 @@
    (el SVG vive en Home.jsx; aquí solo posición y color)
    ============================================================ */
 
+/* ---- LA ONDA DE CIERRE, APAGADA ----
+   Esta curva existía para una cadena de color que ya no existe:
+   se rellenaba con `--hero-wave-color` —el tono EXACTO en el que
+   arrancaba "Qué hacemos"— para que las dos secciones se fundieran
+   sin costura.
+
+   Ahora "Qué hacemos" no arranca en un tono: arranca en un
+   degradado que gira, y que además va por su propio reloj. Ningún
+   color fijo puede coincidir con eso, así que la onda dejó de ser
+   una transición y pasó a ser lo que se veía en pantalla: una tira
+   de violeta oscuro de 81px cruzada entre dos fondos que no la
+   tienen.
+
+   Se apaga en vez de borrarse: el marcado y el resto de reglas se
+   quedan, y si algún día una sección vuelve a tener color plano
+   basta con quitar este `display`. */
 .hero__wave {
+  display: none;
+
   position: absolute;
   left: 0;
   right: 0;
@@ -262,6 +321,26 @@
   letter-spacing: var(--t-title-ls);
   color: var(--h-ink);
   text-wrap: balance;
+
+  /* ---- AQUÍ VA drop-shadow Y NO text-shadow ----
+     No es equivalente, y en este titular la diferencia es que
+     funcione o que lo destroce. Sus letras se rellenan con
+     `background-clip: text` + `-webkit-text-fill-color:
+     transparent`: el color no está en el glifo, está en el FONDO
+     del elemento recortado a la silueta.
+
+     Y el orden de pintado es fondo → sombra de texto → glifo. O
+     sea que un `text-shadow` se pinta ENCIMA del relleno, no
+     detrás: probado, las letras blancas salen gris oscuro, como
+     manchadas.
+
+     `filter: drop-shadow` no mira el texto: mira lo que el
+     elemento YA ha pintado —relleno incluido— y proyecta esa
+     silueta por detrás. Es lo único que da sombra sin tocar el
+     color de la letra. */
+  filter:
+    drop-shadow(0 1px 2px var(--h-sombra-corta))
+    drop-shadow(0 3px 14px var(--h-sombra-larga));
 }
 
 /* ---- titular de DOS PALABRAS ----
@@ -388,10 +467,50 @@
       var(--h-brillo) 50%,
       transparent 58%
     ),
-    var(
-      --gradient-title,
-      linear-gradient(110deg, var(--color-primary-light) 0%, #d68cff 50%, var(--h-pink) 100%)
-    );
+    /* ---- DEGRADADO PROPIO, YA NO --gradient-title ----
+       Antes tiraba del token global. Ese token está calibrado
+       contra los fondos oscuros del resto del sitio, y sobre el
+       fondo nuevo el "AI" se quedaba en 2,12:1 contra los 3 que
+       pide un texto de 88px: medido, casi no se leía.
+
+       ---- Y POR QUÉ SON VIVOS Y NO PASTEL ----
+       Hubo una versión intermedia con estos tres tonos subidos
+       de luz (#cbb2ff / #e0a8ff / #fba9da). Pasaba los números
+       y estaba MAL: subir el color Y poner el halo es corregir
+       dos veces el mismo problema, y el resultado fue un rosa
+       lavado que ya no se leía como acento.
+
+       El halo solo basta —medido en el titular gemelo de "Qué
+       hacemos": con los colores vivos de siempre pasa de 3,94 a
+       5,94:1—. Así que el color vuelve a ser vivo y el contraste
+       lo pone la sombra. El pico rosa del final sube un punto
+       de saturación respecto al original, que es lo que el
+       fondo nuevo, más profundo, admite de sobra. */
+    linear-gradient(110deg, #b794ff 0%, #d68cff 50%, #ff7ed4 100%);
+
+  /* ---- EL HALO, Y POR QUÉ ES drop-shadow Y NO text-shadow ----
+     Esta letra es TRANSPARENTE: lo que se ve es el degradado
+     recortado contra su silueta. Una `text-shadow` se dibuja
+     detrás del GLIFO, o sea que se vería a través de él como
+     una mancha borrosa dentro del trazo — es el motivo por el
+     que estos textos nunca han podido llevar sombra.
+
+     `drop-shadow` es distinto: sigue el ALFA de lo que el
+     elemento pinta de verdad, degradado incluido. Así que
+     dibuja una sombra con la forma exacta de las letras y por
+     fuera de ellas.
+
+     Comprobado midiendo en el titular gemelo de "Qué hacemos":
+     el hueco entre letras baja del 6,3% al 2,5% de luz y el
+     contraste sube de 3,94 a 5,94. Y el degradado sigue
+     intacto — el filtro no lo rompe.
+
+     Dos capas: una corta y densa que dibuja el filo, y una
+     abierta que apaga el fondo alrededor sin que se vea de
+     dónde sale. */
+  filter:
+    drop-shadow(0 2px 4px rgba(16, 7, 30, 0.95))
+    drop-shadow(0 0 18px rgba(16, 7, 30, 0.85));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -504,6 +623,18 @@
   line-height: var(--t-desc-lh);
   color: var(--h-ink-soft);
   text-wrap: pretty;
+
+  /* Este párrafo SÍ es texto normal —sin background-clip—, así que
+     aquí `text-shadow` es lo correcto y además lo barato: no crea
+     capa de composición, al revés que un filtro.
+
+     Es el que más sombra necesita de todo el hero: es el texto más
+     pequeño, el de color más apagado (--h-ink-soft) y el que peor
+     lo pasa cuando el rosa le pasa por debajo. */
+  text-shadow:
+    0 1px 2px var(--h-sombra-corta),
+    0 2px 18px var(--h-sombra-larga),
+    0 0 6px var(--h-sombra-larga);
 }
 
 /* ============================================================
@@ -561,6 +692,17 @@
 }
 
 /* --- primario: gradiente + highlight superior + sombra en capas --- */
+/* ---- .btn--primary QUEDA COMO ESTABA, Y AQUÍ ESTÁ EL AVISO ----
+   Estuve a punto de arreglar el CTA del hero tocando esta regla,
+   y no habría cambiado NADA en pantalla: el único botón que la
+   usa lleva también `.btn--drop`, que va más abajo en este mismo
+   fichero, tiene la misma especificidad y por tanto gana. Esta
+   regla le pone la sombra y poco más — su color y su tinta los
+   decide `.btn--drop`.
+
+   Si hay que retocar el CTA del hero, el sitio es `.btn--drop`.
+   Si algún día aparece un `.btn--primary` suelto, entonces sí
+   manda esto. */
 .btn--primary {
   color: #fff;
   background: linear-gradient(
@@ -777,15 +919,42 @@
   transition: --btn-wl 0.6s cubic-bezier(0.4, 0, 0.6, 1);
 }
 
+/* ---- EL AGUA CAMBIA DE COLOR, NO DE MECÁNICA ----
+   El nivel, el ladeo, la cresta, los tiempos y las dos capas a
+   contrafase se quedan EXACTAMENTE como estaban. Lo único que
+   cambia es el tono, y por un motivo medido: el agua iba de
+   26,1% a 13,4% de luz sobre un botón que va de 29,2% a 11,4%.
+   Son la misma banda. Por eso al llenarse "no se notaba casi":
+   no es que la animación fuera lenta o pequeña, es que estaba
+   pintando un color encima de otro casi idéntico.
+
+   Y hay un segundo motivo, que solo se vio al fotografiar el
+   hover: con el agua arriba, el botón quedaba en 11-14% de luz
+   y el FONDO que lo rodea está en 12-17%. O sea que la
+   animación no solo no se notaba: hacía DESAPARECER el botón
+   justo en el momento de interactuar con él.
+
+   Ahora el agua hunde el relleno a 5-8%, claramente por debajo
+   del fondo. El botón pasa de ser un óvalo rosa muy claro a ser
+   uno oscuro y recortado, con su aro blanco: el cambio es
+   inconfundible en las dos direcciones. Y la etiqueta blanca,
+   que es lo que el agua acaba tapando, gana contraste al
+   llenarse (sube por encima de 10:1) en vez de perderlo. Al subir el nivel se lee como un
+   líquido de verdad entrando en el vaso, y de paso la etiqueta
+   blanca gana contraste justo donde el agua la alcanza en vez
+   de perderlo. */
 .btn__water::before {
-  background: linear-gradient(180deg, #a06fff 0%, #6d49e0 70%);
+  background: linear-gradient(180deg, #4a1f9e 0%, #26105a 70%);
   animation: btnSlosh 3.4s ease-in-out infinite;
 }
 
 /* segunda capa: más clara, semitransparente y a contrafase
-   (delay negativo) → profundidad, como agua de verdad */
+   (delay negativo) → profundidad, como agua de verdad.
+   Sigue siendo LA CLARA DE LAS DOS —es lo que da la sensación
+   de espesor—, solo que ahora eso se mide contra la nueva capa
+   de abajo, no contra la anterior. */
 .btn__water::after {
-  background: rgb(var(--rgb-primary-light) / 0.5);
+  background: rgb(var(--rgb-primary-dark) / 0.5);
   animation: btnSlosh 4.6s ease-in-out -2.1s infinite reverse;
 }
 
@@ -820,6 +989,24 @@
 .btn--drop {
   color: var(--h-ink-deep);
   background: linear-gradient(160deg, #ffc0ef 0%, #f5a1ec 48%, #e78bf0 100%);
+
+  /* ---- EL ARO, EN LOS DOS ESTADOS ----
+     El botón tiene que tener un canto nítido gane quien gane
+     por dentro. En reposo el rosa (42-65% de luz) ya se despega
+     solo de un fondo al 12-17%; el que lo necesitaba de verdad
+     es el hover, y justo ahí no lo tenía — `.btn--drop:hover`
+     reescribe el `box-shadow` entero, así que cualquier anillo
+     puesto en reposo desaparecía al pasar el ratón. Por eso va
+     escrito en las DOS reglas.
+
+     En `box-shadow` y no en `border`: un borde de verdad
+     cambiaría la caja y con ella la posición del charco de la
+     gota, que está cuadrada al píxel. */
+  box-shadow:
+    0 0 0 1.5px rgba(255, 255, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    var(--h-shadow-btn);
+
   transition:
     transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1),
     box-shadow 0.3s ease,
@@ -835,10 +1022,15 @@
   transform: translateY(-4px) scale(1.02);
 
   box-shadow:
+    /* el aro, más marcado que en reposo: es el estado en el que
+       el relleno se vuelve oscuro y se acerca al tono del fondo,
+       así que el canto pasa a ser lo único que dice dónde acaba
+       el botón */
+    0 0 0 1.5px rgba(255, 255, 255, 0.72),
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     0 2px 4px rgba(23, 18, 43, 0.14),
-    0 14px 28px -6px rgba(109, 73, 224, 0.45),
-    0 30px 60px -12px rgba(231, 139, 240, 0.5);
+    0 14px 28px -6px rgba(109, 73, 224, 0.55),
+    0 30px 60px -12px rgba(231, 139, 240, 0.55);
 }
 
 /* feedback de click: se hunde un pelín al presionar */
@@ -1093,15 +1285,31 @@
    ============================================================ */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* estado previo: mientras el intro tapa la pantalla, el hero
-     espera invisible; .hero--enter dispara la coreografía */
-  .hero:not(.hero--enter) .hero__eyebrow,
-  .hero:not(.hero--enter) .hero__title,
-  .hero:not(.hero--enter) .hero__description,
-  .hero:not(.hero--enter) .hero__buttons,
-  .hero:not(.hero--enter) .hero__wave,
-  .hero:not(.hero--enter) .hero__scroll-cue,
-  .hero:not(.hero--enter) .hero__right {
+  /* ---- EL VELO, SOLO DURANTE EL FUNDIDO DEL TELÓN ----
+     Esto era `.hero:not(.hero--enter)`: el hero esperaba
+     invisible TODA la intro. Legítimo a simple vista, y carísimo
+     de métrica — el elemento LCP de la página (el párrafo del
+     hero) no se registraba hasta el segundo ~9, porque para el
+     navegador un elemento a opacity 0 no ha pintado.
+
+     Ahora el hero se pinta entero DEBAJO del telón opaco de la
+     intro (z-index 99999, fondo #15161c: nada de esto se ve), y
+     solo se vela cuando el telón arranca su fundido de salida —
+     la clase la pone App en ese instante exacto, avisado por la
+     propia intro (onLeaving). El fundido descubre el fondo solo,
+     igual que siempre, y la coreografía de .hero--enter corre
+     idéntica: sus keyframes ya parten de opacity 0 con fill
+     backwards, nunca dependieron de este estado previo.
+
+     Medido con la garganta de Lighthouse: LCP de ~9,1s a ~2,3s
+     con la MISMA experiencia fotograma a fotograma. */
+  .hero--velado .hero__eyebrow,
+  .hero--velado .hero__title,
+  .hero--velado .hero__description,
+  .hero--velado .hero__buttons,
+  .hero--velado .hero__wave,
+  .hero--velado .hero__scroll-cue,
+  .hero--velado .hero__right {
     opacity: 0;
   }
 
@@ -1773,5 +1981,73 @@
   position: relative;
   isolation: isolate;
 
-  overflow: hidden;
+  /* ---- CLIP EN HORIZONTAL, LIBRE EN VERTICAL ----
+     Era `overflow: hidden`, que valía cuando el fondo de esta
+     sección era su escena propia (UseCasesBackground, encerrada
+     dentro). Ahora el fondo es FondoNuevo con `fn--onda-arriba`,
+     y ese modificador funciona ESTIRÁNDOSE hacia arriba para
+     invadir la sección anterior y recortarse allí con la curva.
+     Encerrado, la onda se comería esta sección en vez de la de
+     encima y la curva no se vería.
+
+     `clip` en lugar de `hidden` mantiene la contención
+     horizontal —la que evita el scroll lateral— SIN crear un
+     contenedor de scroll, y eso permite dejar el eje vertical
+     visible. Con `hidden` no se puede: obliga al otro eje a
+     `auto`. Misma fórmula que en LatestProjects. */
+  overflow-x: clip;
+  overflow-y: visible;
+
+  /* Color de respaldo, lo único que se vería si FondoNuevo no
+     llegara a pintar. Cierra la cadena de color del home: recoge
+     el claro donde lo deja "Nosotros" y baja al oscuro. */
+  background: linear-gradient(
+    180deg,
+    var(--sec-lift, #56336b) 0%,
+    var(--sec-mid, #4e3069) 55%,
+    var(--sec-deep, #442f65) 100%
+  );
 }
+
+/* Por debajo del contenido, que va en z-index 1 (ver .uc en
+   UseCases.css). Selector doble por lo mismo que en las otras
+   tres secciones: `.fn` trae su propio posicionamiento y su hoja
+   se carga después de esta. */
+.home-casos .home-casos__fondo {
+  z-index: 0;
+}
+
+/* ---- AQUÍ ESTUVO LA TRAMA SUELTA DE ESTA SECCIÓN ----
+   `.home-casos__trama`: el circuito por su cuenta, con sus
+   intensidades bajadas. Se fue con el cambio de fondo —
+   FondoNuevo monta esa misma trama por dentro y con su propia
+   calibración, así que montar las dos dibujaba el circuito dos
+   veces, una encima de otra. */
+
+/* ---- EL FONDO DEL HERO ----
+   Aquí vivía `.hero__trama`, el circuito suelto sobre el degradado
+   del <body>. Ahora el suelo del hero es FondoNuevo, que trae ESA
+   MISMA trama por dentro y además el degradado que gira, así que
+   la regla de la trama se fue con ella: sus tres intensidades las
+   fija el propio componente.
+
+   z-index 0 según la escala de la sección (unas líneas más
+   arriba): por debajo de la onda de cierre, del contenido y del
+   grano. Es el suelo. */
+.hero .hero__fondo {
+  z-index: 0;
+}
+
+/* ---- LA TRAMA, SOBRE LA ESCENA DE CASOS DE USO ----
+   Va por encima de UseCasesBackground (z-index 0 dentro de una
+   sección con `isolation`), así que se suma a la escena en vez
+   de sustituirla.
+   Mismos valores apagados que allí: los que trae el componente
+   por defecto están calibrados para verse solo, y con texto
+   encima el circuito compite con él.
+
+   El selector lleva DOS clases a propósito. Con una sola empata
+   en especificidad con las reglas de FondoTrama.css, que se
+   importa después, y la trama se queda en `relative` con
+   `height: 100%` sin altura de referencia: 0px de alto y sección
+   sin fondo. */

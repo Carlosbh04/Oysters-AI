@@ -1,13 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   ArrowRight,
-  BarChart3,
+  BookOpen,
   Briefcase,
   FileText,
   Home,
   Mail,
-  Send,
-  Users,
 } from "lucide-react";
 /* fa y no fa6: es el paquete que ya usan TeamCard y Contact, y
    mezclar dos versiones del mismo set trae dos trazos distintos
@@ -15,22 +13,26 @@ import {
 import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
 
 import useEnPantalla from "../../hooks/useEnPantalla";
-import Rotulo from "../rotulo/Rotulo";
-import Crystal from "../heroBackground/Crystal";
-import FooterBackground from "./FooterBackground";
-import logo from "../../assets/hero/oysters-3d.webp";
-/* cristal-1 y no otro: los cuatro renders son el mismo octaedro
-   en ángulos distintos, y este es el único con el eje VERTICAL.
-   Los demás vienen volcados, y una piedra inclinada no se lee
-   posada sobre su huella, se lee cayéndose. */
-import cristal from "../../assets/hero/cristal-1.webp";
+import FondoNuevo from "../fondoNuevo/FondoNuevo";
+import PieDesplegable from "./PieDesplegable";
+/* ---- EL LOGO DEL PIE VA APARTE ----
+   Antes salía de assets/hero/oysters-3d.webp, el render maestro
+   del logotipo 3D, del que además se deriva la máscara
+   oysters-3d-texto.png (ver herramientas/mascara-logo.py).
+   Sustituir ese archivo para cambiar el pie habría tocado también
+   lo demás, así que el render nuevo entra como asset propio.
+
+   ⚠️ El logotipo es SOLO esta imagen. El lockup ("OYSTERS AI")
+   viene dentro del render, así que no se escribe al lado como
+   texto: saldría dos veces, y la segunda con otra tipografía. */
+import logo from "../../assets/logo/oysters-ai.webp";
 import "./Footer.css";
 
 /* ============================================================
    PIE
 
    Una tarjeta flotando sobre la escena nocturna
-   (FooterBackground), con tres columnas y una barra legal
+   propio, con tres columnas y una barra legal
    debajo.
 
    ---- POR QUÉ EL FONDO VIVE DENTRO Y NO FUERA ----
@@ -45,10 +47,32 @@ import "./Footer.css";
    una respuesta posible. Se monta <Footer /> y ya está.
    ============================================================ */
 
+/* Una entrada con `hijos` no lleva a ninguna parte: abre un
+   panel con ellos (ver PieDesplegable). El resto son enlaces
+   normales.
+
+   ---- LOS DESTINOS SALEN DEL MENÚ DE ESCRITORIO, NO DE
+   data/dropdown.js ----
+   Ese archivo tiene el mismo apartado "Recursos" y sería lo
+   inmediato para no repetir la lista, pero manda a "Entrenamiento
+   IA Generativa" a /training, que NO existe como ruta en
+   App.jsx: el enlace acabaría en la página de "no encontrado".
+   DesktopMenu resuelve lo mismo apuntando a /resources, que sí
+   existe, y es lo que se copia aquí para que el pie y el menú
+   digan lo mismo. Si algún día se crea /training, los tres sitios
+   se unifican. */
 const NAVEGACION = [
   { icono: Home, label: "Inicio", to: "/" },
   { icono: Briefcase, label: "Trabajos", to: "/works" },
-  { icono: FileText, label: "Recursos", to: "/resources" },
+  {
+    icono: FileText,
+    label: "Recursos",
+    hijos: [
+      { label: "Gen AI Training", to: "/resources" },
+      { label: "Blog", to: "/blog" },
+    ],
+  },
+  { icono: BookOpen, label: "Blog", to: "/blog" },
   { icono: Mail, label: "Contacto", to: "/contact" },
 ];
 
@@ -71,14 +95,7 @@ const REDES = [
   },
 ];
 
-/* Las barritas de al lado del cristal. Van en un array y no
-   escritas a mano porque lo único que las distingue es la altura
-   y el lado; con doce <span> en el JSX, cambiar el ritmo obliga a
-   editar doce líneas. */
-const BARRAS_IZQ = [22, 46, 30, 62, 38];
-const BARRAS_DER = [34, 58, 26, 70, 44, 30];
-
-function Footer() {
+function Footer({ conEscena = false }) {
   /* ---- EL DISPARO VIVE AQUÍ, NO EN LA PÁGINA ----
      Al revés que en "Casos de uso", donde la escena y el
      contenido son componentes hermanos y hacía falta que alguien
@@ -94,7 +111,33 @@ function Footer() {
 
   return (
     <footer className={`pie ${dentro ? "pie--dentro" : ""}`} ref={pieRef}>
-      <FooterBackground />
+      {/* ---- EL FONDO ES EL DE LA PÁGINA, NO UNO PROPIO ----
+          El pie ya no monta su escena nocturna (la sala con la
+          rejilla en perspectiva). Se leía como un escenario
+          APARTE pegado al final, de otro mundo visual que el
+          resto de la página.
+
+          Ahora sigue a la página, y son dos casos:
+
+          · Páginas CON escena (Home, /services): montan
+            <FondoNuevo> en todas sus secciones, así que el pie
+            monta LA MISMA y se une a la última con la misma onda
+            que junta unas secciones con otras. No vale un color
+            plano: la escena está animada —su degradado gira— y
+            cualquier color fijo enseña una banda dura en la junta
+            en algún punto del giro.
+
+          · El resto: el pie va transparente (--pie-fondo, en
+            Footer.css) y deja pasar lo que ya hubiera detrás — el
+            degradado del body, o una escena `fixed` como la del
+            detalle de proyecto.
+
+          `enPausa` colgado de `dentro`: la llegada de la escena
+          se dispara al alcanzar el pie scrolleando, no al cargar
+          la página con el pie a varias pantallas de distancia. */}
+      {conEscena && (
+        <FondoNuevo className="pie__fondo fn--onda-arriba" enPausa={!dentro} />
+      )}
 
       <div className="pie__tarjeta">
         {/* El filo de luz de arriba. Es el gesto que hace que la
@@ -105,14 +148,14 @@ function Footer() {
         <span className="pie__filo" aria-hidden="true" />
 
         <div className="pie__cuerpo">
-          {/* ---- COLUMNA 1 · MARCA ---- */}
+          {/* ---- MARCA ---- */}
           <div className="pie__marca">
             <img
               className="pie__logo"
               src={logo}
-              alt="Oysters"
-              width={900}
-              height={756}
+              alt="Oysters AI"
+              width={300}
+              height={284}
               loading="lazy"
               decoding="async"
             />
@@ -121,9 +164,75 @@ function Footer() {
               Inteligencia artificial que transforma{" "}
               <span>ideas</span> en <span>resultados</span>.
             </p>
+          </div>
+
+          {/* ---- NAVEGACIÓN ----
+              En fila y con el icono ENCIMA del rótulo, no en lista
+              vertical. Sin cabecera de columna: en horizontal, un
+              "Navegación" encima no encabeza nada, solo añade una
+              línea de texto a una banda que se quiere baja.
+
+              NavLink y no Link: trae la clase de activo puesta, que
+              es lo que enciende el subrayado del apartado en el que
+              estás. `end` en Inicio para que "/" no salga activo en
+              todas las rutas — sin él, cualquier ruta empieza por
+              "/" y coincidiría siempre. */}
+          <nav className="pie__nav" aria-label="Enlaces del pie">
+            <ul className="pie__enlaces">
+              {NAVEGACION.map(({ icono: Icono, label, to, hijos }, i) => (
+                /* la clave es `to` cuando lo hay y el rótulo cuando
+                   no: las entradas desplegables no tienen destino */
+                <li key={to ?? label} style={{ "--i": i }}>
+                  {hijos ? (
+                    <PieDesplegable icono={Icono} label={label} items={hijos} />
+                  ) : (
+                    <NavLink to={to} end={to === "/"} className="pie-enlace">
+                      <Icono
+                        className="pie-enlace__icono"
+                        strokeWidth={1.6}
+                        aria-hidden="true"
+                      />
+                      <span className="pie-enlace__texto">{label}</span>
+                    </NavLink>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* ---- REDES + CONTACTO ---- */}
+          <div className="pie__social">
+            <div className="pie__redes-bloque">
+              {/* rótulo en texto plano y no con <Rotulo>: aquel
+                  trae versalitas anchas, filete y halo, calibrado
+                  para encabezar una sección entera. Aquí es una
+                  etiqueta de dos palabras sobre dos botones. */}
+              <p className="pie__social-titulo" id="pie-redes">
+                Síguenos
+              </p>
+
+              <ul className="pie__redes" aria-labelledby="pie-redes">
+                {REDES.map(({ icono: Icono, label, href, clase }, i) => (
+                  <li key={label} style={{ "--i": i }}>
+                    <a
+                      className={`pie-red ${clase}`}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      /* el nombre de la red se va del marcado
+                         visible —ahora es solo el círculo— pero
+                         tiene que seguir estando para quien navega
+                         a oído */
+                      aria-label={label}
+                    >
+                      <Icono aria-hidden="true" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <Link to="/contact" className="pie__cta">
-              <Send strokeWidth={1.8} aria-hidden="true" />
               <span>Contactar</span>
               <ArrowRight
                 className="pie__cta-flecha"
@@ -131,100 +240,6 @@ function Footer() {
                 aria-hidden="true"
               />
             </Link>
-          </div>
-
-          {/* ---- COLUMNA 2 · NAVEGACIÓN ---- */}
-          <nav className="pie__col" aria-labelledby="pie-nav">
-            <Rotulo className="pie__titulo" icono={BarChart3}>
-              <span id="pie-nav">Navegación</span>
-            </Rotulo>
-
-            <ul className="pie__enlaces">
-              {NAVEGACION.map(({ icono: Icono, label, to }, i) => (
-                <li key={to} style={{ "--i": i }}>
-                  <Link to={to} className="pie-enlace">
-                    <Icono
-                      className="pie-enlace__icono"
-                      strokeWidth={1.6}
-                      aria-hidden="true"
-                    />
-                    <span className="pie-enlace__texto">{label}</span>
-                    <ArrowRight
-                      className="pie-enlace__flecha"
-                      strokeWidth={1.8}
-                      aria-hidden="true"
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* ---- COLUMNA 3 · REDES ---- */}
-          <div className="pie__col" aria-labelledby="pie-redes">
-            <Rotulo className="pie__titulo" icono={Users}>
-              <span id="pie-redes">Síguenos</span>
-            </Rotulo>
-
-            <ul className="pie__redes">
-              {REDES.map(({ icono: Icono, label, href, clase }, i) => (
-                <li key={label} style={{ "--i": i }}>
-                  <a
-                    className={`pie-red ${clase}`}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    <span className="pie-red__marca" aria-hidden="true">
-                      <Icono />
-                    </span>
-                    <span className="pie-red__texto">{label}</span>
-                    <ArrowRight
-                      className="pie-red__flecha"
-                      strokeWidth={1.8}
-                      aria-hidden="true"
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
-
-            {/* ---- LA PIEZA ----
-                El mismo octaedro de las otras secciones, posado
-                sobre su huella de luz. Es lo que impide que esta
-                columna se quede corta: las otras dos llenan su
-                alto con contenido y esta solo tiene dos botones.
-
-                Decorativa del todo, así que aria-hidden y sin
-                texto: no aporta nada que leer. */}
-            <div className="pie__pieza" aria-hidden="true">
-              <span className="pie__barras pie__barras--izq">
-                {BARRAS_IZQ.map((h, i) => (
-                  <i key={i} style={{ "--h": `${h}%` }} />
-                ))}
-              </span>
-
-              {/* los anillos van ANTES en el marcado, no detrás
-                  con z-index negativo: un z-index negativo dentro
-                  de una caja que no crea contexto de apilamiento
-                  se escapa hacia atrás y puede acabar por debajo
-                  de la propia tarjeta. Con el orden del DOM basta
-                  y no hay nada que se pueda escapar. */}
-              <span className="pie__gema">
-                <span className="pie__anillos">
-                  <i style={{ "--r": 0 }} />
-                  <i style={{ "--r": 1 }} />
-                  <i style={{ "--r": 2 }} />
-                </span>
-                <Crystal src={cristal} niebla={0.18} />
-              </span>
-
-              <span className="pie__barras pie__barras--der">
-                {BARRAS_DER.map((h, i) => (
-                  <i key={i} style={{ "--h": `${h}%` }} />
-                ))}
-              </span>
-            </div>
           </div>
         </div>
 
