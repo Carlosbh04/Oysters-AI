@@ -138,6 +138,62 @@ function getSkeletonFor(pathname) {
    responde con una promesa ya resuelta. */
 const precargaDe = (pagina) => pagina?.preload ?? (() => Promise.resolve());
 
+/* ============================================================
+   EL ESQUELETO TAMBIÉN ESPERA A LAS IMÁGENES
+
+   Hasta aquí, el esqueleto solo esperaba al CHUNK de JavaScript.
+   Con eso basta en una página de texto, pero no en una que entra
+   con una foto grande: el chunk llega, el esqueleto se retira, la
+   página se monta... y ENTONCES el navegador empieza a descargar
+   la imagen. Resultado: la maqueta aparece con los huecos vacíos
+   y la foto entra de golpe unos segundos después, que es
+   exactamente lo que el esqueleto existía para evitar.
+
+   La solución no necesita máquina nueva: el reveal ya espera a la
+   promesa que devuelve getRouteChunk, así que basta con que esa
+   promesa incluya las imágenes.
+
+   ---- POR QUÉ NUNCA SE QUEDA COLGADO ----
+   Dos seguros, porque un esqueleto que no se va es peor que una
+   imagen que entra tarde:
+     · cada imagen resuelve TAMBIÉN en `onerror` — un 404 o un
+       archivo corrupto no bloquean;
+     · y hay un tope de tiempo: pasado TOPE_IMAGENES se sigue
+       adelante aunque la descarga no haya terminado. Con una red
+       mala, la página entra con el hueco —el comportamiento de
+       antes— en vez de dejar al visitante mirando el shimmer.
+   ============================================================ */
+
+/* Las imágenes que deben estar DESCARGADAS antes de retirar el
+   esqueleto de cada ruta. Solo las de la primera pantalla: hacer
+   esperar por una foto que está a tres scrolls de distancia sería
+   retrasar la entrada a cambio de nada. */
+const IMAGENES_DE_ENTRADA = {
+  "/resources": [
+    "/img/formacion/cabecera.jpg",
+    "/img/formacion/presentacion.jpg",
+  ],
+};
+
+const TOPE_IMAGENES = 4000;
+
+const precargaImagenes = (rutas) =>
+  Promise.all(
+    rutas.map(
+      (src) =>
+        new Promise((resolver) => {
+          const img = new Image();
+          img.onload = resolver;
+          img.onerror = resolver;
+          img.src = src;
+        })
+    )
+  );
+
+/* corre la promesa contra un reloj: lo que gane, gana */
+const conTope = (promesa, ms) =>
+  Promise.race([promesa, new Promise((r) => setTimeout(r, ms))]);
+
 function getRouteChunk(pathname) {
   if (pathname === "/works") return precargaDe(WorksPage);
   if (/^\/works\/[^/]+$/.test(pathname)) return precargaDe(WorkDetailPage);
@@ -152,7 +208,18 @@ function getRouteChunk(pathname) {
     return precargaDe(BlogDetailPage);
   if (pathname.startsWith("/blog")) return precargaDe(BlogPage);
 
-  if (pathname === "/resources") return precargaDe(GenAiTrainingPage);
+  /* la única ruta que además espera a sus imágenes (ver
+     IMAGENES_DE_ENTRADA, arriba) */
+  if (pathname === "/resources") {
+    return () =>
+      Promise.all([
+        precargaDe(GenAiTrainingPage)(),
+        conTope(
+          precargaImagenes(IMAGENES_DE_ENTRADA["/resources"]),
+          TOPE_IMAGENES
+        ),
+      ]);
+  }
 
   if (pathname === "/") {
     return () => Promise.resolve();

@@ -213,6 +213,69 @@
 }
 
 /* ============================================================
+   ENTRADA DE LA PÁGINA
+
+   Ahora que el esqueleto NO se retira hasta que las fotos están
+   descargadas (ver IMAGENES_DE_ENTRADA en App.jsx), la entrada
+   anima contenido de verdad y no cajas vacías — que es lo que
+   hacía que antes no mereciera la pena ponerla.
+
+   El escalonado es corto a propósito: la página ya se ha hecho
+   esperar mientras cargaban las imágenes, así que la entrada
+   tiene que rematar, no volver a hacer esperar.
+   ============================================================ */
+
+@keyframes gtEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gt-cabecera__texto > *,
+.gt-cabecera__medio,
+.gt-presenta > *,
+.gt-incluye > *,
+.gt-precio {
+  opacity: 0;
+  animation: gtEntrada 0.62s cubic-bezier(0.22, 0.8, 0.36, 1) forwards;
+}
+
+/* el orden de lectura: primero el titular, luego su filo y su
+   texto, y la foto entra con ellos —no después—, porque es la
+   mitad del mensaje de la cabecera */
+.gt-cabecera__texto > *:nth-child(1) { animation-delay: 0.02s; }
+.gt-cabecera__texto > *:nth-child(2) { animation-delay: 0.10s; }
+.gt-cabecera__texto > *:nth-child(3) { animation-delay: 0.16s; }
+.gt-cabecera__medio               { animation-delay: 0.08s; }
+
+/* lo de más abajo entra un pelo después: al cargar la página
+   está fuera de pantalla o justo en el filo, así que su entrada
+   se percibe al llegar scrolleando */
+.gt-presenta > *  { animation-delay: 0.22s; }
+.gt-incluye > *   { animation-delay: 0.28s; }
+.gt-precio        { animation-delay: 0.34s; }
+
+/* Sin animación de entrada para quien pide menos movimiento. NO
+   basta con quitar la animación: el estado inicial es opacity 0,
+   así que hay que devolver la opacidad a mano o la página se
+   quedaría invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .gt-cabecera__texto > *,
+  .gt-cabecera__medio,
+  .gt-presenta > *,
+  .gt-incluye > *,
+  .gt-precio {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* ============================================================
    2 · PRESENTACIÓN
    ============================================================ */
 

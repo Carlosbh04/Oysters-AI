@@ -1,7 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import {
   ArrowRight,
-  BookOpen,
   Briefcase,
   FileText,
   Home,
@@ -72,7 +71,9 @@ const NAVEGACION = [
       { label: "Blog", to: "/blog" },
     ],
   },
-  { icono: BookOpen, label: "Blog", to: "/blog" },
+  /* "Blog" NO va suelto aquí: ya está dentro de "Recursos", justo
+     arriba. Estaba en los dos sitios y el pie ofrecía dos caminos
+     al mismo destino con un clic de diferencia. */
   { icono: Mail, label: "Contacto", to: "/contact" },
 ];
 
