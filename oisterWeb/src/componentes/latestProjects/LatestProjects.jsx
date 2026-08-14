@@ -7,6 +7,7 @@ import LightDust from "../lightDust/LightDust";
 import FondoNuevo from "../fondoNuevo/FondoNuevo";
 import trabajos from "../../data/trabajos";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import useEnPantalla from "../../hooks/useEnPantalla";
 import { useEffect, useRef, useState } from "react";
 
 /* la sección enseña como MUCHO los 5 últimos: cuando trabajos.js
@@ -108,8 +109,12 @@ function Arrow() {
 }
 
 function LatestProjects() {
-  const sectionRef = useRef(null);
-  const [landed, setLanded] = useState(false);
+  /* la sección detecta por sí misma cuándo está en pantalla y
+     dispara la cascada de aparición. Ratio bajo (0.2) porque la
+     sección es alta: con 0.45 en portátiles cortos no llegaría a
+     revelarse nunca. Apagado asimétrico (lo pone el hook): solo
+     al salir por abajo, para rehacer la entrada al volver. */
+  const [sectionRef, landed] = useEnPantalla({ ratio: 0.2 });
 
   /* botón "Ver todos": al SALIR el ratón se marca --bye un
      instante → el CSS dispara la reaparición de las letras.
@@ -135,6 +140,30 @@ function LatestProjects() {
     },
     []
   );
+
+  /* ---- EL AGUA Y EL ARO SE PARAN FUERA DE PANTALLA ----
+     Las tres animaciones infinitas del botón (aro lpRingSpin +
+     dos capas de agua lpSlosh) van sobre custom properties:
+     main thread, un tick de estilo por frame aunque el botón
+     quede a dos pantallas — parte del UpdateLayoutTree continuo
+     medido en la traza de producción. Observador SIMÉTRICO
+     local (useEnPantalla no encaja: su reset asimétrico las
+     dejaría corriendo tras pasar de largo la sección), y
+     classList en vez de estado a propósito: este botón ya lleva
+     clases imperativas (--bye/--go) que un className re-escrito
+     por un re-render pisaría. play-state conserva la fase. */
+  useEffect(() => {
+    const el = allRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const io = new IntersectionObserver(
+      ([e]) =>
+        el.classList.toggle("latest-projects__all--fuera", !e.isIntersecting),
+      { threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const handleAllClick = (e) => {
     e.preventDefault();
@@ -212,95 +241,19 @@ function LatestProjects() {
     el.classList.add("latest-projects__all--bye");
   };
 
-  /* mismo patrón que HowWeWork: la sección detecta por sí misma
-     cuándo está en pantalla y dispara la cascada de aparición.
-     Umbral más bajo (0.2) porque la sección es alta: con 0.45
-     en portátiles cortos no llegaría a revelarse nunca. */
-  useEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-
-    /* Misma regla que HowWeWork: al salir NO basta con que baje
-       el ratio, hay que mirar POR DÓNDE salió.
-       · top < 0  → la sección quedó por encima: sigues bajando,
-                    se queda encendida.
-       · top > 0  → la sección volvió a caer por debajo del
-                    borde superior: subiste del todo, se apaga y
-                    así rehace su entrada cuando vuelvas a bajar. */
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.2) {
-          setLanded(true);
-        } else if (entry.boundingClientRect.top > 0) {
-          setLanded(false); // salió por abajo: subiste
-        }
-      },
-      { threshold: [0, 0.2, 1] }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   /* ---- segundo observador: SOLO para las cards ----
      La cabecera se revela cuando la sección asoma (--landed);
      las cards esperan a que SU bloque entre al viewport y
-     entonces lanzan su propia cascada (--in en el grid). */
-  const gridRef = useRef(null);
-  const [cardsIn, setCardsIn] = useState(false);
-
-  useEffect(() => {
-    const el = gridRef.current;
-    if (!el) return;
-
-    /* el grid sigue la misma regla que la sección: si se apagara
-       al dejarlo atrás, la cabecera quedaría visible y las cards
-       desaparecerían por debajo — justo el salto que queremos
-       evitar */
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.25) {
-          setCardsIn(true);
-        } else if (entry.boundingClientRect.top > 0) {
-          setCardsIn(false); // salió por abajo: subiste
-        }
-      },
-      { threshold: [0, 0.25, 1] }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+     entonces lanzan su propia cascada (--in en el grid). Si se
+     apagaran al dejarlas atrás, la cabecera quedaría visible y
+     las cards desaparecerían por debajo. */
+  const [gridRef, cardsIn] = useEnPantalla({ ratio: 0.25 });
 
   /* ---- entrada del cristal ----
      Observador propio y no el del grid: el cristal vive en la
      cabecera, muy por encima de las cards, y con el umbral del
-     grid entraría cuando ya llevaba media pantalla visible.
-
-     Misma regla asimétrica que el resto de la sección: se apaga
-     solo si sale por abajo (has subido), para que al volver a
-     bajar rehaga su entrada. Si sale por arriba se queda puesto. */
-  const cristalRef = useRef(null);
-  const [cristalIn, setCristalIn] = useState(false);
-
-  useEffect(() => {
-    const el = cristalRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.3) {
-          setCristalIn(true);
-        } else if (entry.boundingClientRect.top > 0) {
-          setCristalIn(false);
-        }
-      },
-      { threshold: [0, 0.3, 1] }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+     grid entraría cuando ya llevaba media pantalla visible. */
+  const [cristalRef, cristalIn] = useEnPantalla({ ratio: 0.3 });
 
   /* ---- el cristal ----
      A quien pide no ver movimiento se le sirve la imagen fija.

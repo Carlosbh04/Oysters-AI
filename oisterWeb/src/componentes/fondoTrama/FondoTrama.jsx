@@ -131,21 +131,22 @@ function FondoTrama({ className = "", animar = true }) {
      activo → el pulso de luz recorre el cable. Solo en la sección
               que ocupa el centro de la pantalla, nunca en dos a
               la vez. */
-  const [dentro, setDentro] = useState(!animar);
-  const [activo, setActivo] = useState(!animar);
+  /* El caso "no hay observador" se resuelve en el estado INICIAL
+     (todo encendido y ya), no dentro del efecto: puesto allí
+     habría un primer render apagado y un setState inmediato
+     después (mismo criterio que Revelar.jsx). */
+  const [dentro, setDentro] = useState(
+    () => !animar || typeof IntersectionObserver === "undefined"
+  );
+  const [activo, setActivo] = useState(
+    () => !animar || typeof IntersectionObserver === "undefined"
+  );
 
   useEffect(() => {
     if (!animar) return;
 
     const el = raizRef.current;
-    if (!el) return;
-
-    /* si el navegador no lo soporta, todo encendido y ya */
-    if (typeof IntersectionObserver === "undefined") {
-      setDentro(true);
-      setActivo(true);
-      return;
-    }
+    if (!el || typeof IntersectionObserver === "undefined") return;
 
     /* ---- 1 · TRAZADO ----
        Enciende al 15% de visibilidad y apaga solo cuando la

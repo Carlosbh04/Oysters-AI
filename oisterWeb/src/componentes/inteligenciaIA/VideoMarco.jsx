@@ -108,6 +108,30 @@ function VideoMarco() {
     };
   }, []);
 
+  /* ---- FUERA DE PANTALLA, EL VÍDEO SE PAUSA ----
+     Si el visitante lo deja sonando y sigue scrolleando por la
+     home, el vídeo continuaba decodificando (y sonando) sin nadie
+     delante. Se pausa conservando currentTime; NO se reanuda solo
+     al volver — reanudar es del usuario, y la interfaz ya refleja
+     la pausa por su propio listener de `pause`. En grande no
+     aplica: el marco es quien ocupa la pantalla y sigue
+     intersectando. */
+  useEffect(() => {
+    const caja = cajaRef.current;
+    if (!caja || typeof IntersectionObserver === "undefined") return;
+
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) return;
+        const v = videoRef.current;
+        if (v && !v.paused) v.pause();
+      },
+      { threshold: 0 }
+    );
+    io.observe(caja);
+    return () => io.disconnect();
+  }, []);
+
   /* ---- ABRIR Y CERRAR EN GRANDE ----
      Las dos hacen lo mismo: cerrar la cortina, cambiar el mundo
      detrás y volver a abrirla. Lo que cambia es qué se hace en
@@ -374,10 +398,17 @@ function VideoMarco() {
         </button>
       )}
 
-      <CortinaPixeles
-        fase={fase}
-        alTerminar={fase === "cerrando" ? cortinaCerrada : cortinaAbierta}
-      />
+      {/* montada SOLO durante la coreografía: sin fase devolvía
+          null pero pagaba sus hooks (el useMemo de ~450 retardos
+          y su listener de resize) durante toda la vida de la
+          portada. La fase cubre cerrar y abrir enteros, así que
+          el resultado visual es el mismo. */}
+      {fase && (
+        <CortinaPixeles
+          fase={fase}
+          alTerminar={fase === "cerrando" ? cortinaCerrada : cortinaAbierta}
+        />
+      )}
     </div>
   );
 }

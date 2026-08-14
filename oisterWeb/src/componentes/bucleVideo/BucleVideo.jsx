@@ -143,16 +143,52 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
     const cebarSuplente = () => cebar(dos);
     uno.addEventListener("canplaythrough", cebarSuplente, { once: true });
 
+    /* ---- REINTENTO DE AUTOPLAY BLOQUEADO ----
+       Si play() es rechazado (iOS en bajo consumo, Safari sin
+       gesto), se reintenta con el primer gesto del usuario.
+
+       Un único PAR de listeners como máximo, compartido por las
+       dos pistas: antes cada rechazo registraba su propio par con
+       `once`, y `once` es independiente por listener — al
+       dispararse uno, su gemelo quedaba vivo en window, y los
+       rechazos sucesivos acumulaban pares que sobrevivían al
+       desmontaje. `bloqueados` lleva la cuenta de qué pistas
+       esperan gesto; los listeners existen solo mientras no esté
+       vacío, y `limpiarReintento` (gesto o cleanup del efecto) lo
+       deja todo a cero. */
+    const bloqueados = new Set();
+
+    const quitarGesto = () => {
+      window.removeEventListener("pointerdown", alGesto);
+      window.removeEventListener("scroll", alGesto);
+    };
+
+    const limpiarReintento = () => {
+      bloqueados.clear();
+      quitarGesto();
+    };
+
+    const alGesto = () => {
+      const pendientes = [...bloqueados];
+      limpiarReintento();
+      if (!cancelado) pendientes.forEach(reproducir);
+    };
+
     const reproducir = (v) => {
       const p = v.play();
       if (!p || typeof p.catch !== "function") return;
 
-      p.catch(() => {
+      p.then(() => {
+        /* ya suena (p. ej. lo desbloqueó `canplay`): su reintento
+           sobra, y sin pendientes los listeners tampoco */
+        if (bloqueados.delete(v) && bloqueados.size === 0) quitarGesto();
+      }).catch(() => {
         if (cancelado) return;
-        /* bloqueado: se reintenta con el primer gesto */
-        const reintento = () => reproducir(v);
-        window.addEventListener("pointerdown", reintento, { once: true });
-        window.addEventListener("scroll", reintento, { once: true, passive: true });
+        if (bloqueados.size === 0) {
+          window.addEventListener("pointerdown", alGesto);
+          window.addEventListener("scroll", alGesto, { passive: true });
+        }
+        bloqueados.add(v);
       });
     };
 
@@ -248,6 +284,7 @@ function BucleVideo({ src, sources, poster, className = "", clasePista = "", ...
 
     return () => {
       cancelado = true;
+      limpiarReintento();
       io.disconnect();
       ioCeba.disconnect();
       document.removeEventListener("visibilitychange", alCambiarPestana);

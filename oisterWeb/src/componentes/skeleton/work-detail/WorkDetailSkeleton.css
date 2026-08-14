@@ -2,7 +2,7 @@
    HUECO DE CARGA DEL DETALLE
 
    La maquetación NO está aquí: el JSX reutiliza las clases de
-   WorkDetail.css (.wd, .wd-tarjeta, .wd-rejilla, .wd-meta…), así
+   WorkDetail.css (.wd, .wd-tarjeta, .wd-fila, .wd-meta…), así
    que las medidas son las mismas por construcción y no pueden
    desviarse. Este archivo solo tiene lo propio del hueco: el
    color de las piezas y los pocos bloques que no existen en la

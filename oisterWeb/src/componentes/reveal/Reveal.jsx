@@ -41,11 +41,19 @@ function Reveal({
   className = "",
 }) {
   const ref = useRef(null);
-  const [shown, setShown] = useState(false);
+
+  /* Sin observador, visible desde el estado inicial: la única
+     misión del componente es un efecto de entrada, y su estado
+     de fallo no puede ser "contenido invisible para siempre"
+     (mismo criterio que Revelar.jsx, la variante de una sola
+     pasada que usa el detalle de trabajo). */
+  const [shown, setShown] = useState(
+    () => typeof IntersectionObserver === "undefined"
+  );
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === "undefined") return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {

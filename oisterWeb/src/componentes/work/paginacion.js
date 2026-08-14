@@ -27,6 +27,15 @@
    discrepar.
    ============================================================ */
 
+/* La aritmética (total de páginas, acotado defensivo) vive en
+   utils/paginacion.js desde que el blog la necesita también:
+   aquí solo queda lo específico de /works — su tamaño de página
+   y su parámetro de URL. */
+import {
+  totalDePaginas as totalCon,
+  paginaEnRango,
+} from "../../utils/paginacion";
+
 /* Cuántas tarjetas caben en una página. La rejilla es de 3
    columnas en escritorio, así que 6 son DOS FILAS completas: con
    un múltiplo del número de columnas la última fila nunca queda
@@ -38,17 +47,10 @@ export const POR_PAGINA = 6;
 export const PARAM_PAGINA = "pagina";
 
 export function totalDePaginas(cuantosTrabajos) {
-  return Math.max(1, Math.ceil(cuantosTrabajos / POR_PAGINA));
+  return totalCon(cuantosTrabajos, POR_PAGINA);
 }
 
-/* La URL la escribe cualquiera, así que se lee a la defensiva y
-   se acota SIEMPRE: ?pagina=abc, ?pagina=-3 o ?pagina=99 caen
-   dentro de rango en vez de dejar la rejilla vacía. Acotar al
-   leer y no al guardar cubre además el caso de que `trabajos`
-   encoja —se borra un proyecto y desaparece una página— estando
-   tú en la última.
-
-   `busqueda` acepta lo que devuelve useSearchParams() y también
+/* `busqueda` acepta lo que devuelve useSearchParams() y también
    el location.search en crudo: URLSearchParams traga los dos. */
 export function paginaActual(busqueda, cuantosTrabajos) {
   const pedida = Number.parseInt(
@@ -56,9 +58,7 @@ export function paginaActual(busqueda, cuantosTrabajos) {
     10
   );
 
-  if (!Number.isFinite(pedida)) return 1;
-
-  return Math.min(Math.max(pedida, 1), totalDePaginas(cuantosTrabajos));
+  return paginaEnRango(pedida, cuantosTrabajos, POR_PAGINA);
 }
 
 /* Cuántas cards se van a pintar realmente. Casi siempre es

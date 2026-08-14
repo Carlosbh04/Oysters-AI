@@ -65,6 +65,12 @@ function suavizado(t) {
 
 let animacion = null;
 
+/* la búsqueda diferida en curso (ver abajo): a nivel de módulo
+   para que una navegación nueva cancele la anterior — dos clics
+   seguidos en el menú encadenaban dos búsquedas y la vieja podía
+   disparar un scroll a la sección equivocada */
+let busqueda = null;
+
 function desplazar(id) {
   const destino = document.getElementById(id);
   if (!destino) return false;
@@ -82,8 +88,14 @@ function desplazar(id) {
   }
 
   const salida = window.scrollY;
+
+  /* el margen de la cabecera es constante durante el trayecto:
+     se lee UNA vez (getComputedStyle por frame era la única
+     lectura evitable del bucle; el rect del destino sí tiene que
+     re-medirse — la meta se mueve, ver el comentario de abajo) */
+  const margen = margenDeCabecera();
   const meta = () =>
-    destino.getBoundingClientRect().top + window.scrollY - margenDeCabecera();
+    destino.getBoundingClientRect().top + window.scrollY - margen;
 
   const total = duracionPara(meta() - salida);
   const inicio = performance.now();
@@ -133,6 +145,11 @@ export default function useIrASeccion() {
     (id) => (e) => {
       e.preventDefault();
 
+      /* cualquier navegación nueva mata la búsqueda pendiente de
+         la anterior */
+      clearTimeout(busqueda);
+      busqueda = null;
+
       if (pathname === "/") {
         desplazar(id);
         return;
@@ -147,10 +164,13 @@ export default function useIrASeccion() {
 
       let intentos = 0;
       const buscar = () => {
-        if (desplazar(id) || ++intentos > 40) return;
-        setTimeout(buscar, 50);
+        if (desplazar(id) || ++intentos > 40) {
+          busqueda = null;
+          return;
+        }
+        busqueda = setTimeout(buscar, 50);
       };
-      setTimeout(buscar, 50);
+      busqueda = setTimeout(buscar, 50);
     },
     [navigate, pathname]
   );

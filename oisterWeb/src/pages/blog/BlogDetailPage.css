@@ -1,140 +1,407 @@
-.blog-detail {
-  min-height: 100%;
-  color: var(--color-text, #17122b);
-}
+/* ============================================================
+   DETALLE DE ENTRADA DEL BLOG
 
-.blog-detail .page-section__inner {
-  max-width: 1200px;
-}
+   Rediseño completo. La versión anterior estaba en TEMA CLARO
+   —texto #17122b, píldoras blancas, tarjetas con sombra— porque
+   nació cuando el blog era una caja blanca sobre el sitio. El
+   listado ya pasó a fondo oscuro con su cielo de estrellas, y el
+   detalle se había quedado descolgado: entrabas desde una tarjeta
+   oscura a una página clara.
 
-.blog-article {
-  max-width: 1100px;
-  margin: 0 auto;
-  color: var(--color-text, #17122b);
+   Ahora comparten fondo de verdad, no un parecido: los dos
+   montan el mismo <FondoBlog /> (ver componentes/blog/).
+
+   ---- LA FORMA ----
+   Dos ritmos, y solo dos:
+     · la APERTURA, a dos columnas — todo el texto de entrada a
+       la izquierda y una imagen grande a la derecha;
+     · los APARTADOS, también a dos columnas pero alternando el
+       lado de la imagen, para que la vista baje en zigzag en vez
+       de en una columna recta.
+   ============================================================ */
+
+.blog-detalle {
   position: relative;
+  color: var(--color-text, #f6f0ff);
 }
 
-.blog-article::before {
-  content: "";
-  position: absolute;
-  inset: -40px;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 220, 245, .26), transparent 70%);
-  filter: blur(40px);
+/* mismo criterio que .blog-page en el listado: las capas del
+   fondo se salen a propósito y esto las recorta en el borde de la
+   sección sin crear un contenedor de scroll */
+.blog-detalle.blog-page {
+  overflow: clip;
 }
 
-.blog-back {
-  color: var(--color-violet, #8757f5);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  text-decoration: none;
-}
+.bd {
+  position: relative;
 
-.blog-article-header {
-  margin-top: 30px;
-}
+  width: min(100%, 1240px);
+  margin-inline: auto;
 
-.blog-article-category {
-  display: inline-flex;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(135, 87, 245, .34);
-  background: rgba(255,255,255,.38);
-  color: var(--color-violet, #8757f5);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-}
-
-.blog-article-header h1 {
-  margin: 16px 0 0;
-  font-size: clamp(38px, 6vw, 80px);
-  line-height: .94;
-  color: var(--color-text, #17122b);
-}
-
-.blog-article-content {
-  margin-top: 44px;
-}
-
-.blog-post-block {
-  padding: 34px 0 40px;
-  border-top: 1px solid rgba(135, 87, 245, .22);
-}
-
-.blog-post-block:first-child {
-  border-top: none;
-}
-
-.blog-post-block h2 {
-  font-size: clamp(25px, 3.6vw, 38px);
-  line-height: 1.06;
-  margin-bottom: 18px;
-  color: var(--color-dark, #15161C);
-}
-
-.blog-post-block p {
-  max-width: 880px;
-  color: var(--color-text-light, #5c5673);
-  line-height: 1.95;
-  font-size: 17px;
-}
-
-.blog-post-image {
-  margin: 26px 0 0;
-  background: white;
-  border-radius: 24px;
-  padding: 12px;
-  border: 1px solid rgba(135, 87, 245, .20);
-  box-shadow: 0 20px 55px -28px rgba(23, 18, 43, .80);
-}
-
-.blog-post-image img {
-  width: 100%;
-  max-height: 430px;
-  object-fit: cover;
-  border-radius: 14px;
-}
-
-.blog-detail-skeleton {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(56px, 7vw, 104px);
+
+  /* aire por arriba para despegarse de la píldora del header,
+     que es absolute y no empuja nada */
+  padding-block: clamp(56px, 7vw, 96px) clamp(48px, 6vw, 88px);
 }
 
-.blog-skeleton {
+/* ============================================================
+   EL HUECO DE LA IMAGEN
+
+   De momento la mayoría están vacíos: las fotos de blog.json
+   todavía no tienen archivo en public/img/blog/. El hueco NO es
+   un provisional que luego se quita — es el marco definitivo, y
+   la foto entra dentro. Así lo que se está juzgando ahora es la
+   composición real: cuando lleguen las imágenes, la maqueta no
+   se mueve ni un píxel.
+
+   La proporción va en `aspect-ratio` y no en una altura fija
+   para que el hueco se comporte igual que se comportará la foto
+   al escalar la ventana.
+   ============================================================ */
+
+.bd-medio {
+  position: relative;
+
+  margin: 0;
+
+  overflow: hidden;
+  border: 1px solid rgba(183, 148, 255, 0.28);
+  border-radius: 22px;
+
+  /* el relleno del hueco: un morado apenas más claro que el
+     fondo, con un foco de luz arriba a la derecha. Insinúa el
+     volumen que tendrá la foto sin fingir ser una. */
+  background:
+    radial-gradient(
+      ellipse 80% 70% at 72% 18%,
+      rgba(135, 87, 245, 0.34),
+      transparent 68%
+    ),
+    linear-gradient(150deg, rgba(31, 20, 55, 0.92), rgba(18, 11, 34, 0.94));
+
+  box-shadow:
+    0 30px 70px -40px rgba(10, 4, 24, 0.9),
+    inset 0 0 60px rgba(135, 87, 245, 0.1);
+}
+
+.bd-medio--grande { aspect-ratio: 4 / 3; }
+.bd-medio--normal { aspect-ratio: 1 / 1; }
+
+.bd-medio img {
+  position: relative;
+  z-index: 1;
+
   display: block;
-  border-radius: 8px;
-  background: linear-gradient(90deg, rgba(135, 87, 245, .08), rgba(255, 220, 245, .22), rgba(135, 87, 245, .08));
-  animation: shimmer 1.2s infinite linear;
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
 }
 
-.blog-skeleton-back {
-  width: 160px;
-  height: 24px;
+/* ---- LA MARCA DEL HUECO ----
+   Un ✦ tenue en el centro. Es lo único que distingue un hueco
+   vacío de una caja de color, y va MUY bajo de opacidad a
+   propósito: tiene que decir "aquí va una imagen" sin llegar a
+   parecer un icono de error ni un elemento de diseño.
+   Cuando entra la foto queda tapada por ella (la imagen va en
+   z-index 1), así que no hace falta ocultarla. */
+.bd-medio__marca {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: rgba(183, 148, 255, 0.22);
+  font-size: 40px;
+  line-height: 1;
 }
 
-.blog-skeleton-title {
-  width: min(80%, 680px);
-  height: 56px;
+.bd-medio__marca::before {
+  content: "✦";
 }
 
-.blog-skeleton-line {
-  width: min(90%, 900px);
+/* ============================================================
+   APERTURA
+   ============================================================ */
+
+.bd-apertura {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+.bd-apertura__texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ---- VOLVER ----
+   Mismo papel que en el detalle de trabajo: es el único camino de
+   vuelta, así que va a color pleno y no en un gris tenue. */
+.bd-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  margin-bottom: 26px;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  color: rgba(214, 196, 255, 0.92);
+
+  transition:
+    gap 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
+    color 0.25s ease;
+}
+
+.bd-volver svg {
+  width: 14px;
   height: 14px;
 }
 
-.blog-skeleton-image {
-  height: 320px;
-  width: 100%;
-  margin-top: 20px;
+.bd-volver:hover {
+  gap: 0.8rem;
+  color: var(--color-text, #f6f0ff);
 }
 
-@keyframes shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
+.bd-categoria {
+  display: inline-flex;
+
+  margin-bottom: 22px;
+  padding: 7px 14px;
+
+  border: 1px solid rgba(135, 87, 245, 0.5);
+  border-radius: 999px;
+
+  background: rgba(135, 87, 245, 0.16);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+
+  color: rgba(226, 208, 255, 0.95);
+}
+
+.bd-titulo {
+  margin: 0;
+
+  font-size: clamp(34px, 4.4vw, 62px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+
+  color: var(--color-text, #f6f0ff);
+}
+
+.bd-fecha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  margin: 20px 0 0;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: rgba(196, 176, 240, 0.85);
+}
+
+.bd-fecha svg {
+  width: 14px;
+  height: 14px;
+
+  color: var(--color-violet, #8757f5);
+}
+
+.bd-entradilla {
+  margin: 22px 0 0;
+  max-width: 52ch;
+
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  line-height: 1.75;
+
+  color: rgba(214, 202, 240, 0.82);
+}
+
+/* ============================================================
+   APARTADOS
+
+   La imagen cambia de lado en cada uno. El orden se decide con
+   `order` y no reordenando el marcado: en el marcado la imagen
+   va SIEMPRE primero, que es el orden correcto al apilarse en
+   móvil (imagen y luego su texto). En escritorio, `order` la
+   manda a la derecha cuando toca.
+   ============================================================ */
+
+.bd-apartado {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+.bd-apartado--medio-der .bd-medio {
+  order: 2;
+}
+
+.bd-apartado__texto {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- EL FILO SOBRE EL SUBTÍTULO ----
+   La rayita corta de la referencia. Marca el arranque de cada
+   apartado mejor que una línea a todo lo ancho: separa sin
+   partir la página en bandas. */
+.bd-subtitulo {
+  position: relative;
+
+  margin: 0;
+  padding-top: 22px;
+
+  font-size: clamp(21px, 2.1vw, 30px);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+
+  color: var(--color-text, #f6f0ff);
+}
+
+.bd-subtitulo::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 42px;
+  height: 3px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    var(--color-violet, #8757f5),
+    var(--color-fragance, #ffbef5)
+  );
+  box-shadow: 0 0 18px rgba(135, 87, 245, 0.6);
+}
+
+.bd-parrafo {
+  margin: 18px 0 0;
+  max-width: 58ch;
+
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  line-height: 1.8;
+
+  color: rgba(214, 202, 240, 0.8);
+}
+
+/* ============================================================
+   SIGUIENTE ENTRADA
+   ============================================================ */
+
+.bd-siguiente {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+
+  margin-inline: auto;
+  padding: 14px 30px;
+
+  border: 1px solid rgba(183, 148, 255, 0.32);
+  border-radius: 999px;
+
+  background: rgba(24, 15, 45, 0.72);
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  color: rgba(226, 208, 255, 0.95);
+
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.bd-siguiente svg {
+  width: 14px;
+  height: 14px;
+
+  transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.bd-siguiente__marca {
+  color: var(--color-violet, #8757f5);
+}
+
+.bd-siguiente:hover {
+  border-color: rgba(183, 148, 255, 0.65);
+  background: rgba(38, 24, 68, 0.85);
+  color: var(--color-text, #f6f0ff);
+}
+
+/* la flecha baja: es lo que dice "sigue leyendo hacia abajo",
+   que es exactamente lo que hace el enlace */
+.bd-siguiente:hover svg {
+  transform: translateY(3px);
+}
+
+.bd-vacio {
+  position: relative;
+  color: var(--color-text, #f6f0ff);
+}
+
+/* ============================================================
+   PANTALLAS ESTRECHAS
+
+   Las dos columnas se apilan. La imagen queda arriba en los dos
+   ritmos porque en el marcado va primero (ver el comentario de
+   los apartados) — solo hay que anular el `order` que en
+   escritorio la mandaba a la derecha.
+
+   La apertura es la excepción: ahí el texto tiene que ir PRIMERO
+   porque lleva el titular, y una página que empieza por una caja
+   de imagen sin contexto se lee como un error de carga.
+   ============================================================ */
+@media (max-width: 900px) {
+  .bd-apertura,
+  .bd-apartado {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bd-apertura .bd-medio {
+    order: 2;
+  }
+
+  .bd-apartado--medio-der .bd-medio {
+    order: 0;
+  }
+
+  .bd-medio--grande,
+  .bd-medio--normal {
+    aspect-ratio: 16 / 10;
+  }
+
+  .bd-siguiente {
+    width: 100%;
+  }
 }

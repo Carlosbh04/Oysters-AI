@@ -73,6 +73,18 @@
   }
 }
 
+/* ---- FUERA DE PANTALLA, EL CIELO SE CONGELA ----
+   La clase la pone el observador del componente cuando la escena
+   sale ENTERA del viewport. `animation-play-state` y no quitar la
+   clase de destello: la fase se conserva y, al volver, cada
+   estrella sigue exactamente donde estaba — sin reinicio y sin
+   resincronizar los retrasos. Puede resolverse por clase porque
+   la animación la aplica .escena__destello; el style inline de
+   cada estrella solo lleva sus variables. */
+.escena--fuera .escena__destello {
+  animation-play-state: paused;
+}
+
 /* Sin más animaciones propias. Cada capa lleva su id
    (#background-sky, #stars, #clouds-back, #clouds-front,
    #horizon-glow, #horizon-line, #ground-grid) precisamente para

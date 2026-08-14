@@ -24,6 +24,50 @@ import PageSection from "../../componentes/layout/PageSection.jsx";
 import EscenaSynthwave from "../../componentes/escenaSynthwave/EscenaSynthwave.jsx";
 import Escaneo from "../../componentes/escaneo/Escaneo.jsx";
 
+/* ---- UN CAMPO DEL FORMULARIO ----
+   Los cinco campos eran el mismo bloque copiado (icono + control +
+   label flotante + clase `active`); aquí vive una sola vez. Local
+   al archivo a propósito: es el único formulario del sitio — si
+   algún día aparece otro, será el momento de promocionarlo.
+
+   A nivel de módulo y NO dentro de ContactSection: un componente
+   definido dentro del render sería un tipo nuevo en cada tecleo y
+   React remontaría el campo, perdiendo el foco. */
+function Campo({
+  name,
+  etiqueta,
+  icono,
+  valor,
+  activo,
+  type = "text",
+  autoComplete,
+  multilinea = false,
+  rows,
+  maxLength,
+  children,
+  ...handlers
+}) {
+  const comunes = { id: name, name, value: valor, required: true, ...handlers };
+
+  return (
+    <div className={`input-group ${activo ? "active" : ""}`}>
+      <span className="input-group__icon">{icono}</span>
+
+      {multilinea ? (
+        <textarea {...comunes} rows={rows} maxLength={maxLength} />
+      ) : (
+        <input {...comunes} type={type} autoComplete={autoComplete} />
+      )}
+
+      <label htmlFor={name}>
+        {etiqueta} <span>*</span>
+      </label>
+
+      {children}
+    </div>
+  );
+}
+
 function ContactSection({ introDone = true }) {
   const [formData, setFormData] = useState({
     nombre: "",
@@ -33,13 +77,9 @@ function ContactSection({ introDone = true }) {
     comentarios: "",
   });
 
-  const [focused, setFocused] = useState({
-    nombre: false,
-    apellidos: false,
-    telefono: false,
-    email: false,
-    comentarios: false,
-  });
+  /* solo un campo puede tener el foco a la vez: basta con saber
+     cuál (antes eran cinco booleanos, uno por campo) */
+  const [campoActivo, setCampoActivo] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -47,6 +87,18 @@ function ContactSection({ introDone = true }) {
       [e.target.name]: e.target.value,
     });
   };
+
+  /* el cableado común de cada campo: su valor, si está "activo"
+     (con foco o con contenido — es lo que sube el label) y los
+     handlers de foco */
+  const propsCampo = (name) => ({
+    name,
+    valor: formData[name],
+    activo: campoActivo === name || formData[name] !== "",
+    onChange: handleChange,
+    onFocus: () => setCampoActivo(name),
+    onBlur: () => setCampoActivo(null),
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,165 +150,44 @@ function ContactSection({ introDone = true }) {
 
         {/* FORMULARIO */}
         <form className="contact-form" onSubmit={handleSubmit}>
-          <div
-            className={`input-group ${
-              focused.nombre || formData.nombre ? "active" : ""
-            }`}
+          <Campo
+            etiqueta="Nombre"
+            icono={<FaUser />}
+            autoComplete="given-name"
+            {...propsCampo("nombre")}
+          />
+
+          <Campo
+            etiqueta="Apellidos"
+            icono={<FaUserFriends />}
+            autoComplete="family-name"
+            {...propsCampo("apellidos")}
+          />
+
+          <Campo
+            etiqueta="Teléfono"
+            icono={<FaPhone />}
+            type="tel"
+            autoComplete="tel"
+            {...propsCampo("telefono")}
+          />
+
+          <Campo
+            etiqueta="Correo electrónico"
+            icono={<FaEnvelope />}
+            type="email"
+            autoComplete="email"
+            {...propsCampo("email")}
+          />
+
+          <Campo
+            etiqueta="Cuéntanos tu proyecto"
+            icono={<FaCommentDots />}
+            multilinea
+            rows={6}
+            maxLength={TOPE_MENSAJE}
+            {...propsCampo("comentarios")}
           >
-            <span className="input-group__icon">
-              <FaUser />
-            </span>
-
-            <input
-              id="nombre"
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              onFocus={() => setFocused((prev) => ({ ...prev, nombre: true }))}
-              onBlur={() => setFocused((prev) => ({ ...prev, nombre: false }))}
-              autoComplete="given-name"
-              required
-            />
-
-            <label htmlFor="nombre">
-              Nombre <span>*</span>
-            </label>
-          </div>
-
-          <div
-            className={`input-group ${
-              focused.apellidos || formData.apellidos ? "active" : ""
-            }`}
-          >
-            <span className="input-group__icon">
-              <FaUserFriends />
-            </span>
-
-            <input
-              id="apellidos"
-              type="text"
-              name="apellidos"
-              value={formData.apellidos}
-              onChange={handleChange}
-              onFocus={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  apellidos: true,
-                }))
-              }
-              onBlur={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  apellidos: false,
-                }))
-              }
-              autoComplete="family-name"
-              required
-            />
-
-            <label htmlFor="apellidos">
-              Apellidos <span>*</span>
-            </label>
-          </div>
-
-          <div
-            className={`input-group ${
-              focused.telefono || formData.telefono ? "active" : ""
-            }`}
-          >
-            <span className="input-group__icon">
-              <FaPhone />
-            </span>
-
-            <input
-              id="telefono"
-              type="tel"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              onFocus={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  telefono: true,
-                }))
-              }
-              onBlur={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  telefono: false,
-                }))
-              }
-              autoComplete="tel"
-              required
-            />
-
-            <label htmlFor="telefono">
-              Teléfono <span>*</span>
-            </label>
-          </div>
-
-          <div
-            className={`input-group ${
-              focused.email || formData.email ? "active" : ""
-            }`}
-          >
-            <span className="input-group__icon">
-              <FaEnvelope />
-            </span>
-
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              onFocus={() => setFocused((prev) => ({ ...prev, email: true }))}
-              onBlur={() => setFocused((prev) => ({ ...prev, email: false }))}
-              autoComplete="email"
-              required
-            />
-
-            <label htmlFor="email">
-              Correo electrónico <span>*</span>
-            </label>
-          </div>
-
-          <div
-            className={`input-group ${
-              focused.comentarios || formData.comentarios ? "active" : ""
-            }`}
-          >
-            <span className="input-group__icon">
-              <FaCommentDots />
-            </span>
-
-            <textarea
-              id="comentarios"
-              name="comentarios"
-              value={formData.comentarios}
-              onChange={handleChange}
-              onFocus={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  comentarios: true,
-                }))
-              }
-              onBlur={() =>
-                setFocused((prev) => ({
-                  ...prev,
-                  comentarios: false,
-                }))
-              }
-              rows={6}
-              maxLength={TOPE_MENSAJE}
-              required
-            />
-
-            <label htmlFor="comentarios">
-              Cuéntanos tu proyecto <span>*</span>
-            </label>
-
             {/* Contador. `aria-live="polite"` para que un lector de
                 pantalla avise al acercarse al tope en vez de dejar
                 que el campo deje de aceptar letras sin explicación,
@@ -271,7 +202,7 @@ function ContactSection({ introDone = true }) {
             >
               {formData.comentarios.length} / {TOPE_MENSAJE}
             </span>
-          </div>
+          </Campo>
 
           <button type="submit">Enviar</button>
         </form>

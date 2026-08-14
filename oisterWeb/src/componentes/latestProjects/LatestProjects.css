@@ -499,14 +499,6 @@
 }
 
 
-/* el <svg> solo aporta la definición del filtro: no debe ocupar
-   ni pintar nada */
-.latest-projects__luma {
-  position: absolute;
-  width: 0;
-  height: 0;
-}
-
 /* mismas reglas para la imagen y para el vídeo: son
    intercambiables (el vídeo cae a la imagen si no hay archivo o
    con movimiento reducido) y tienen que ocupar el hueco igual.
@@ -870,6 +862,19 @@
 .latest-projects__all-water::after {
   background: rgb(var(--rgb-primary-light) / 0.5);
   animation: lpSlosh 4.6s ease-in-out -2.1s infinite reverse;
+}
+
+/* ---- FUERA DE PANTALLA, EL AGUA Y EL ARO SE PARAN ----
+   La clase la pone LatestProjects.jsx con un observador sobre el
+   propio botón (via allRef): sus tres animaciones infinitas van
+   sobre custom properties —main thread, un tick de estilo por
+   frame— y el aro además repinta su drop-shadow en cada uno.
+   `animation-play-state` conserva la fase: al volver, el aro y
+   el oleaje siguen exactamente donde estaban. */
+.latest-projects__all--fuera::before,
+.latest-projects__all--fuera .latest-projects__all-water::before,
+.latest-projects__all--fuera .latest-projects__all-water::after {
+  animation-play-state: paused;
 }
 
 @keyframes lpSlosh {

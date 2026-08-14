@@ -87,6 +87,14 @@
   .hero-ripples__core {
     animation: rippleCore 4.5s ease-in-out infinite;
   }
+
+  /* fuera de pantalla (la clase la pone el observador del
+     componente), las seis ondas se congelan conservando fase y
+     desfases; al asomar continúan donde estaban */
+  .hero-ripples--fuera .hero-ripples__ring,
+  .hero-ripples--fuera .hero-ripples__core {
+    animation-play-state: paused;
+  }
 }
 
 /* nace en el centro, gana presencia rápido y se disuelve

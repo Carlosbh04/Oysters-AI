@@ -1,9 +1,7 @@
 /* Último eslabón de la cadena de color del home (ver
    --sec-deep/--sec-lift en variables.css): recoge el tono
    OSCURO donde lo dejó LatestProjects y vuelve a subir al
-   claro para cerrar la página. --about-bg sigue siendo un
-   COLOR plano (= el arranque de la sección) porque los
-   fundidos de las fotos lo usan dentro de sus gradientes. */
+   claro para cerrar la página. */
 /* ---- CLIP EN HORIZONTAL, LIBRE EN VERTICAL ----
    Era `overflow: hidden`, por el LightDust: sus motas no deben
    generar scroll lateral. El problema es que también recortaba
@@ -411,24 +409,3 @@
   .about-hero::after { transform: scale(.44); }
 }
 
-/* ---- LA TRAMA DE "QUÉ HACEMOS", TAMBIÉN AQUÍ ----
-   Mismos valores apagados que allí: los que trae el componente
-   por defecto están calibrados para verse solo, y con texto
-   encima el circuito compite con él.
-
-   El selector lleva DOS clases a propósito. Con una sola empata
-   en especificidad con las reglas de FondoTrama.css, que se
-   importa después, y la trama se queda en `relative` con
-   `height: 100%` sin altura de referencia: 0px de alto y sección
-   sin fondo. */
-.about .about__trama {
-  --ft-linea: rgba(255, 255, 255, 0.18);
-  --ft-punto: rgba(255, 255, 255, 0.12);
-  --ft-hex: rgba(255, 255, 255, 0.09);
-
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-
-  pointer-events: none;
-}

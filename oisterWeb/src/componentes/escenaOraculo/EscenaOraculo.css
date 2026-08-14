@@ -315,6 +315,15 @@
   transform: rotate(var(--giro));
 }
 
+/* eran lo único de la escena que seguía animando fuera de
+   pantalla: todo lo demás cuelga de .eo--dentro (el observador
+   del componente). Aquí `play-state` en vez de atar la animación
+   a la clase: la fase del flotado y sus desfases se conservan y
+   no hay reinicio al re-entrar. */
+.eo:not(.eo--dentro) .eo__poliedro {
+  animation-play-state: paused;
+}
+
 @keyframes eo-flotar {
   0%,
   100% {

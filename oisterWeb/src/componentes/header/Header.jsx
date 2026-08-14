@@ -5,6 +5,9 @@ import HamburgerButton from "../hamburger/HamburgerButton.jsx";
 import MobileMenu from "../mobileMenu/MobileMenu.jsx";
 import DesktopMenu from "../desktopMenu/DesktopMenu.jsx";
 import HeaderTagline from "./HeaderTagline.jsx";
+/* el mismo archivo que usa el pie: un solo logotipo para todo el
+   sitio (ver el comentario del <img> más abajo) */
+import logo from "../../assets/logo/oysters-ai.webp";
 
 /* Hook mínimo: ¿estamos en desktop (>1100px)?
    Decide qué menú renderiza la hamburguesa:
@@ -56,9 +59,30 @@ function Header({ introDone = true, hideNav = false }) {
             (ver Header.css) */}
         <span className="header__resplandor" aria-hidden="true" />
 
-        {/* Logo */}
-        <NavLink to="/" end className="header__logo">
-          Logo
+        {/* ---- EL LOGO ----
+            Es el MISMO render que el pie (assets/logo/oysters-ai.webp),
+            no una versión aparte: si algún día se cambia el logotipo,
+            se cambia en un sitio y aparece en los dos.
+
+            Va como <img> con su alt y no como texto: el lettering
+            "OYSTERS" viene DENTRO del render, así que escribirlo al
+            lado lo diría dos veces y con otra tipografía. El alt es
+            lo que lo deja legible para un lector de pantalla.
+
+            width/height explícitos —los del archivo— para que el
+            navegador reserve el hueco antes de descargarlo y la
+            píldora no dé un salto al llegar la imagen. */}
+        <NavLink to="/" end className="header__logo" aria-label="Oysters AI, ir al inicio">
+          <img
+            className="header__logo-img"
+            src={logo}
+            alt="Oysters AI"
+            width={300}
+            height={284}
+            /* el logo entra en el primer pintado de CUALQUIER ruta:
+               nada de lazy, que solo retrasaría lo que se ve antes */
+            decoding="async"
+          />
         </NavLink>
 
         {/* Texto central — centrado absoluto respecto a la píldora,

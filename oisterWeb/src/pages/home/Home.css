@@ -958,6 +958,18 @@
   animation: btnSlosh 4.6s ease-in-out -2.1s infinite reverse;
 }
 
+/* ---- FUERA DE PANTALLA, EL AGUA SE PARA ----
+   La clase la pone Home.jsx con un observador cuando el botón
+   sale entero del viewport: btnSlosh anima una custom property
+   (main thread, un tick de estilo por frame) y fuera de pantalla
+   es coste sin espectador. `animation-play-state` y no quitar la
+   animación: la fase se conserva y al volver el oleaje sigue
+   exactamente donde estaba. */
+.btn--fuera .btn__water::before,
+.btn--fuera .btn__water::after {
+  animation-play-state: paused;
+}
+
 @keyframes btnSlosh {
   0%,
   100% {
@@ -1399,13 +1411,6 @@
     opacity: 0;
     transform: var(--h-matriz);
     animation: heroSceneIn 0.35s ease-out 0.25s forwards;
-  }
-}
-
-@keyframes heroRise {
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

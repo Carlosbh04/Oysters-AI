@@ -11,10 +11,21 @@ function BlogCard({ id, titulo, categoria, fecha, foto, entrada }) {
   return (
     <Link to={`/blog/${id}`} className="blog-card">
       {/* alt vacío: la imagen es ambiental y el titular ya nombra
-          la entrada — un lector de pantalla no necesita oírla */}
+          la entrada — un lector de pantalla no necesita oírla.
+          onError: si el archivo falta (public/img/blog aún no
+          existe), se oculta el img y queda el degradado de respaldo
+          del contenedor — mismo criterio que el cristal de
+          LatestProjects. */}
       {foto && (
         <div className="blog-card-media">
-          <img src={foto} alt="" loading="lazy" />
+          <img
+            src={foto}
+            alt=""
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
         </div>
       )}
 

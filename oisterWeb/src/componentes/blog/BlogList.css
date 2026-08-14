@@ -6,12 +6,11 @@
    PageSection) y el contenido —título, rejilla, paginación—
    sigue acotado por .blog-list.
 
-   Para eso .blog-list DEJA de ser position:relative: sus capas
-   absolutas (starfield, ::before/::after, .blog-deco) suben a
-   anclarse al primer ancestro posicionado, que es .blog-page.
-   El parallax del ratón no se pierde: las variables
-   --blog-shift/--blog-drift se siguen fijando en .blog-list
-   (ahí está el onMouseMove) y heredan hacia sus hijas.
+   Para eso .blog-list DEJA de ser position:relative: las capas
+   del fondo se anclan al primer ancestro posicionado, que es
+   .blog-page. Hoy esas capas viven en FondoBlog (ver
+   FondoBlog.css), que se monta dentro de .blog-page y se ocupa
+   también de su parallax.
    ============================================================ */
 
 .blog-page {
@@ -30,124 +29,14 @@
   color: var(--color-text, #f6f0ff);
 }
 
-.blog-list::before {
-  content: "";
-  position: absolute;
-  top: -8%;
-  left: -12%;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 220, 245, 0.30), transparent 72%);
-  filter: blur(44px);
-  transform: translate3d(var(--blog-shift-x, 0px), var(--blog-shift-y, 0px), 0);
-}
-
-.blog-list::after {
-  content: "";
-  position: absolute;
-  inset: -150px;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 70% 12%, rgba(255, 255, 255, 0.42) 0 1%, transparent 2%),
-    radial-gradient(circle at 22% 72%, rgba(135, 87, 245, 0.30) 0 1%, transparent 2%),
-    radial-gradient(circle at 80% 88%, rgba(255, 190, 245, 0.34) 0 1%, transparent 2%);
-  transform: translate3d(var(--blog-drift-x, 0px), var(--blog-drift-y, 0px), 0);
-  filter: blur(12px);
-  opacity: .90;
-}
-
-.blog-starfield {
-  position: absolute;
-  inset: -60px;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.blog-starfield::before {
-  content: "";
-  position: absolute;
-  inset: -15%;
-  background-image:
-    radial-gradient(#fff 0 1px, transparent 1.3px),
-    radial-gradient(#b76df0 0 1px, transparent 1.4px);
-  background-position: 12% 16%, 75% 54%;
-  background-size: 170px 170px, 210px 210px;
-  opacity: .78;
-  animation: starFloat 9s ease-in-out infinite alternate;
-}
-
-.blog-starfield::after {
-  content: "";
-  position: absolute;
-  left: -10%;
-  top: -20%;
-  width: 160%;
-  height: 160%;
-  background-image:
-    radial-gradient(#fff 0 2px, transparent 2px),
-    radial-gradient(#8757f5 0 1px, transparent 1px);
-  background-size: 92px 92px, 118px 118px;
-  background-position: 0 0, 22px 40px;
-  opacity: .72;
-  transform: translateY(40px);
-  animation: starFall 4.2s linear infinite;
-}
-
-.blog-star {
-  position: absolute;
-  font-size: 26px;
-  color: rgba(183, 148, 255, .92);
-  text-shadow: 0 0 12px rgba(255,255,255, .90);
-  /* ya no caen los 340px que medía la caja: cruzan la pantalla
-     entera. Más lento a propósito — a 5s un viaje de un viewport
-     completo era una lluvia, no nieve. */
-  animation: starFallPantalla 9s linear infinite;
-}
-
-.blog-star--one { left: 18%; top: -64px; animation-delay: -2s; }
-.blog-star--two { left: 34%; top: -140px; font-size: 20px; animation-delay: -3.4s; }
-.blog-star--three { left: 61%; top: -96px; font-size: 24px; animation-delay: -6.2s; }
-.blog-star--four { left: 82%; top: -120px; font-size: 18px; animation-delay: -1.1s; }
-.blog-star--five { left: 48%; top: -150px; font-size: 28px; animation-delay: -7.6s; }
-.blog-star--six { left: 10%; top: -110px; font-size: 20px; animation-delay: -4.8s; }
-
-/* la de los ✦ grandes: recorre el viewport de arriba abajo y se
-   apaga al llegar, para no acumularse en el borde inferior */
-@keyframes starFallPantalla {
-  0% { transform: translateY(0) scale(1); opacity: 0; }
-  12% { opacity: .9; }
-  100% { transform: translateY(112vh) scale(1.06); opacity: 0; }
-}
-
-/* la de la malla de puntos del starfield: un bucle corto que, al
-   repetirse sobre un patrón que ya cubre todo el fondo, se lee
-   como nevada continua */
-@keyframes starFall {
-  0% { transform: translateY(-30px) scale(1); opacity: .0; }
-  20% { opacity: .9; }
-  100% { transform: translateY(340px) scale(1.06); opacity: .1; }
-}
-
-@keyframes starFloat {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(20px, 26px, 0) scale(1.02); }
-}
+/* El fondo (halo, polvo, campo de estrellas y los ✦ que caen)
+   ya no está aquí: se extrajo a FondoBlog.jsx/.css al necesitarlo
+   también el detalle de entrada. Eran pseudo-elementos de
+   .blog-list, y un pseudo-elemento no se puede compartir entre
+   dos páginas — de ahí la extracción. */
 
 .blog-list-head {
   margin-bottom: 38px;
-}
-
-.blog-list-badge {
-  color: var(--color-text-soft, #5c5673);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .24em;
-  text-transform: uppercase;
 }
 
 .blog-list-title {
@@ -171,65 +60,10 @@
   box-shadow: 0 0 30px rgba(135, 87, 245, 0.55);
 }
 
-.blog-list-subtitle {
-  max-width: 740px;
-  margin: 0;
-  color: var(--color-text-light, #5c5673);
-  font-size: 20px;
-  line-height: 1.55;
-}
-
 .blog-list-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(230px, 1fr));
   gap: 28px;
-}
-
-.blog-list-cta {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 58px;
-  padding: 26px;
-  border-radius: 24px;
-  background: linear-gradient(120deg, rgba(255,255,255,.55), rgba(255,255,255,.16));
-  border: 1px solid rgba(255,255,255,.60);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 18px 50px -38px rgba(28, 14, 64, .55);
-}
-
-.blog-list-cta-icon {
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  color: var(--color-text, #17122b);
-  background: rgba(255,255,255,.38);
-}
-
-.blog-list-cta-text h2 {
-  margin: 0;
-  color: var(--color-text, #17122b);
-}
-
-.blog-list-cta-text p {
-  margin: 8px 0 0;
-  color: var(--color-text-soft, #5c5673);
-}
-
-.blog-list-cta-button {
-  margin-left: auto;
-  color: var(--color-text, #17122b);
-  text-decoration: none;
-  padding: 13px 24px;
-  border-radius: 999px;
-  border: 1px solid rgba(121, 87, 210, .35);
-  background: linear-gradient(120deg, rgba(255, 255, 255, .88), rgba(246, 230, 255, .75));
-  font-weight: 700;
-}
-
-.blog-list-cta-button:hover {
-  transform: translateY(-2px);
 }
 
 /* La paginación es la compartida de paginacion/Paginacion.css
@@ -239,31 +73,8 @@
   margin-top: 34px;
 }
 
-.blog-deco {
-  position: absolute;
-  pointer-events: none;
-  /* sube del violeta medio al lila de marca: sobre el fondo
-     oscuro el anterior casi desaparecía */
-  color: rgba(183, 148, 255, .60);
-  font-size: 34px;
-}
-
-.blog-deco-1 { top: 16%; left: 12%; }
-.blog-deco-2 { top: 38%; right: 8%; }
-.blog-deco-3 { bottom: 15%; left: 22%; }
-.blog-deco-4 { bottom: 22%; right: 16%; }
-
 @media (max-width: 900px) {
   .blog-list-grid {
     grid-template-columns: 1fr;
-  }
-
-  .blog-list-cta {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .blog-list-cta-button {
-    margin-left: 0;
   }
 }

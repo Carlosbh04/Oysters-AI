@@ -417,6 +417,14 @@ function useHeroScrollDock(ref, enabled = true) {
     function animar() {
       raf = null;
 
+      /* la remedición pendiente va ANTES de pintar: así el frame
+         lee geometría fresca y las lecturas quedan agrupadas al
+         principio, con las escrituras de pintar() detrás */
+      if (necesitaRemedir) {
+        necesitaRemedir = false;
+        remedir();
+      }
+
       /* Ya no se mide el tiempo entre frames. Hacía falta para la
          interpolación exponencial —para que avanzara igual a 60
          que a 120Hz— y para acotar el efecto de un frame perdido.
@@ -490,9 +498,21 @@ function useHeroScrollDock(ref, enabled = true) {
       despertar();
     };
 
+    /* ---- REMEDIR, COMO MUCHO UNA VEZ POR FRAME ----
+       remedir() encadena lecturas y escrituras de layout — la
+       puntería además FUERZA un layout a propósito (escribe el
+       estado de llegada, mide y restaura) — y `resize` llega en
+       ráfaga: cada paso de un arrastre en escritorio y, en móvil,
+       el colapso de la barra del navegador en pleno scroll. Nadie
+       consume sus resultados de forma síncrona (los lee pintar()
+       en el frame siguiente), así que el evento solo levanta la
+       bandera y es el motor —el único rAF del hook— quien mide al
+       abrir el frame: N eventos en un frame, UNA medición. */
+    let necesitaRemedir = false;
+
     const onResize = () => {
       /* cambia toda la geometría: hay que remedir y repasar */
-      remedir();
+      necesitaRemedir = true;
       scrollY = window.scrollY;
       huboScroll = true;
       despertar();
@@ -508,6 +528,16 @@ function useHeroScrollDock(ref, enabled = true) {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("load", alCargar);
       if (raf !== null) cancelAnimationFrame(raf);
+
+      /* deshacer lo que pintar() pudiera dejar puesto: si el
+         hook se apaga en caliente (p. ej. reduced-motion activado
+         con la ostra ya acoplada), el elemento no debe quedarse
+         anclado en `absolute` ni la sección con `hero--suelta` */
+      right.style.position = "";
+      right.style.top = "";
+      right.style.left = "";
+      right.style.right = "";
+      hero?.classList.remove("hero--suelta");
     };
   }, [ref, enabled]);
 }

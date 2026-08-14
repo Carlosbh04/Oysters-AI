@@ -91,15 +91,12 @@
     ========================== */
 
     --color-dark:#261A38;
-    --color-surface:#43305F;
 
     --color-white:#ffffff;
 
     --color-text:#F6F0FF;
     --color-text-light:#CDC1E2;
     --color-text-muted:#AFA0CC;
-
-    --color-border:#5B4478;
 
     /* ==========================
        SURFACES / BACKGROUND
@@ -109,8 +106,6 @@
     ========================== */
 
     --color-bg:#372550;
-    --surface:#43305F;
-    --surface-light:#4F3A6E;
 
     /* ==========================
        CADENA DE COLOR DE LAS SECCIONES (HOME)
@@ -147,25 +142,6 @@
     --sec-lift:#56336B;   /* el tono CLARO (ciruela) */
     --sec-mid:#4E3069;    /* punto medio: la parada del 50% */
 
-    /* Los dos extremos también en canales sueltos: los velos de
-       empalme necesitan ESE MISMO color con alfa 0 para
-       desvanecerse sin virar. El claro lo usa .ucb::after y el
-       oscuro el arranque del pie, que es quien recoge el final
-       de la página. */
-    --rgb-sec-lift:86 51 107;
-    --rgb-sec-deep:68 47 101;
-
-    /* ---- ARRANQUE DEL PIE ----
-       El color con el que el pie empalma con la página de encima.
-       Son dos familias, medidas justo sobre la costura: las
-       páginas claras cierran sobre el 30% de luz y las oscuras
-       sobre el 12%. Quién es cada una lo decide App.jsx, que es el
-       único que conoce la ruta antes de pintar. */
-    --pie-claro:#442F65;
-    --rgb-pie-claro:68 47 101;
-    --pie-oscuro:#22152E;
-    --rgb-pie-oscuro:34 21 46;
-
     /* ==========================
        GRADIENTS
     ========================== */
@@ -196,29 +172,11 @@
             #A96AF7 100%
         );
 
-    --gradient-button:
-        linear-gradient(
-            135deg,
-            #F090D4 0%,
-            #D96BC5 45%,
-            #8B5CF6 100%
-        );
-
     /* ==========================
        SHADOWS
        En oscuro la sombra negra casi no se ve: se apoya en
        negro MÁS denso + un halo de color para dar relieve.
     ========================== */
-
-    --shadow-sm:
-        0 6px 20px rgba(0,0,0,.45);
-
-    --shadow-lg:
-        0 20px 50px rgba(0,0,0,.55);
-
-    --shadow-card:
-        0 20px 60px rgba(0,0,0,.45),
-        0 4px 12px rgba(0,0,0,.30);
 
     --shadow-soft:
         0 30px 80px rgba(0,0,0,.45),
@@ -230,7 +188,6 @@
 
     --container:1280px;
     --header-height:96px;
-    --section-padding:80px;
 
     /* ==========================
        BORDER RADIUS
@@ -252,10 +209,6 @@
        Los "cristales" pasan de blanco translúcido sobre claro
        a blanco MUY tenue sobre oscuro: en dark, un velo del
        20% de blanco se ve lechoso, no de cristal. */
-    /* color PLANO de arranque de About (= --sec-deep): los
-       fundidos de las fotos lo meten dentro de un gradiente y
-       necesitan un color, no una cadena */
-    --about-bg: #442F65;
     --about-container: 1700px;
     /* enter = color EXACTO donde TERMINA LatestProjects (el
        tono oscuro de la cadena). Si no coincide al píxel
@@ -271,20 +224,10 @@
     --about-pink: #E070BE;
     --about-text: var(--color-text);
     --about-text-muted: var(--color-text-light);
-    --about-highlight: rgba(255,255,255,.14);
     /* --about-glow se fue con el halo del retrato de "Nosotros"
        (era su único consumidor). El aura que queda en esa
        sección lleva sus tres focos escritos en About.css: son
        colores de composición, no un token reutilizable. */
     --about-shadow: 0 22px 60px rgba(0,0,0,.45);
-
-    /* ==========================
-       HEADER
-    ========================== */
-
-    --header-line:#C9A8FF;
-    --header-line-glow:rgba(201,168,255,.40);
-    --header-spark:#FFF9FE;
-    --header-spark-glow:rgba(240,144,212,.55);
 
 }

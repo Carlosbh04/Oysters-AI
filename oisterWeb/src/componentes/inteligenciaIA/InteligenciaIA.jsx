@@ -130,6 +130,20 @@ const APARTADOS = [
    curva viviera aquí, serían dos sistemas distintos apuntando al
    mismo sitio por casualidad.
    ============================================================ */
+/* ¿Miden lo mismo dos trazados? Comparar las rutas basta para
+   toda la geometría de las curvas (los puntos de las puntas van
+   embebidos en el propio string del path); w/h/centro/radio se
+   comparan aparte porque no viajan en las rutas. No es un deep
+   equal genérico: son los campos exactos y solo corre al medir. */
+const esMismoTrazado = (a, b) =>
+  a.w === b.w &&
+  a.h === b.h &&
+  a.radio === b.radio &&
+  a.centro.x === b.centro.x &&
+  a.centro.y === b.centro.y &&
+  a.rutas.length === b.rutas.length &&
+  a.rutas.every((d, i) => d === b.rutas[i]);
+
 function useConectores(mapaRef, nucleoRef, tarjetaRefs, activo) {
   const [trazado, setTrazado] = useState(null);
 
@@ -185,13 +199,27 @@ function useConectores(mapaRef, nucleoRef, tarjetaRefs, activo) {
     /* el centro y el radio salen también hacia fuera: los necesita
        la luz que orbita (LuzAnillo). Antes se quedaban aquí dentro
        porque solo servían para construir las curvas. */
-    setTrazado({
-      w: base.width,
-      h: base.height,
-      rutas,
-      puntos,
-      centro: { x: cx, y: cy },
-      radio: r,
+    /* ---- LA IDENTIDAD SOLO CAMBIA SI CAMBIA LA GEOMETRÍA ----
+       medir() corre en el montaje, con cada aviso del
+       ResizeObserver (que entrega una observación inicial nada
+       más observar) y al llegar las fuentes. Publicar SIEMPRE un
+       objeto nuevo hacía que LuzAnillo —cuyo efecto depende de
+       `centro` y `rutas` por identidad— rearrancara su máquina de
+       estados con geometría idéntica: la luz saltaba a otro punto
+       del aro sin que nada hubiera cambiado. Si la medición sale
+       igual, se conserva el objeto anterior: misma referencia →
+       React ni re-renderiza ni relanza efectos. */
+    setTrazado((previo) => {
+      const nuevo = {
+        w: base.width,
+        h: base.height,
+        rutas,
+        puntos,
+        centro: { x: cx, y: cy },
+        radio: r,
+      };
+
+      return previo && esMismoTrazado(previo, nuevo) ? previo : nuevo;
     });
   }, [mapaRef, nucleoRef, tarjetaRefs, activo]);
 

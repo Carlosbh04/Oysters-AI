@@ -52,7 +52,52 @@ const TOPE_GRANOS = 12000;
 
 const RADIO = 115; /* radio de acción del cursor, en px de CSS */
 const EMPUJE = 2.6;
-const ARRASTRE = 0.11; /* cuánto arrastra el MOVIMIENTO del cursor */
+
+/* ---- ARRASTRE: CUÁNTO SE LLEVA EL CURSOR AL MOVERSE ----
+   Va SEPARADO por eje, y esa separación arregla un fallo que se
+   veía a diario en el titular del hero: al entrar en él, el texto
+   se hundía.
+
+   El motivo: el arrastre suma la velocidad del cursor a la de los
+   granos. Al titular se entra casi siempre BAJANDO —el ratón viene
+   del header, de arriba—, así que en ese momento todos los granos
+   recibían la misma velocidad hacia abajo A LA VEZ. Y eso no se
+   lee como arena revuelta sino como el renglón entero cayéndose:
+   medido entrando desde arriba, 3834 píxeles de arena por debajo
+   del titular contra 9 por encima. Una asimetría de 400 a 1.
+
+   La solución NO es bajar el arrastre a secas: en horizontal es
+   justo lo que da la sensación de barrer la arena con la mano, y
+   ahí no molesta porque un renglón desplazado de lado se lee como
+   dispersión, no como caída.
+
+   Así que el eje Y se queda casi sin arrastre. Lo que mueve los
+   granos en vertical sigue siendo el EMPUJE radial, que es
+   simétrico por definición —empuja hacia arriba a los de arriba y
+   hacia abajo a los de abajo—, y por eso el texto se deshace en su
+   sitio en vez de descolgarse. */
+const ARRASTRE_X = 0.11;
+const ARRASTRE_Y = 0.015;
+
+/* ---- LA ARENA SE ABRE A LO LARGO DEL RENGLÓN ----
+   El empuje del cursor es RADIAL: reparte por igual en todas las
+   direcciones. Sobre una figura redonda eso está bien, pero un
+   renglón de texto es una franja ancha y bajita, y ahí el reparto
+   radial manda tanta arena hacia abajo como hacia los lados. Como
+   por debajo de la línea base no hay más texto, esos granos caen
+   sobre el fondo limpio y se ven todos: el titular parece
+   descolgarse aunque las letras no se hayan movido de sitio
+   —medido: el borde superior de "AI" no cambia ni un píxel—.
+
+   Este factor achata el empuje en vertical. La arena sale
+   entonces por donde el renglón es largo, que es como se abre de
+   verdad un montón de arena al pasarle la mano, y la línea se
+   mantiene recta.
+
+   A 1 vuelve el reparto radial de antes. Por debajo de ~0.3 la
+   dispersión se ve plana y artificial. */
+const ACHATADO_VERTICAL = 0.42;
+
 const ROCE = 0.9;
 const MUELLE = 0.035; /* fuerza de vuelta a casa */
 
@@ -211,6 +256,24 @@ function TextoArena({ children }) {
 
     const raton = { x: -9999, y: -9999, px: -9999, py: -9999, vx: 0, vy: 0, dentro: false };
     let raf = null;
+
+    /* ---- ORIGEN DEL BLOQUE, EN COORDENADAS DE PÁGINA ----
+       El puntero se convierte a coordenadas locales comparando
+       pageX/pageY contra este origen. En espacio de PÁGINA (no de
+       viewport) porque así el scroll no lo mueve: medirlo por
+       pointermove —como se hacía— era un forced layout por evento
+       para leer un valor que solo cambia cuando cambia la
+       maquetación. Lo sella `preparar` con la medición que ya
+       hace, y cada pointerenter lo re-sella con UNA lectura: eso
+       cubre los desplazamientos sin cambio de tamaño que el
+       ResizeObserver de abajo no ve. */
+    let origenX = 0;
+    let origenY = 0;
+
+    const sellarOrigen = (caja) => {
+      origenX = caja.left + window.scrollX;
+      origenY = caja.top + window.scrollY;
+    };
 
     /* ---- EL TEXTO, MEDIDO DEL DOM ----
        Se recorre carácter a carácter con un Range y se pinta cada
@@ -382,6 +445,7 @@ function TextoArena({ children }) {
       if (listo) return;
 
       const caja = el.getBoundingClientRect();
+      sellarOrigen(caja);
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       ancho = Math.max(1, Math.round(caja.width)) + HOLGURA * 2;
       alto = Math.max(1, Math.round(caja.height)) + HOLGURA * 2;
@@ -455,8 +519,10 @@ function TextoArena({ children }) {
                por eso no se distingue el círculo del radio */
             const caida = 1 - d / RADIO;
             const fuerza = caida * caida * EMPUJE * g.caos;
-            g.vx += (dx / d) * fuerza + raton.vx * ARRASTRE * caida;
-            g.vy += (dy / d) * fuerza + raton.vy * ARRASTRE * caida;
+            g.vx += (dx / d) * fuerza + raton.vx * ARRASTRE_X * caida;
+            g.vy +=
+              (dy / d) * fuerza * ACHATADO_VERTICAL +
+              raton.vy * ARRASTRE_Y * caida;
             g.dormido = false;
           }
         }
@@ -520,14 +586,14 @@ function TextoArena({ children }) {
     }
 
     const alEntrar = () => {
-      preparar();
+      if (!listo) preparar(); /* preparar ya sella el origen */
+      else sellarOrigen(el.getBoundingClientRect());
     };
 
     const alMover = (e) => {
       if (!listo) preparar();
-      const r = el.getBoundingClientRect();
-      raton.x = e.clientX - r.left + HOLGURA;
-      raton.y = e.clientY - r.top + HOLGURA;
+      raton.x = e.pageX - origenX + HOLGURA;
+      raton.y = e.pageY - origenY + HOLGURA;
       if (!raton.dentro) {
         /* al entrar, la posición anterior es la de ahora: si no, el
            primer fotograma calcularía una velocidad enorme desde

@@ -14,16 +14,22 @@
 .app[data-pie="claro"],
 .app[data-pie="oscuro"] {
   --pie-fondo: transparent;
-
-  /* se conservan por el fondo antiguo (FooterBackground), que
-     sigue archivado y los consume si algún día se remonta */
-  --pie-arranque: var(--pie-claro, #442f65);
-  --pie-arranque-rgb: var(--rgb-pie-claro, 68 47 101);
 }
 
-.app[data-pie="oscuro"] {
-  --pie-arranque: var(--pie-oscuro, #22152e);
-  --pie-arranque-rgb: var(--rgb-pie-oscuro, 34 21 46);
+/* GEN AI TRAINING: la única página clara del sitio. El pie NO se
+   aclara —su tarjeta es semitransparente (rgba(14,10,26,.62)) y
+   toma su oscuridad de lo que tiene detrás, así que sobre un
+   fondo claro el texto claro se quedaría ilegible—: lo que se
+   hace es al revés, la PÁGINA cierra bajando hasta este color y
+   el pie lo continúa. La transición vive en GenAiTrainingPage.css
+   y usa este mismo token, así que los dos lados de la costura
+   salen del mismo sitio. */
+.app[data-pie="formacion"] {
+  /* el morado base del degradado del body: así el pie continúa el
+     fondo del sitio sin costura. Va escrito aquí y NO en un token
+     de variables.css porque solo lo usan estos dos sitios, y la
+     página lo lee heredándolo de .app (es su ancestro). */
+  --pie-fondo: #402b5f;
 }
 
 /* HOME: no lleva color aquí. Todas sus secciones montan

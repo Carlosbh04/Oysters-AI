@@ -1,6 +1,6 @@
 import "./Home.css";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import HeroRipples from "./HeroRipples";
 import FondoNuevo from "../../componentes/fondoNuevo/FondoNuevo";
@@ -84,14 +84,17 @@ function HomePage({ introDone = true, introSaliendo = false }) {
      llegas, y el texto y las tarjetas entran contigo mirando. */
   const [casosRef, casosDentro] = useEnPantalla({ margen: "0px 0px 8% 0px" });
 
-  const scrollToNext = useCallback(() => {
+  /* sin useCallback: va a dos <button> nativos, que no se
+     benefician de identidad estable — envolverlo solo sugería
+     una optimización que no existía */
+  const scrollToNext = () => {
     const next = heroRef.current?.nextElementSibling;
     if (!next) return;
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     next.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
-  }, []);
+  };
 
   /* el scroll-cue solo tiene sentido con la página virgen: al
      primer scroll se retira (y no vuelve — ya cumplió) */
@@ -101,6 +104,30 @@ function HomePage({ introDone = true, introSaliendo = false }) {
     const onScroll = () => setHasScrolled(true);
     window.addEventListener("scroll", onScroll, { once: true, passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* ---- EL AGUA DEL BOTÓN SE PARA FUERA DE PANTALLA ----
+     Sus dos capas animan una custom property (--btn-tilt), y una
+     custom property no es compositable: tickea recálculo de
+     estilo en main thread cada frame, esté el botón donde esté —
+     parte del UpdateLayoutTree continuo medido en la traza de
+     producción. Observador SIMÉTRICO local (useEnPantalla no
+     encaja: su reset asimétrico dejaría el agua corriendo justo
+     tras pasar de largo el hero) que pone la clase directamente
+     con classList — sin estado: no hay nada que re-renderizar.
+     play-state congela conservando la fase. */
+  const gotaRef = useRef(null);
+
+  useEffect(() => {
+    const el = gotaRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const io = new IntersectionObserver(
+      ([e]) => el.classList.toggle("btn--fuera", !e.isIntersecting),
+      { threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   return (
@@ -222,6 +249,7 @@ function HomePage({ introDone = true, introSaliendo = false }) {
 
                 <button
                   type="button"
+                  ref={gotaRef}
                   className="btn btn--primary btn--drop"
                   onClick={scrollToNext}
                 >

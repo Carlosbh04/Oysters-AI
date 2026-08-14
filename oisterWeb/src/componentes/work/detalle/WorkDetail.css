@@ -434,128 +434,9 @@
 }
 
 /* ============================================================
-   4 · CONTENIDO  ·  5 · DESTACADO
-   Los dos comparten la misma rejilla 7fr / 5fr.
+   4 · CONTENIDO
+   El reparto en filas/pilas vive más abajo (sección FILAS).
    ============================================================ */
-
-.wd-rejilla {
-  display: grid;
-  grid-template-columns: 7fr 5fr;
-  gap: 20px;
-
-  /* ---- LAS COLUMNAS SE ESTIRAN, NO EMPIEZAN ARRIBA ----
-     La spec pedía `align-items: start`. Con eso cada columna
-     toma su altura natural y la más corta deja un agujero: en
-     ACCIONA eran 192px de aire muerto debajo de las
-     herramientas.
-
-     Con el estirado por defecto las dos ocupan la altura de la
-     fila, y el último elemento de cada una (ver abajo) absorbe
-     la diferencia. Así terminan siempre a la misma altura, venga
-     el proyecto con los datos que venga. */
-}
-
-/* ---- COLUMNA ÚNICA: MÁS ESTRECHA Y CENTRADA ----
-   Cuando no hay barra lateral, dejar las tarjetas a los 1120px
-   de la página no soluciona nada: el párrafo está limitado a 70
-   caracteres por legibilidad, así que ocupaba 617px y quedaban
-   455px de tarjeta vacía a la derecha. Medido en ALSEA.
-
-   La solución no es ensanchar el texto —70 caracteres es el
-   tope cómodo para leer seguido— sino estrechar el bloque hasta
-   la anchura que el texto realmente ocupa. El resultado es el
-   patrón editorial de toda la vida: medios anchos, texto
-   estrecho. Se lee como una decisión, no como un hueco. */
-.wd-rejilla--sola {
-  grid-template-columns: 1fr;
-}
-
-/* El estrechado es SOLO para bloques de texto. Un vídeo suelto
-   también cae en `--sola`, y estrechado a 680px se quedaba
-   pequeño debajo de una galería de 1120: no necesita medida de
-   lectura, necesita ancho. Por eso la anchura va en una clase
-   aparte y no en `--sola`. */
-.wd-rejilla--estrecha,
-.wd-herramientas--sola {
-  width: 100%;
-  max-width: 680px;
-  margin-inline: auto;
-}
-
-/* dentro del bloque estrecho el tope de 70ch ya no hace falta:
-   lo impone el propio bloque, y dejarlo puesto volvería a
-   recortar el texto y a dejar aire muerto */
-.wd-rejilla--estrecha .wd-descripcion p {
-  max-width: none;
-}
-
-.wd-rejilla__lado {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  height: 100%;
-}
-
-/* ---- CÓMO SE REPARTE EL SOBRANTE ----
-   Las dos columnas miden lo mismo, así que la más corta tiene
-   altura de más que colocar en algún sitio. Se reparte según lo
-   que haya:
-
-   · Si hay un VÍDEO, se lo queda él (`flex: auto` abajo, en
-     .wd-destacado__video--relleno). Un vídeo más alto sigue
-     siendo un vídeo.
-
-   · Si no, `space-between` lo convierte en separación ENTRE
-     tarjetas. Antes lo absorbía la última tarjeta estirándose, y
-     en ACCIONA eso dejaba 86px de vacío dentro de la caja de
-     PROYECTOS. Repartido como aire entre tarjetas se lee como
-     una decisión de espaciado; metido dentro de una caja se lee
-     como que falta contenido.
-
-   Los dos casos conviven porque `flex: auto` gana: donde hay
-   vídeo no queda sobrante que repartir y space-between no tiene
-   nada que hacer. */
-.wd-rejilla__lado {
-  justify-content: space-between;
-}
-
-/* ---- UNA SOLA TARJETA NO PUEDE REPARTIR SOBRANTE ----
-   `space-between` convierte el sobrante en separación ENTRE
-   tarjetas, y eso solo funciona con dos o más. La columna derecha
-   lleva una —entregables y herramientas comparten caja a
-   propósito, para no fragmentarla— así que el sobrante se
-   acumulaba entero debajo: medido en ACCIONA, 490px de columna
-   vacía al lado del texto.
-
-   Estirarla tampoco sirve: ya se probó y una caja con aire dentro
-   se lee como que falta contenido, no como espaciado.
-
-   La salida es que acompañe al scroll. Deja de haber columna vacía
-   porque la tarjeta está siempre a la altura de lo que se está
-   leyendo, y de paso es lo que uno espera de una barra de datos:
-   que no se pierda al bajar.
-
-   Solo cuando la rejilla tiene DOS columnas: en `--sola` la
-   tarjeta es el contenido principal y pegarla arriba no tendría
-   sentido. */
-.wd-rejilla:not(.wd-rejilla--sola)
-  > .wd-rejilla__lado:last-child
-  > .wd-tarjeta:only-child {
-  position: sticky;
-
-  /* por debajo de la píldora del header, más el mismo aire que
-     separa las tarjetas entre sí */
-  top: calc(var(--header-height) + 20px);
-}
-
-/* Con la tarjeta pegajosa, `space-between` ya no tiene nada que
-   repartir en esa columna y su altura al 100% solo estorba: la
-   caja se queda arriba y es la posición pegajosa la que manda. */
-.wd-rejilla:not(.wd-rejilla--sola)
-  > .wd-rejilla__lado:last-child:has(> .wd-tarjeta:only-child) {
-  justify-content: flex-start;
-}
 
 /* ---- descripción ---- */
 
@@ -622,17 +503,6 @@
   height: 11px;
 }
 
-/* ---- separador entre entregables y herramientas ---- */
-
-.wd-divisor {
-  height: 1px;
-  margin: 20px 0;
-
-  border: 0;
-
-  background: var(--wd-borde);
-}
-
 /* ---- chips de herramientas ---- */
 
 .wd-chips {
@@ -660,184 +530,7 @@
 }
 
 /* ============================================================
-   5 · DESTACADO
-   ============================================================ */
-
-.wd-destacado__video {
-  position: relative;
-
-  overflow: hidden;
-
-  border: 1px solid var(--wd-borde);
-  border-radius: 14px;
-
-  background: #05030f;
-
-  /* reserva el hueco antes de que cargue el vídeo: sin esto el
-     resto de la página salta hacia abajo al aparecer */
-  aspect-ratio: 16 / 9;
-}
-
-/* Parte de 16:9 y crece desde ahí si su columna se queda corta.
-   Al crecer pierde la proporción, y de que no se deforme se
-   encarga el `object-fit: cover` de abajo. El mínimo evita que
-   quede como una rendija en pantallas estrechas. */
-.wd-destacado__video--relleno {
-  flex: auto;
-
-  min-height: 200px;
-}
-
-.wd-destacado__video video {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-}
-
-/* botón de play sobre el vídeo en pausa */
-.wd-destacado__play {
-  position: absolute;
-  inset: 0;
-
-  display: grid;
-  place-items: center;
-
-  border: 0;
-
-  background: transparent;
-
-  cursor: pointer;
-}
-
-.wd-destacado__play span {
-  display: grid;
-  place-items: center;
-
-  width: 62px;
-  height: 62px;
-
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 50%;
-
-  background: rgba(20, 12, 40, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  color: #fff;
-
-  transition:
-    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1),
-    box-shadow 0.25s ease;
-}
-
-.wd-destacado__play:hover span {
-  transform: scale(1.08);
-  box-shadow: var(--wd-glow);
-}
-
-.wd-destacado__ficha {
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  height: 100%;
-
-  padding: 30px 32px;
-
-  /* el cubo asoma por la esquina y se recorta contra el borde
-     redondeado de la tarjeta: es lo que hace que parezca que
-     está DENTRO y no pegado encima */
-  overflow: hidden;
-}
-
-/* Sacado del flujo visual pero no del árbol de accesibilidad.
-   `clip` sobre un rectángulo vacío es la receta que no rompe la
-   lectura: con `display: none` o `visibility: hidden` el texto
-   desaparece también para el lector de pantalla, que es justo lo
-   contrario de lo que se busca. */
-.wd-solo-lectores {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-.wd-destacado__comillas {
-  display: block;
-
-  /* la comilla tipográfica trae mucho aire por arriba; el
-     interlineado a 0.7 y el margen negativo la suben hasta donde
-     ópticamente parece que empieza */
-  margin-bottom: 6px;
-
-  font-size: 64px;
-  line-height: 0.7;
-
-  background: var(--wd-degradado);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.wd-destacado__cita {
-  position: relative;
-
-  margin: 0;
-
-  /* Más grande y más claro que el resto de párrafos: es una cita
-     destacada, no cuerpo de texto. A 19px y con peso 500 ya
-     cuenta como texto grande para el AA (umbral 3:1), aunque
-     aquí sobra margen de todos modos. */
-  font-size: clamp(16px, 1.5vw, 19px);
-  font-weight: 500;
-  line-height: 1.6;
-  letter-spacing: -0.01em;
-
-  color: var(--wd-texto);
-
-  /* por encima del cubo */
-  z-index: 1;
-}
-
-.wd-destacado__cubo {
-  position: absolute;
-  right: -34px;
-  bottom: -38px;
-
-  width: 190px;
-  height: 190px;
-
-  fill: none;
-  stroke: var(--wd-violeta);
-  stroke-width: 1.5;
-
-  opacity: 0.28;
-
-  pointer-events: none;
-}
-
-/* ---- FRANJA DE HERRAMIENTAS A TODO LO ANCHO ----
-   La que aparece cuando no hay barra lateral (ver
-   WorkContentGrid). Los chips fluyen en horizontal, así que a
-   todo el ancho ocupan una o dos filas y no queda hueco; en una
-   columna estrecha se apilaban y dejaban la caja medio vacía. */
-.wd-herramientas {
-  margin-top: 20px;
-}
-
-/* ============================================================
-   6 · CTA
+   5 · CTA
    ============================================================ */
 
 .wd-cta {
@@ -992,12 +685,6 @@
    el orden lógico se mantiene (no hay ningún `order` en juego).
    ============================================================ */
 
-@media (max-width: 1024px) {
-  .wd-rejilla {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .wd {
     padding-block: 72px 56px;
@@ -1080,16 +767,6 @@
   gap: 20px;
 
   min-width: 0;
-}
-
-/* ---- REPARTO A PARTES IGUALES, Y QUE SE COLOQUEN SOLAS ----
-   `auto-fit` con un mínimo hace dos cosas de golpe: reparte a
-   partes iguales cuando hay dos tarjetas y ocupa la fila entera
-   cuando solo hay una. Sin eso haría falta una clase por cada
-   combinación de datos que traiga el proyecto — y de los siete
-   del catálogo, cada uno trae los suyos. */
-.wd-fila--iguales {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 /* ---- ENTREGABLES A DOS COLUMNAS ----

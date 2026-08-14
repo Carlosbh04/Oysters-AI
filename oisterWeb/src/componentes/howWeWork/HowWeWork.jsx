@@ -2,19 +2,12 @@ import "./HowWeWork.css";
 import LightDust from "../lightDust/LightDust";
 import FondoNuevo from "../fondoNuevo/FondoNuevo";
 import InteligenciaIA from "../inteligenciaIA/InteligenciaIA";
-import { useEffect, useRef, useState } from "react";
+import useEnPantalla from "../../hooks/useEnPantalla";
 
 function HowWeWork() {
-  const sectionRef = useRef(null);
-  const [landed, setLanded] = useState(false);
-
-  const pistaRef = useRef(null);
-
   /* Enciende el halo y la sombra cuando la ostra está llegando.
-     Reset ASIMÉTRICO: solo se apaga si sale del viewport por
-     ABAJO (top > 0 = has vuelto arriba) → al volver a bajar
-     rehace su entrada. Si sale por ARRIBA (top < 0 = sigues
-     bajando), se queda encendida.
+     Apagado asimétrico (lo pone el hook): solo si sale por abajo,
+     para que al volver a bajar rehaga su entrada.
 
      ---- SE OBSERVA LA PISTA, NO LA SECCIÓN ----
      Antes vigilaba la sección entera con un umbral del 45% de su
@@ -25,30 +18,13 @@ function HowWeWork() {
      encendía y, como el fondo tiene su llegada atada a este mismo
      estado, tampoco arrancaba.
 
-     La pista mide unos 420px y es lo que de verdad interesa: se
-     enciende cuando ella está a la vista. */
-  useEffect(() => {
-    const el = pistaRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.intersectionRatio >= 0.45) {
-          setLanded(true);
-        } else if (entry.boundingClientRect.top > 0) {
-          setLanded(false); // salió por abajo: subiste
-        }
-      },
-      { threshold: [0, 0.45, 1] }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+     La pista mide unos 420px y es lo que de verdad interesa: por
+     eso el modo `ratio` y no el de margen — se enciende cuando se
+     ve el 45% DE ELLA. */
+  const [pistaRef, landed] = useEnPantalla({ ratio: 0.45 });
 
   return (
     <section
-      ref={sectionRef}
       className={`how-we-work ${landed ? "how-we-work--landed" : ""}`}
       id="que-hacemos"
     >

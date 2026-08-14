@@ -24,8 +24,18 @@ import { useEffect, useRef, useState } from "react";
    lo alto que sea la sección y pasa a ser "su borde superior ha
    subido por encima de tanto por ciento de la ventana", que es
    lo que uno quiere decir en realidad.
+
+   ---- EL MODO `ratio`: PARA ELEMENTOS DE ALTURA CONOCIDA ----
+   Lo anterior vale para SECCIONES altas. Para piezas acotadas
+   (la pista de aterrizaje, el cristal, un grid de cards) lo que
+   se quiere decir es "cuando se vea el X% DE LA PIEZA", y eso sí
+   es un ratio. Con `ratio: 0.45` el encendido pasa a ser
+   `intersectionRatio >= 0.45` (con thresholds [0, ratio, 1]) y
+   el margen no aplica. El apagado asimétrico es el mismo en los
+   dos modos. Antes este modo vivía copiado a mano en HowWeWork
+   y tres veces en LatestProjects, cada copia con su ratio.
    ============================================================ */
-function useEnPantalla({ margen = "0px 0px -35% 0px", umbral = 0 } = {}) {
+function useEnPantalla({ margen = "0px 0px -35% 0px", umbral = 0, ratio = 0 } = {}) {
   const ref = useRef(null);
   const [dentro, setDentro] = useState(false);
 
@@ -33,17 +43,25 @@ function useEnPantalla({ margen = "0px 0px -35% 0px", umbral = 0 } = {}) {
     const el = ref.current;
     if (!el) return;
 
+    const opciones = ratio > 0
+      ? { threshold: [0, ratio, 1] }
+      : { threshold: umbral, rootMargin: margen };
+
     const observador = new IntersectionObserver(
       ([entrada]) => {
-        if (entrada.isIntersecting) setDentro(true);
+        const visible = ratio > 0
+          ? entrada.intersectionRatio >= ratio
+          : entrada.isIntersecting;
+
+        if (visible) setDentro(true);
         else if (entrada.boundingClientRect.top > 0) setDentro(false);
       },
-      { threshold: umbral, rootMargin: margen }
+      opciones
     );
 
     observador.observe(el);
     return () => observador.disconnect();
-  }, [margen, umbral]);
+  }, [margen, umbral, ratio]);
 
   return [ref, dentro];
 }

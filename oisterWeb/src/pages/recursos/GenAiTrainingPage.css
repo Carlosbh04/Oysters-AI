@@ -1,0 +1,610 @@
+/* ============================================================
+   GEN AI TRAINING (/resources)
+
+   Página CLARA dentro de un sitio oscuro, siguiendo la maqueta.
+   Los tokens propios viven aquí y no en variables.css porque son
+   de esta página: si algún día hay más páginas claras, se suben.
+   ============================================================ */
+
+/* ---- LA PÁGINA ES UNA PageSection ----
+   Y de ahí sale el carril: `.page-section__inner` ya la centra
+   con el mismo `min(--container, 90%)` que el resto del sitio, así
+   que aquí NO se declara ningún ancho propio. El que había (1240px
+   al 92%) dejaba el contenido 21px por dentro a cada lado y la
+   página no acababa de parecer del mismo sitio.
+
+   Dos cosas hay que corregirle a PageSection:
+     · el hueco superior del header lo gestiona la cabecera, que
+       es quien tiene que llegar hasta el borde de arriba para que
+       la píldora del menú caiga sobre morado y no sobre el papel;
+     · el fondo claro va en la SECCIÓN y no en el carril, o solo
+       se pintaría la franja central y los lados se quedarían con
+       el fondo oscuro del sitio. */
+.gt.page-section {
+  padding-top: 0;
+
+  /* ---- Y CIERRA BAJANDO HASTA EL COLOR DEL PIE ----
+     El papel claro cortaba en seco contra el pie y se veía una
+     línea dura de lado a lado. Aclarar el pie NO era la salida:
+     su tarjeta es semitransparente y toma la oscuridad de lo que
+     hay detrás, así que sobre claro el texto se quedaba ilegible.
+
+     Así que baja la página, no sube el pie. Esta banda de 220px
+     va del papel a `--pie-fondo`, que es EXACTAMENTE el color con
+     el que arranca el pie en esta ruta: lo declara Footer.css
+     sobre .app (ver data-pie="formacion") y aquí se HEREDA, así
+     que los dos lados de la costura leen el mismo valor y no
+     pueden desincronizarse.
+
+     El fallback del var() no es decoración: si algún día se
+     renombra el token, el degradado seguiría siendo válido en vez
+     de invalidar la declaración entera y dejar la página sin su
+     fondo claro. Pasó al escribir esto.
+
+     La banda se ancla ABAJO y mide en píxeles, no en %: así da
+     igual lo que crezca la página, el degradado siempre ocupa lo
+     mismo justo antes del pie. */
+  background:
+    linear-gradient(to bottom, transparent, var(--pie-fondo, #402b5f))
+      bottom / 100% 220px no-repeat,
+    var(--gt-papel);
+}
+
+.gt {
+  --gt-morado: #4c1d95;
+  --gt-morado-alto: #6d28d9;
+  --gt-violeta: #7c3aed;
+  --gt-violeta-claro: #a855f7;
+
+  --gt-papel: #f7f5fc;
+  --gt-papel-alto: #ffffff;
+
+  --gt-tinta: #241a3d;
+  --gt-tinta-suave: #4a4166;
+
+  --gt-borde: rgba(124, 58, 237, 0.16);
+  --gt-radio: 18px;
+
+  color: var(--gt-tinta);
+}
+
+/* ============================================================
+   1 · CABECERA
+
+   Dos mitades a sangre. La izquierda es MORADA a propósito: el
+   header del sitio flota encima con su píldora rosa y necesita
+   fondo oscuro debajo para no perderse (ver el comentario del
+   JSX).
+   ============================================================ */
+
+.gt-cabecera {
+  /* a sangre: el mismo recurso que la cinta de marcas
+     (`margin-inline: calc(50% - 50vw)`), que funciona porque
+     .page-section lleva `overflow-x: clip` justo para esto */
+  margin-inline: calc(50% - 50vw);
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+
+  background: linear-gradient(135deg, #3b0f7a 0%, var(--gt-morado) 55%, #5b21b6 100%);
+}
+
+.gt-cabecera__texto {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* ---- EL HUECO DE ARRIBA ES DOBLE ----
+     Primero el alto del header, porque la píldora es flotante y
+     no empuja nada. Y ADEMÁS un colchón, que es lo que hace que
+     el bloque se lea como colocado y no como caído contra la
+     barra: con los 3rem que tenía antes quedaban 58px entre la
+     píldora y el titular —el titular arrancaba casi rozándola— y
+     sobraban 80px sin usar al final del bloque.
+
+     Con este colchón el titular baja a ~200px y el hueco pasa de
+     58 a ~115: el doble, que es lo que pedía la maqueta. El
+     cierre de abajo crece a la vez para que el bloque no quede
+     descolgado hacia el fondo de su mitad. */
+  padding: calc(var(--header-height, 96px) + clamp(3.5rem, 7vw, 8rem))
+    clamp(1.5rem, 4vw, 4.5rem) clamp(3.5rem, 7vw, 6.5rem);
+
+  color: #fff;
+}
+
+.gt-titulo {
+  margin: 0;
+
+  font-size: clamp(28px, 3.2vw, 46px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+/* la rayita corta bajo el titular, como en el detalle del blog */
+.gt-filo {
+  display: block;
+
+  width: 46px;
+  height: 2px;
+
+  margin: clamp(20px, 2.6vw, 30px) 0;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.gt-entradilla {
+  margin: 0;
+  max-width: 46ch;
+
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.7;
+
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.gt-cabecera__medio {
+  /* la imagen llena su mitad de lado a lado y de arriba abajo:
+     por eso el hueco ignora aquí su proporción */
+  display: flex;
+}
+
+.gt-cabecera__medio .gt-hueco {
+  width: 100%;
+  aspect-ratio: auto !important;
+
+  border: 0;
+  border-radius: 0;
+
+  min-height: clamp(260px, 38vw, 520px);
+}
+
+/* ============================================================
+   EL HUECO DE LA IMAGEN
+
+   Igual que en el detalle del blog: marco definitivo, no
+   provisional. Cuando entren las fotos, la composición no se
+   mueve.
+   ============================================================ */
+
+.gt-hueco {
+  position: relative;
+
+  overflow: hidden;
+  border: 1px solid var(--gt-borde);
+  border-radius: var(--gt-radio);
+
+  background:
+    radial-gradient(ellipse 80% 70% at 70% 20%, rgba(124, 58, 237, 0.22), transparent 68%),
+    linear-gradient(150deg, #2c1361, #1b0d3d);
+}
+
+.gt-hueco img {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+/* la marca del hueco queda DEBAJO de la foto (la imagen va en
+   z-index 1): cuando hay foto no se ve, y no hace falta
+   ocultarla a mano */
+.gt-hueco__marca {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: rgba(196, 168, 255, 0.28);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.gt-hueco__marca::before {
+  content: "✦";
+}
+
+/* ============================================================
+   2 · PRESENTACIÓN
+   ============================================================ */
+
+.gt-presenta {
+  padding: clamp(2.5rem, 5vw, 4.5rem) 0;
+
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: clamp(1.5rem, 3.5vw, 3.5rem);
+}
+
+.gt-presenta__texto p {
+  margin: 0 0 1.1rem;
+
+  font-size: clamp(13.5px, 1vw, 15px);
+  line-height: 1.7;
+
+  color: var(--gt-tinta-suave);
+}
+
+.gt-presenta__texto strong {
+  font-weight: 700;
+  color: var(--gt-tinta);
+}
+
+.gt-presenta__rotulo {
+  margin-top: 1.6rem !important;
+
+  font-weight: 700;
+  color: var(--gt-violeta) !important;
+}
+
+.gt-objetivos {
+  margin: 0 0 1.4rem;
+  padding: 0;
+
+  list-style: none;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.gt-objetivos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+
+  font-size: clamp(13.5px, 1vw, 15px);
+  line-height: 1.6;
+
+  color: var(--gt-tinta-suave);
+}
+
+.gt-objetivos svg {
+  flex-shrink: 0;
+
+  width: 17px;
+  height: 17px;
+
+  margin-top: 1px;
+
+  color: var(--gt-violeta);
+}
+
+/* el párrafo de cierre va separado por un filo: es el resumen
+   práctico (horas y reparto) y no otro argumento de venta */
+.gt-presenta__cierre {
+  margin-bottom: 0 !important;
+  padding-top: 1.2rem;
+
+  border-top: 1px solid var(--gt-borde);
+}
+
+/* ============================================================
+   3 · QUÉ INCLUYE
+   ============================================================ */
+
+.gt-incluye {
+  padding: clamp(1rem, 2vw, 2rem) 0 clamp(2.5rem, 5vw, 4rem);
+
+  text-align: center;
+}
+
+
+
+.gt-eyebrow {
+  margin: 0 0 0.4rem;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  color: var(--gt-violeta);
+}
+
+.gt-incluye__titulo {
+  margin: 0 0 clamp(1.6rem, 3vw, 2.6rem);
+
+  font-size: clamp(24px, 2.6vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+
+  color: var(--gt-tinta);
+}
+
+.gt-incluye__titulo em {
+  font-style: normal;
+  color: var(--gt-violeta);
+}
+
+.gt-modulos {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.9rem, 1.6vw, 1.4rem);
+
+  text-align: left;
+}
+
+.gt-modulo {
+  display: flex;
+  flex-direction: column;
+
+  padding: clamp(1.1rem, 1.6vw, 1.5rem);
+
+  border: 1px solid var(--gt-borde);
+  border-radius: var(--gt-radio);
+
+  background: var(--gt-papel-alto);
+
+  transition:
+    transform 0.28s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.28s ease,
+    border-color 0.28s ease;
+}
+
+@media (hover: hover) {
+  .gt-modulo:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124, 58, 237, 0.38);
+    box-shadow: 0 18px 40px -26px rgba(76, 29, 149, 0.7);
+  }
+}
+
+.gt-modulo__icono {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 0.9rem;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, var(--gt-violeta), var(--gt-violeta-claro));
+  box-shadow: 0 8px 20px -10px rgba(124, 58, 237, 0.9);
+
+  color: #fff;
+}
+
+.gt-modulo__icono svg {
+  width: 19px;
+  height: 19px;
+}
+
+.gt-modulo__numero {
+  margin: 0 0 0.2rem;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: var(--gt-violeta);
+}
+
+.gt-modulo__titulo {
+  margin: 0 0 0.7rem;
+
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  color: var(--gt-tinta);
+}
+
+.gt-modulo__horas {
+  margin: 0 0 0.6rem;
+
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+
+  color: var(--gt-violeta-claro);
+}
+
+.gt-modulo__texto {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  color: var(--gt-tinta-suave);
+}
+
+/* ============================================================
+   4 · PRECIO
+   ============================================================ */
+
+.gt-precio-zona {
+  padding: 0 0 clamp(3rem, 6vw, 5rem);
+}
+
+.gt-precio {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(1.2rem, 2.4vw, 2.4rem);
+
+  padding: clamp(1.4rem, 2.4vw, 2rem) clamp(1.4rem, 2.6vw, 2.4rem);
+
+  border-radius: 22px;
+
+  background: linear-gradient(120deg, #3b0f7a 0%, var(--gt-morado) 48%, var(--gt-morado-alto) 100%);
+
+  color: #fff;
+}
+
+.gt-precio__icono {
+  display: grid;
+  place-items: center;
+
+  width: clamp(58px, 6vw, 76px);
+  height: clamp(58px, 6vw, 76px);
+
+  border-radius: 50%;
+
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.22), rgba(124, 58, 237, 0.45));
+  box-shadow: inset 0 0 22px rgba(196, 168, 255, 0.35);
+}
+
+.gt-precio__icono svg {
+  width: 46%;
+  height: 46%;
+}
+
+/* el separador entre la cifra y el texto: un filo vertical, que
+   es lo que los agrupa sin meter una caja */
+.gt-precio__cifra {
+  padding-right: clamp(1.2rem, 2.4vw, 2.4rem);
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.gt-precio__rotulo {
+  margin: 0;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.gt-precio__importe {
+  margin: 0.1rem 0 0;
+
+  font-size: clamp(30px, 3.4vw, 46px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.gt-precio__nota {
+  margin: 0.25rem 0 0;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.gt-precio__texto {
+  margin: 0;
+
+  font-size: clamp(13px, 1vw, 14.5px);
+  line-height: 1.6;
+
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.gt-precio__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.85rem 1.6rem;
+
+  border-radius: 999px;
+
+  background: #fff;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+
+  color: var(--gt-morado);
+
+  transition:
+    transform 0.28s cubic-bezier(0.22, 0.8, 0.36, 1),
+    box-shadow 0.28s ease;
+}
+
+.gt-precio__cta svg {
+  width: 15px;
+  height: 15px;
+
+  transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .gt-precio__cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.65);
+  }
+
+  .gt-precio__cta:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+/* ============================================================
+   PANTALLAS ESTRECHAS
+   ============================================================ */
+
+@media (max-width: 1080px) {
+  .gt-modulos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gt-precio {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 1.2rem;
+  }
+
+  .gt-precio__texto {
+    grid-column: 1 / -1;
+  }
+
+  .gt-precio__cta {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 860px) {
+  /* la cabecera se apila: primero el texto —que lleva el titular—
+     y la imagen debajo, como en el detalle del blog */
+  .gt-cabecera,
+  .gt-presenta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gt-cabecera__medio .gt-hueco {
+    min-height: clamp(200px, 46vw, 300px);
+  }
+
+  .gt-modulos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gt-precio {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: center;
+    justify-items: center;
+  }
+
+  .gt-precio__cifra {
+    padding-right: 0;
+    border-right: 0;
+  }
+}

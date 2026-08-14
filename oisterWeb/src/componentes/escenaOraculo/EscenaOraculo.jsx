@@ -109,17 +109,19 @@ const MOTAS = Array.from({ length: 46 }, (_, i) => ({
 
 function EscenaOraculo({ className = "", animar = true }) {
   const raizRef = useRef(null);
-  const [dentro, setDentro] = useState(!animar);
+
+  /* El caso "no hay observador" se resuelve en el estado INICIAL,
+     no dentro del efecto: puesto allí habría un primer render
+     apagado y un setState inmediato después (mismo criterio que
+     Revelar.jsx). */
+  const [dentro, setDentro] = useState(
+    () => !animar || typeof IntersectionObserver === "undefined"
+  );
 
   useEffect(() => {
     if (!animar) return;
     const el = raizRef.current;
-    if (!el) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      setDentro(true);
-      return;
-    }
+    if (!el || typeof IntersectionObserver === "undefined") return;
 
     const obs = new IntersectionObserver(
       ([e]) => {

@@ -416,19 +416,35 @@ function PrismCloud({ luz = 1 }) {
     let presenciaDestino = 0;
     let scroll = 0;
 
+    /* ---- GEOMETRÍA CACHEADA, NO MEDIDA POR EVENTO ----
+       El canvas es fijo a viewport completo: su rect solo cambia
+       cuando cambia la ventana. Y el alto de scroll de esta
+       página tampoco se mueve tras el montaje (los marcos
+       reservan su hueco con aspect-ratio y NextWork monta antes
+       del primer paint). Leerlos en cada pointermove/scroll era
+       un forced layout por evento mientras el shader pinta: se
+       miden una vez, el ResizeObserver de abajo invalida cuando
+       cambia el viewport, y `alScroll` se auto-corrige si el
+       scroll real supera la caché (señal barata de que el alto
+       quedó corto). */
+    let rectCanvas = null;
+    let altoScroll = -1;
+
     const alMover = (e) => {
-      const r = canvas.getBoundingClientRect();
-      destino.x = (e.clientX - r.left) / r.width;
+      if (!rectCanvas) rectCanvas = canvas.getBoundingClientRect();
+      destino.x = (e.clientX - rectCanvas.left) / rectCanvas.width;
       /* el eje Y de WebGL va al revés que el de la pantalla */
-      destino.y = 1 - (e.clientY - r.top) / r.height;
+      destino.y = 1 - (e.clientY - rectCanvas.top) / rectCanvas.height;
       presenciaDestino = 1;
     };
     const alSalir = () => {
       presenciaDestino = 0;
     };
     const alScroll = () => {
-      const alto = document.documentElement.scrollHeight - window.innerHeight;
-      scroll = alto > 0 ? Math.min(1, window.scrollY / alto) : 0;
+      if (altoScroll < 0 || window.scrollY > altoScroll) {
+        altoScroll = document.documentElement.scrollHeight - window.innerHeight;
+      }
+      scroll = altoScroll > 0 ? Math.min(1, window.scrollY / altoScroll) : 0;
     };
 
     window.addEventListener("pointermove", alMover, { passive: true });
@@ -479,9 +495,24 @@ function PrismCloud({ luz = 1 }) {
 
     rafId = requestAnimationFrame(pintar);
 
-    /* con el bucle parado (motion reducido) un cambio de tamaño
-       dejaría el canvas estirado: este es el repintado */
-    const observador = new ResizeObserver(() => pintar(performance.now()));
+    /* Con el bucle parado (motion reducido) un cambio de tamaño
+       dejaría el canvas estirado: este es el repintado directo.
+
+       Con el bucle VIVO aquí solo se ajusta el tamaño: llamar a
+       pintar() arrancaría OTRA cadena rAF encima de la existente
+       —pintar se auto-reprograma al final— y el RO además entrega
+       una observación inicial nada más hacer observe(), así que
+       eran dos cadenas desde el primer frame y una más por cada
+       paso de un arrastre de resize. El fotograma con el tamaño
+       nuevo lo pinta el propio bucle, que ya corre. */
+    const observador = new ResizeObserver(() => {
+      /* el viewport cambió: las medidas cacheadas caducan */
+      rectCanvas = null;
+      altoScroll = -1;
+
+      if (quieto) pintar(performance.now());
+      else ajustarTamano();
+    });
     observador.observe(canvas);
 
     /* en una pestaña de fondo no hay nada que mirar: rAF ya se

@@ -69,6 +69,12 @@ const EscenaOraculoPage = lazyWithMin(() =>
   import("./pages/escenaOraculo/EscenaOraculoPage")
 );
 
+/* Gen AI Training: la página del curso, a la que apunta
+   "Recursos → Gen AI Training" en los dos menús. */
+const GenAiTrainingPage = lazyWithMin(() =>
+  import("./pages/recursos/GenAiTrainingPage")
+);
+
 import "./App.css";
 
 /* Los skeletons de /works, /works/:id y /contact se envuelven en
@@ -146,7 +152,9 @@ function getRouteChunk(pathname) {
     return precargaDe(BlogDetailPage);
   if (pathname.startsWith("/blog")) return precargaDe(BlogPage);
 
-  if (pathname === "/" || pathname === "/resources") {
+  if (pathname === "/resources") return precargaDe(GenAiTrainingPage);
+
+  if (pathname === "/") {
     return () => Promise.resolve();
   }
 
@@ -239,6 +247,15 @@ const FONDOS_OSCUROS = ["/services", "/contact", "/escena-oraculo"];
    clave y define su --pie-fondo en Footer.css. */
 const tonoDelPie = (pathname) => {
   if (pathname === "/") return "home";
+
+  /* Gen AI Training es la única página CLARA del sitio y pinta su
+     propio fondo opaco, así que entra en el caso que describe el
+     comentario de arriba: clave propia y --pie-fondo definido en
+     Footer.css. Sin ella caía en "claro" —o sea, pie transparente
+     sobre el degradado oscuro del body— y aparecía una línea dura
+     justo donde acababa el papel. */
+  if (pathname === "/resources") return "formacion";
+
   return FONDOS_OSCUROS.some((p) => pathname.startsWith(p))
     ? "oscuro"
     : "claro";
@@ -378,7 +395,7 @@ function App() {
 
                 <Route path="/works" element={<WorksPage />} />
                 <Route path="/works/:id" element={<WorkDetailPage />} />
-                <Route path="/resources" element={<div>AÑADIR RECURSOS</div>} />
+                <Route path="/resources" element={<GenAiTrainingPage />} />
                 <Route path="/contact" element={<ContactSection introDone={!showIntro} />} />
                 <Route path="/services" element={<ComoLoHacemosPage />} />
                 <Route path="/fondo-trama" element={<FondoTramaPage />} />

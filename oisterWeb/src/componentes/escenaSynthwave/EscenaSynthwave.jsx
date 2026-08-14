@@ -1,4 +1,5 @@
 import "./EscenaSynthwave.css";
+import { useEffect, useRef, useState } from "react";
 import {
   LIENZO,
   HORIZONTE,
@@ -119,9 +120,39 @@ function EscenaSynthwave({ className = "", semillaEstrellas }) {
     ? generarEstrellas(340, semillaEstrellas)
     : ESTRELLAS;
 
+  const raizRef = useRef(null);
+
+  /* ---- DESTELLOS SOLO CON LA ESCENA A LA VISTA ----
+     La única animación de la escena son los ~98 destellos, y
+     seguían corriendo con la escena entera fuera del viewport
+     (en /contact: scrolleada hasta el pie). Observador SIMÉTRICO
+     propio, como LightDust/FondoTrama — useEnPantalla no vale
+     aquí a propósito: su reset asimétrico mantendría los
+     destellos vivos justo en la única salida realista, por
+     ARRIBA hacia el pie. Sin margen de precarga: la pausa por
+     play-state conserva la fase, así que reanudar al primer
+     píxel visible es invisible, y un margen solo mantendría la
+     animación corriendo más tiempo — lo contrario del objetivo.
+     Arranca en marcha (estado inicial false): sin observador
+     (navegador viejo) todo queda como estaba. */
+  const [fuera, setFuera] = useState(false);
+
+  useEffect(() => {
+    const el = raizRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observador = new IntersectionObserver(
+      ([e]) => setFuera(!e.isIntersecting),
+      { threshold: 0 }
+    );
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, []);
+
   return (
     <svg
-      className={`escena ${className}`}
+      ref={raizRef}
+      className={`escena ${fuera ? "escena--fuera" : ""} ${className}`}
       viewBox={`0 0 ${LIENZO.ancho} ${LIENZO.alto}`}
       /* `slice`: la escena CUBRE la caja recortando lo que
          sobre, en vez de encajar dentro dejando franjas. Con

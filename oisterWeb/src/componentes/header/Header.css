@@ -289,15 +289,101 @@
 
 /* ======= Logo =======*/
 
+/* ============================================================
+   EL LOGO DE LA PÍLDORA
+
+   Antes era la palabra "Logo" en blanco. Ahora es el render de
+   la marca, el mismo del pie.
+
+   ---- EL PROBLEMA A RESOLVER: MORADO SOBRE ROSA ----
+   El render son bultos violeta y magenta con el lettering en
+   blanco, y la píldora es un degradado rosa→violeta. O sea que
+   el logo comparte familia de color con lo que tiene detrás: si
+   se pone tal cual, el dibujo se funde con el fondo y solo se
+   lee el lettering blanco flotando.
+
+   Se resuelve con una CAPA OSCURA debajo (::before), no tocando
+   el logo. Es un disco muy tenue que baja la luminosidad justo
+   en su hueco: separa el render de la píldora, le da el papel de
+   "marca" frente al resto de la barra, y como es radial y se
+   desvanece, no aparece ninguna caja ni ningún borde.
+   ============================================================ */
 .header__logo {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  /* aire alrededor del dibujo para que la capa oscura tenga
+     dónde desvanecerse sin tocar el borde de la píldora */
+  padding: 4px 10px;
+  margin-left: -4px;
+
   text-decoration: none;
 
-  font-size: 1.3rem;
-  font-weight: 700;
+  border-radius: 999px;
 
-  line-height: 1;
+  transition: transform 0.35s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
 
-  color: var(--color-white);
+/* el disco que lo despega del fondo (ver el comentario de arriba) */
+.header__logo::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background: radial-gradient(
+    ellipse 78% 68% at 50% 50%,
+    rgba(26, 12, 44, 0.42),
+    rgba(26, 12, 44, 0.16) 62%,
+    transparent 78%
+  );
+
+  transition: opacity 0.35s ease;
+}
+
+.header__logo-img {
+  position: relative;
+
+  display: block;
+
+  /* ---- SE LIMITA POR ALTO, NO POR ANCHO ----
+     Al revés que en el pie. Allí el logo manda en su banda y se
+     limita por ancho; aquí lo que manda es la píldora, que tiene
+     un alto fijo y muy justo. Con `height` en em, además, el logo
+     sigue a la tipografía del header si algún día cambia.
+
+     2.05em ≈ 33px: el render llena la píldora de lado a lado de
+     su altura útil sin tocar los bordes. Más grande la ensancha
+     (el dibujo es casi cuadrado), y más pequeño hace ilegible el
+     lettering "OYSTERS", que es lo único que hay que poder leer. */
+  height: 2.05em;
+  width: auto;
+
+  /* la sombra sigue la SILUETA del render (el archivo tiene alfa),
+     no una caja: es lo que lo hace parecer posado sobre la
+     píldora en vez de pegado */
+  filter: drop-shadow(0 2px 6px rgba(26, 12, 44, 0.55));
+}
+
+/* Solo con puntero fino: en táctil el :hover se queda pegado
+   después de tocar y el logo se quedaría agrandado. */
+@media (hover: hover) {
+  .header__logo:hover {
+    transform: scale(1.06);
+  }
+
+  .header__logo:hover::before {
+    opacity: 0.65;
+  }
+}
+
+.header__logo:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
 }
 
 /* ======= Tagline central =======

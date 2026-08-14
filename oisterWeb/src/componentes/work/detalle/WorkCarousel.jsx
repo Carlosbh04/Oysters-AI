@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./WorkCarousel.css";
 
@@ -31,6 +31,22 @@ const UMBRAL_GESTO = 45;
 function WorkCarousel({ medios, titulo }) {
   const [actual, setActual] = useState(0);
   const inicioX = useRef(null);
+  const videosRef = useRef([]);
+
+  /* ---- EL VÍDEO QUE DEJA DE VERSE, SE PAUSA ----
+     Los medios siguen montados a propósito (ver el porqué arriba),
+     pero sin esto un vídeo en marcha seguía REPRODUCIÉNDOSE al
+     cambiar de diapositiva: invisible, decodificando y con audio
+     — y sin controles para pararlo, porque `controls` solo lo
+     lleva el activo. Se pausa sin tocar currentTime: al volver,
+     el vídeo está donde lo dejaste y se reanuda con sus controles,
+     que es el contrato de siempre (aquí nadie llama a play(): la
+     reproducción siempre la inicia el usuario). */
+  useEffect(() => {
+    videosRef.current.forEach((v, i) => {
+      if (v && i !== actual && !v.paused) v.pause();
+    });
+  }, [actual]);
 
   /* ---- EL MARCO ES SIEMPRE 16:9 ----
      Aquí vivía un mecanismo que leía la proporción real de cada
@@ -105,6 +121,9 @@ function WorkCarousel({ medios, titulo }) {
           return m.tipo === "video" ? (
             <video
               key={m.src}
+              ref={(el) => {
+                videosRef.current[i] = el;
+              }}
               className={clase}
               src={m.src}
               controls={activo}

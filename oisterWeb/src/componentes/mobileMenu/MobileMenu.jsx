@@ -17,8 +17,6 @@ function MobileMenu({ isOpen, onClose }) {
   };
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "auto";
-
     /* al abrir, el nav siempre arranca arriba del todo:
        aunque la sesión anterior quedara scrolleada,
        "Nosotros" está siempre visible al entrar */
@@ -26,8 +24,17 @@ function MobileMenu({ isOpen, onClose }) {
       navRef.current.scrollTop = 0;
     }
 
+    if (!isOpen) return;
+
+    /* se RESTAURA el valor previo en vez de escribir "auto": un
+       "auto" a fuego pisaba cualquier overflow que otro hubiera
+       puesto (el vídeo en grande también bloquea el body, y los
+       dos se pisaban entre sí) — mismo criterio que VideoMarco */
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = previo;
     };
   }, [isOpen]);
 
@@ -73,30 +80,41 @@ function MobileMenu({ isOpen, onClose }) {
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
+          {/* ---- "CÓMO LO HACEMOS" ES UNA SECCIÓN, NO UNA PÁGINA ----
+              Apuntaba a /services, y esa página resultó ser un
+              duplicado: monta el MISMO bloque (InteligenciaIA) que
+              ya está en la portada, así que pulsar el menú te
+              sacaba de la home para enseñarte un texto que
+              acababas de dejar atrás.
+
+              Ahora lleva a la sección de la portada con el mismo
+              scroll suave que "Nosotros" y "Casos de uso".
+
+              Aquí estaba también "Qué hacemos", retirado: apuntaba
+              a ESTA MISMA sección, así que el menú ofrecía dos
+              caminos al mismo sitio con nombres distintos.
+
+              (El id es `que-hacemos` y la entrada se llama "Cómo
+              lo hacemos": ver el porqué en DesktopMenu.jsx.) */}
           <NavLink
             className="mobile-menu__link"
             to="/#que-hacemos"
             onClick={closeMenu}
             onClickCapture={irASeccion("que-hacemos")}
           >
-            Qué hacemos
-            <span className="mobile-menu__arrow">→</span>
-          </NavLink>
-
-          {/* ---- DE ACORDEÓN A ENLACE ----
-              "Cómo lo hacemos" era un desplegable con cuatro
-              apartados dentro, y sus cuatro enlaces apuntaban a
-              /methodology/* — rutas que nunca han existido: los
-              cuatro acababan en "no encontrado".
-
-              Ahora es un enlace normal a la página que los contiene
-              a los cuatro, igual que en el menú de escritorio. */}
-          <NavLink className="mobile-menu__link" to="/services" onClick={closeMenu}>
             Cómo lo hacemos
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
-          <NavLink className="mobile-menu__link" to="/use-cases" onClick={closeMenu}>
+          {/* mismo destino que el menú de escritorio: la sección
+              ancla del home, no una página propia (nunca existió
+              /use-cases: acababa en "no encontrado") */}
+          <NavLink
+            className="mobile-menu__link"
+            to="/#casos-de-uso"
+            onClick={closeMenu}
+            onClickCapture={irASeccion("casos-de-uso")}
+          >
             Casos de uso
             <span className="mobile-menu__arrow">→</span>
           </NavLink>

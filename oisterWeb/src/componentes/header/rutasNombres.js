@@ -22,7 +22,7 @@ const NOMBRES = {
   /* sin esto el rótulo se deduciría del segmento y diría
      "SERVICES", que es la URL pero no el nombre del apartado */
   "/services": "CÓMO LO HACEMOS",
-  "/resources": "RESOURCES",
+  "/resources": "GEN AI TRAINING",
   "/blog": "BLOG",
   "/about": "ABOUT",
   "/contact": "CONTACT",

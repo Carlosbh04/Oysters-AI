@@ -70,13 +70,39 @@ function sampleText(dpr) {
   tctx.textBaseline = "middle";
   tctx.fillText(TEXT, window.innerWidth / 2, window.innerHeight / 2);
 
-  const data = tctx.getImageData(0, 0, tmp.width, tmp.height).data;
-  const points = [];
+  /* ---- SOLO SE LEE LA FRANJA DEL TEXTO ----
+     getImageData copiaba el viewport entero (~8MB a 1080p) para
+     leer una banda de texto que ocupa ~10% de esa superficie. Se
+     mide el texto y se lee solo su caja con holgura. La rejilla
+     de muestreo sigue anclada a las MISMAS coordenadas globales
+     (múltiplos de `step` desde 0, redondeando los bordes de la
+     caja hacia fuera sobre esa retícula), así que los puntos
+     resultantes son idénticos a los del barrido completo. */
   const step = 6; // densidad de muestreo
+  const medida = tctx.measureText(TEXT);
+  const holgura = fontSize; /* de sobra para ascendentes y trazos */
 
-  for (let y = 0; y < tmp.height; y += step) {
-    for (let x = 0; x < tmp.width; x += step) {
-      if (data[(y * tmp.width + x) * 4 + 3] > 128) {
+  const izq = Math.max(
+    0,
+    Math.floor((tmp.width / 2 - medida.width / 2 - holgura) / step) * step
+  );
+  const arriba = Math.max(
+    0,
+    Math.floor((tmp.height / 2 - fontSize - holgura) / step) * step
+  );
+  const der = Math.min(tmp.width, Math.ceil(tmp.width / 2 + medida.width / 2 + holgura));
+  const abajo = Math.min(tmp.height, Math.ceil(tmp.height / 2 + fontSize + holgura));
+
+  const ancho = der - izq;
+  const alto = abajo - arriba;
+  if (ancho <= 0 || alto <= 0) return [];
+
+  const data = tctx.getImageData(izq, arriba, ancho, alto).data;
+  const points = [];
+
+  for (let y = arriba; y < abajo; y += step) {
+    for (let x = izq; x < der; x += step) {
+      if (data[((y - arriba) * ancho + (x - izq)) * 4 + 3] > 128) {
         points.push({ x: x * dpr, y: y * dpr });
       }
     }
@@ -123,15 +149,63 @@ function IntroAnimation({ onFinish, onLeaving }) {
     let rafId = null;
     let finished = false;
 
+    /* ---- REJILLA ESPACIAL DE LAS CONEXIONES ----
+       El barrido de parejas era todos-contra-todos (~405k
+       comparaciones/frame con los 901 nodos activos). Con celdas
+       de lado EXACTAMENTE maxDist, dos nodos a menos de maxDist
+       caen como mucho a una celda de distancia — también los que
+       vuelan fuera del lienzo: la proyección al borde de la
+       rejilla nunca separa dos coordenadas más de lo que ya lo
+       están, así que el clamp no puede perder parejas, solo
+       meter de más en las celdas del borde (y esas las descarta
+       la distancia). Mirar la propia celda y las vecinas cubre
+       TODAS las parejas posibles del algoritmo original.
+
+       Los arrays se crean UNA vez (en init, que es quien conoce
+       el tamaño) y se vacían por frame con length = 0: el camino
+       caliente no aloca nada. */
+    let celdas = [];
+    let celdasCols = 0;
+    let celdasFilas = 0;
+
+    /* semivecindario "hacia delante" (E, SO, S, SE): cada pareja
+       de celdas distintas se visita desde UNA sola de las dos —
+       las cuatro direcciones que faltan (O, NO, N, NE) las cubre
+       la celda vecina al llegarle su turno. El índice 0 es la
+       propia celda. */
+    const VECINA_X = [0, 1, -1, 0, 1];
+    const VECINA_Y = [0, 0, 1, 1, 1];
+
+    /* El gradiente del glow se construye UNA vez por tamaño (se
+       creaba en cada frame). Sus paradas van con alfa 1 y el
+       apagado por progreso lo pone globalAlpha al pintar: la
+       interpolación premultiplicada escala linealmente, así que
+       el resultado por píxel es idéntico al del gradiente que
+       llevaba el alfa dentro. */
+    let glowGrd = null;
+
     const resize = () => {
       W = canvas.width = window.innerWidth * dpr;
       H = canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + "px";
       canvas.style.height = window.innerHeight + "px";
+
+      glowGrd = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.4);
+      glowGrd.addColorStop(0, "rgba(247,184,235,1)");
+      glowGrd.addColorStop(1, "rgba(21,22,28,0)");
     };
 
     const init = () => {
       resize();
+
+      /* la rejilla se dimensiona con el lienzo (y se
+         redimensiona con él: init corre también en el resize
+         real). Celda = maxDist, el mismo 70*dpr del barrido. */
+      const lado = 70 * dpr;
+      celdasCols = Math.max(1, Math.ceil(W / lado));
+      celdasFilas = Math.max(1, Math.ceil(H / lado));
+      celdas = Array.from({ length: celdasCols * celdasFilas }, () => []);
+
       nodes = [];
       const targets = sampleText(dpr);
       const center = { x: W / 2, y: H / 2 };
@@ -186,36 +260,82 @@ function IntroAnimation({ onFinish, onLeaving }) {
 
       // glow ambiental central, se apaga con el progreso
       const glowAlpha = Math.max(0, 0.25 - progress * 0.25);
-      const grd = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.4);
-      grd.addColorStop(0, `rgba(247,184,235,${glowAlpha})`);
-      grd.addColorStop(1, "rgba(21,22,28,0)");
-      ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, W, H);
-
-      const activeNodes = nodes.filter((n) => elapsed > n.born);
+      if (glowAlpha > 0) {
+        ctx.globalAlpha = glowAlpha;
+        ctx.fillStyle = glowGrd;
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalAlpha = 1;
+      }
 
       // conexiones neuronales (solo mientras no se disuelve)
       if (dissolve < 0.5) {
         ctx.lineWidth = 0.5 * dpr;
         const connectionAlpha = 1 - dissolve * 2;
+        const maxDist = 70 * dpr;
+        const maxDist2 = maxDist * maxDist;
 
-        for (let i = 0; i < activeNodes.length; i++) {
-          for (let j = i + 1; j < activeNodes.length; j++) {
-            const a = activeNodes[i];
-            const b = activeNodes[j];
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const maxDist = 70 * dpr;
+        /* vaciado + relleno de la rejilla con los nodos activos
+           (mismo filtro que antes: elapsed > born). Sustituye al
+           .filter() que alocaba un array por frame. */
+        for (let c = 0; c < celdas.length; c++) celdas[c].length = 0;
 
-            if (dist < maxDist) {
-              const alpha =
-                (1 - dist / maxDist) * 0.25 * connectionAlpha * (1 - progress * 0.5);
-              ctx.strokeStyle = `rgba(243,189,241,${alpha})`;
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
+        for (let k = 0; k < nodes.length; k++) {
+          const n = nodes[k];
+          if (elapsed <= n.born) continue;
+
+          let cx = (n.x / maxDist) | 0;
+          let cy = (n.y / maxDist) | 0;
+          if (cx < 0) cx = 0;
+          else if (cx >= celdasCols) cx = celdasCols - 1;
+          if (cy < 0) cy = 0;
+          else if (cy >= celdasFilas) cy = celdasFilas - 1;
+
+          celdas[cy * celdasCols + cx].push(n);
+        }
+
+        /* Unicidad, calcada del j = i + 1 del barrido completo:
+           dentro de la celda solo hacia delante por orden de
+           inserción; entre celdas, solo el semivecindario. Una
+           pareja no puede evaluarse dos veces. La distancia va
+           al cuadrado como puerta: sqrt solo para las parejas
+           que de verdad conectan (el alfa la necesita). */
+        for (let cy = 0; cy < celdasFilas; cy++) {
+          for (let cx = 0; cx < celdasCols; cx++) {
+            const propia = celdas[cy * celdasCols + cx];
+            if (!propia.length) continue;
+
+            for (let i = 0; i < propia.length; i++) {
+              const a = propia[i];
+
+              for (let v = 0; v < 5; v++) {
+                let lista = propia;
+                let desde = i + 1;
+
+                if (v > 0) {
+                  const nx = cx + VECINA_X[v];
+                  const ny = cy + VECINA_Y[v];
+                  if (nx < 0 || nx >= celdasCols || ny >= celdasFilas) continue;
+                  lista = celdas[ny * celdasCols + nx];
+                  desde = 0;
+                }
+
+                for (let j = desde; j < lista.length; j++) {
+                  const b = lista[j];
+                  const dx = a.x - b.x;
+                  const dy = a.y - b.y;
+                  const dist2 = dx * dx + dy * dy;
+                  if (dist2 >= maxDist2) continue;
+
+                  const dist = Math.sqrt(dist2);
+                  const alpha =
+                    (1 - dist / maxDist) * 0.25 * connectionAlpha * (1 - progress * 0.5);
+                  ctx.strokeStyle = `rgba(243,189,241,${alpha})`;
+                  ctx.beginPath();
+                  ctx.moveTo(a.x, a.y);
+                  ctx.lineTo(b.x, b.y);
+                  ctx.stroke();
+                }
+              }
             }
           }
         }
@@ -311,18 +431,48 @@ function IntroAnimation({ onFinish, onLeaving }) {
       }, TYPE_MS);
     };
 
+    /* dimensiones con las que se muestreó el texto por última
+       vez: el resize solo obliga a repetir si cambian de verdad */
+    let muestraW = 0;
+    let muestraH = 0;
+    let muestraDpr = 0;
+
     const start = () => {
+      muestraW = window.innerWidth;
+      muestraH = window.innerHeight;
+      muestraDpr = window.devicePixelRatio || 1;
       init();
       startTime = performance.now();
       rafId = requestAnimationFrame(draw);
     };
 
+    /* ---- RESIZE, AMORTIGUADO ----
+       Recalcular los targets exige re-rasterizar el texto y leer
+       sus píxeles a viewport completo (init → getImageData), y
+       cada pasada además REINICIA el reloj de la intro. En una
+       ráfaga (un arrastre son decenas de eventos; en móvil, el
+       colapso de la barra del navegador) eso era un remuestreo
+       por evento con la intro congelada en el segundo 0. Solo
+       importa el tamaño FINAL: se espera a que la ráfaga pare y
+       se reinicia UNA vez — y si las dimensiones reales (viewport
+       y dpr, que es lo que init muestrea) no cambiaron, ni eso:
+       reiniciar con el mismo tamaño solo tira la intro. */
+    let resizeTimer = null;
+
     const handleResize = () => {
-      // recalcular targets del texto si cambia el tamaño en pleno vuelo
-      if (rafId && !finished) {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (cancelled || finished || !rafId) return;
+        if (
+          window.innerWidth === muestraW &&
+          window.innerHeight === muestraH &&
+          (window.devicePixelRatio || 1) === muestraDpr
+        ) {
+          return;
+        }
         cancelAnimationFrame(rafId);
         start();
-      }
+      }, 150);
     };
 
     window.addEventListener("resize", handleResize);
@@ -350,6 +500,7 @@ function IntroAnimation({ onFinish, onLeaving }) {
     return () => {
       cancelled = true;
       clearTimeout(watchdog);
+      clearTimeout(resizeTimer);
       if (rafId) cancelAnimationFrame(rafId);
       clearInterval(typeTimerRef.current);
       clearTimeout(holdTimerRef.current);

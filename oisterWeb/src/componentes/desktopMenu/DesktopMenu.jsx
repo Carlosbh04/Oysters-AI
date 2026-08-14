@@ -10,17 +10,26 @@ import { ChevronRight, ArrowUpRight } from "lucide-react";
    rutas: las dos acababan en la página de "no encontrado". */
 const NAV_ITEMS = [
   { label: "Nosotros", to: "/#nosotros", seccion: "nosotros" },
-  { label: "Qué hacemos", to: "/#que-hacemos", seccion: "que-hacemos" },
-  /* "Cómo lo hacemos" era un acordeón con los cuatro apartados
-     dentro. Se le quitaron los hijos y pasó a ser un enlace normal:
-     sin `children` el propio menú ya lo pinta como tal, con su
-     flecha de ir en vez del chevron de desplegar.
 
-     Y ya apunta a su sitio. Estuvo apuntando al primero de los
-     cuatro apartados (/services/aprendizaje-ia) porque /services no
-     existía como ruta; ahora sí existe y es la página que los
-     contiene a los cuatro. Era lo único que quedaba por cambiar. */
-  { label: "Cómo lo hacemos", to: "/services" },
+  /* ---- "CÓMO LO HACEMOS" ES UNA SECCIÓN, NO UNA PÁGINA ----
+     Apuntaba a /services, y esa página resultó ser un duplicado:
+     monta el MISMO bloque (InteligenciaIA) que ya está en la
+     portada, así que pulsar el menú te sacaba de la home para
+     enseñarte un texto que acababas de dejar atrás.
+
+     Ahora lleva a la sección de la portada con el mismo scroll
+     suave que "Nosotros" y "Casos de uso".
+
+     OJO CON EL ID: la sección se llama `que-hacemos` y la entrada
+     de menú "Cómo lo hacemos". No es un descuido — ese id es el
+     que mide useHeroScrollDock para acoplar la ostra del hero, y
+     renombrarlo tocaría la coreografía del scroll a cambio de
+     nada visible. Aquí manda el id que ya existe.
+
+     La entrada "Qué hacemos" que había justo encima se ha
+     retirado: apuntaba a ESTA MISMA sección, así que el menú
+     ofrecía dos caminos al mismo sitio con nombres distintos. */
+  { label: "Cómo lo hacemos", to: "/#que-hacemos", seccion: "que-hacemos" },
   { label: "Casos de uso", to: "/#casos-de-uso", seccion: "casos-de-uso" },
 
   { label: "Trabajos", to: "/works" },

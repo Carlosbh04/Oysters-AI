@@ -84,6 +84,17 @@ function LuzAnillo({ ancho, alto, centro, radio, rutas, alLlegar }) {
       return Math.atan2(fin.y - centro.y, fin.x - centro.x);
     });
 
+    /* ---- LARGO DE CADA HILO, MEDIDO UNA VEZ ----
+       Iba dentro del bucle y se preguntaba por frame durante los
+       viajes, pero el trazado no cambia mientras este efecto
+       viva: cuando la maquetación se rehace, InteligenciaIA pasa
+       `rutas` nuevas, el efecto se relanza y esta caché se mide
+       de nuevo — la misma invalidación de la que ya dependían
+       los ángulos de arriba. */
+    const largos = rutasRef.current.map((ruta) =>
+      ruta ? ruta.getTotalLength() : 0
+    );
+
     let raf = null;
     let anterior = performance.now();
 
@@ -154,7 +165,7 @@ function LuzAnillo({ ancho, alto, centro, radio, rutas, alLlegar }) {
         if (!ruta) {
           fase = "orbita";
         } else {
-          const largo = ruta.getTotalLength();
+          const largo = largos[destino];
           const t = Math.min((ahora - t0) / VIAJE, 1);
           const k = suave(t);
 
@@ -190,8 +201,54 @@ function LuzAnillo({ ancho, alto, centro, radio, rutas, alLlegar }) {
       raf = requestAnimationFrame(paso);
     };
 
-    raf = requestAnimationFrame(paso);
-    return () => cancelAnimationFrame(raf);
+    /* ---- EL BUCLE SOLO CORRE CON LA ESCENA A LA VISTA ----
+       Era el único rAF del proyecto sin pausa fuera de pantalla:
+       giraba durante toda la visita a la home aunque la sección
+       quedara a tres pantallas. Mismo patrón simétrico que
+       LightDust/FondoNuevo (isIntersecting a ambos lados) — el
+       useEnPantalla de reveals no vale aquí a propósito: su reset
+       asimétrico dejaría el bucle vivo con la sección ya
+       scrolleada por arriba.
+
+       Al pausar no debe pasar el tiempo: t0 y proximaSalida son
+       marcas ABSOLUTAS, y sin desplazarlas la luz completaría el
+       viaje de golpe al volver. `pausadaEn` mide cuánto duró la
+       pausa y `arrancar` corre las marcas ese mismo tramo — la
+       luz retoma exactamente donde quedó, en la fase que
+       estuviera. Arranca en pausa: la primera observación del IO
+       decide (y una escena que nace bajo el pliegue no gasta ni
+       un frame). */
+    let pausadaEn = performance.now();
+
+    const arrancar = () => {
+      if (raf !== null) return;
+      const ahora = performance.now();
+      const parado = ahora - pausadaEn;
+      t0 += parado;
+      proximaSalida += parado;
+      anterior = ahora;
+      raf = requestAnimationFrame(paso);
+    };
+
+    const parar = () => {
+      if (raf === null) return;
+      cancelAnimationFrame(raf);
+      raf = null;
+      pausadaEn = performance.now();
+    };
+
+    /* mismo colchón del 35% que LightDust: la reanudación ocurre
+       antes de asomar y nunca se ve a la luz "despertar" */
+    const observador = new IntersectionObserver(
+      ([e]) => (e.isIntersecting ? arrancar() : parar()),
+      { rootMargin: "35%" }
+    );
+    observador.observe(luz.ownerSVGElement ?? luz);
+
+    return () => {
+      if (raf !== null) cancelAnimationFrame(raf);
+      observador.disconnect();
+    };
   }, [ancho, alto, centro, radio, rutas, alLlegar]);
 
   return (
