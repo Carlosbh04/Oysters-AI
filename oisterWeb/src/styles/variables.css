@@ -189,9 +189,50 @@
     --container:1280px;
     --header-height:96px;
 
+    /* ---- AIRE ENTRE UN RÓTULO Y SU TITULAR (MÓVIL) ----
+       Las cinco secciones del home abren igual: un rótulo en
+       versalitas y, debajo, el titular. Cada una traía su propia
+       separación —16px en "¿Cómo lo hacemos?", 22 en las otras
+       tres— y en la mano se notaba: unas secciones arrancaban
+       apretadas y otras no, sin motivo.
+
+       El número vive AQUÍ y no repetido en cada hoja para que
+       ajustarlo siga siendo un solo cambio.
+
+       ⚠️ SE APLICA AL RÓTULO (margin-bottom), con el titular a
+       margin-top 0. Se probó al revés —margen superior en el
+       titular— y daba resultados distintos por sección: donde el
+       contenedor es flujo normal los dos márgenes COLAPSAN y
+       mandaba el mayor (42px), pero donde es flex NO colapsan y
+       se SUMAN (64px). Poniéndolo en un solo lado, el hueco vale
+       lo mismo en los dos casos. */
+    --hueco-rotulo:2.6rem;
+
     /* ==========================
        BORDER RADIUS
     ========================== */
+
+    /* ---- EL CANTO ----
+       El único borde del sistema (ver la regla de los filos en
+       DESIGN.md). Estaba escrito a mano en cada hoja —.12 aquí,
+       .14 allá, .18 más allá— que es justo lo que los canales
+       sueltos vinieron a evitar con los colores de marca. */
+    --filo-claro:rgb(255 255 255 / .14);
+
+    /* ---- EL NÁCAR ----
+       Los tres tonos de la perla, que DESIGN.md ya documentaba
+       pero ninguna hoja tenía: se estaban escribiendo como
+       literales cada vez que hacía falta una —los nodos de la
+       cadena en "Cómo lo hacemos" y el botón de volver arriba—,
+       que es exactamente lo que pasó con los filos antes de
+       --filo-claro.
+
+       Van en ESTE orden porque así se leen en el degradado
+       radial: la clara donde da la luz, la honda en el canto
+       opuesto. Cambiar uno solo desequilibra la esfera. */
+    --perla-clara:#FFC0EF;
+    --perla:#F5A1EC;
+    --perla-honda:#E78BF0;
 
     --radius:24px;
     --radius-sm:12px;

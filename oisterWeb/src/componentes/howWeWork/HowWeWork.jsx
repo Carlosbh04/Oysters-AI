@@ -77,6 +77,10 @@ function HowWeWork() {
           aterriza justo en el sitio que estaba guardado para ella. */}
       <InteligenciaIA
         sobreFondo
+        /* dentro de la portada esto es una sección, no la página:
+           su titular baja a h2 para no duplicar el <h1> del hero
+           (ver el comentario de `nivelTitulo` en InteligenciaIA). */
+        nivelTitulo="h2"
         pista={
           <div className="how-we-work__scene" ref={pistaRef} aria-hidden="true">
             <div className="how-we-work__halo" />

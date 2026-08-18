@@ -1,4 +1,4 @@
-import { cloneElement, useEffect, useRef } from "react";
+import { cloneElement, useEffect, useRef, useState } from "react";
 import "./TextoArena.css";
 
 /* ============================================================
@@ -228,20 +228,79 @@ function degradadoDe(cs, caja, destino, dx, dy) {
   return g;
 }
 
+/* ============================================================
+   DÓNDE SE MONTA ESTO, Y DÓNDE NO EXISTE
+
+   Tres condiciones, y las tres tienen que darse:
+
+     hover:hover + pointer:fine  → hay un cursor de verdad. En
+       táctil no existe "pasar por encima": el efecto no se podría
+       disparar ni queriendo.
+
+     no prefers-reduced-motion  → con movimiento reducido se está
+       pidiendo justo lo contrario de esto.
+
+     min-width: 1080px  → es el mismo corte con el que la portada
+       cambia a la maquetación de móvil (ver `conCurvas` en
+       InteligenciaIA).
+
+   ---- POR QUÉ HIZO FALTA EL TERCERO ----
+   Los dos primeros ya dejaban el móvil fuera: medido en un
+   teléfono táctil, ni un solo lienzo llegaba a crearse ni
+   tocando el texto. Lo que NO cubrían es el híbrido —portátil
+   con pantalla táctil, tablet con ratón— ni una ventana de
+   escritorio encogida: ahí `hover:hover` es cierto con 390px de
+   ancho, y medido nacía un lienzo y arrancaba el rAF. O sea que
+   la simulación sí podía correr a anchos de móvil; solo que no
+   en los aparatos donde se probaba.
+
+   ---- Y NO ES SOLO NO ARRANCAR EL BUCLE ----
+   Cuando no se cumple, el elemento tampoco recibe la clase
+   `arena`. Antes se la ponía siempre y el efecto se cortaba
+   dentro del useEffect: eso dejaba en móvil trece elementos con
+   `position: relative` puestos para un lienzo que no iba a
+   existir. Ahora, en móvil, este componente no deja rastro
+   ninguno en el DOM — el texto es exactamente el que sería sin
+   envolverlo.
+
+   Se escuchan los cambios de las tres consultas para que girar
+   el teléfono o redimensionar la ventana monte y desmonte el
+   efecto de verdad, en vez de dejarlo decidido por el ancho que
+   hubiera al cargar.
+   ============================================================ */
+const CONSULTAS = [
+  "(hover: hover) and (pointer: fine)",
+  "(prefers-reduced-motion: reduce)",
+  "(min-width: 1080px)",
+];
+
+function sePuedeArena() {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  const [conCursor, sinMovimiento, esEscritorio] = CONSULTAS.map(
+    (c) => window.matchMedia(c).matches
+  );
+  return conCursor && esEscritorio && !sinMovimiento;
+}
+
 function TextoArena({ children }) {
   const ref = useRef(null);
+  const [activa, setActiva] = useState(sePuedeArena);
 
   useEffect(() => {
+    const consultas = CONSULTAS.map((c) => window.matchMedia(c));
+    const alCambiar = () => setActiva(sePuedeArena());
+    consultas.forEach((c) => c.addEventListener("change", alCambiar));
+    /* por si el ancho cambió entre el primer render y este efecto */
+    alCambiar();
+    return () =>
+      consultas.forEach((c) => c.removeEventListener("change", alCambiar));
+  }, []);
+
+  useEffect(() => {
+    if (!activa) return;
+
     const el = ref.current;
     if (!el) return;
-
-    /* La simulación solo se monta donde hay un cursor de verdad.
-       En táctil no existe "pasar por encima" y con motion
-       reducido se está pidiendo justo lo contrario de esto. En
-       ambos casos queda el texto normal, que es el reposo. */
-    const conCursor = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (!conCursor.matches || sinMovimiento.matches) return;
 
     let lienzo = null;
     let ctx = null;
@@ -653,11 +712,18 @@ function TextoArena({ children }) {
       el.removeEventListener("pointerleave", alSalir);
       lienzo?.remove();
     };
-  }, []);
+  }, [activa]);
 
+  /* Sin efecto no hay clase: el elemento sale tal cual venía, sin
+     el `position: relative` de `.arena`. La `ref` sí se mantiene
+     siempre, porque si la ventana crece por encima del corte el
+     efecto tiene que encontrar el elemento sin esperar a otro
+     render. */
   return cloneElement(children, {
     ref,
-    className: `${children.props.className ?? ""} arena`.trim(),
+    className: activa
+      ? `${children.props.className ?? ""} arena`.trim()
+      : children.props.className,
   });
 }
 

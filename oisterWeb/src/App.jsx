@@ -8,6 +8,7 @@ import Footer from "./componentes/footer/Footer";
 import IntroAnimation from "./componentes/introAnimation/IntroAnimation";
 import PageSection from "./componentes/layout/PageSection";
 import ScrollToTop from "./componentes/scrollToTop/ScrollToTop";
+import VolverArriba from "./componentes/volverArriba/VolverArriba";
 import DefaultSkeleton from "./componentes/skeleton/DefaultSkeleton";
 import WorkDetailSkeleton from "./componentes/skeleton/work-detail/WorkDetailSkeleton";
 import WorksSkeleton from "./componentes/skeleton/work-list/WorksSkeleton";
@@ -488,6 +489,18 @@ function App() {
       {!skeletonVisible && (
         <Footer conEscena={pieConEscena(location.pathname)} />
       )}
+
+      {/* ---- EL CONTROL DE VUELTA ----
+          Va aquí y no dentro de una página porque sirve en todas.
+          Después del pie a propósito: es lo último del árbol, así
+          que en el orden de tabulación queda al final, detrás del
+          contenido — como corresponde a un atajo, no a un enlace
+          de navegación.
+
+          No confundir con <ScrollToTop /> de arriba: aquel
+          reposiciona el scroll al cambiar de ruta y no pinta nada.
+          Este es el botón que se ve. */}
+      <VolverArriba />
 
       {showIntro && (
         <IntroAnimation

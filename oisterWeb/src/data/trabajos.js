@@ -248,10 +248,25 @@ const catalogo = [
    Llevan los ids más altos a propósito: con el orden por id
    descendente, así aparecen los primeros y se ve el rodaje.
 
-   PARA APAGARLOS: MOSTRAR_DEMOS = false   (una línea)
-   PARA BORRARLOS: quita este bloque entero
+   ---- Y POR ESO MISMO SE APAGAN ----
+   Ese "aparecen los primeros" tenía una consecuencia que no se
+   vio al escribirlo: la portada corta por `slice(0, 5)`, así que
+   los cuatro demos ocupaban cuatro de los cinco huecos y
+   empujaban fuera a ACCIONA y BESTINVER. En pantalla salían
+   DEMO 04, DEMO 03, DEMO 02, DEMO 01 y ALSEA: cuatro rectángulos
+   vacíos —no tienen imágenes— y un solo trabajo real, bajo un
+   titular que anunciaba "nuestros últimos 5 proyectos".
+
+   Es exactamente lo que el aviso de marcas.js prohíbe unas
+   líneas más allá: afirmar sin proyecto detrás. La cinta de
+   marcas se salvaba sola porque los demos no tienen `cliente`;
+   la portada no tenía esa red.
+
+   PARA VOLVER A ENCENDERLOS: MOSTRAR_DEMOS = true. Si se hace,
+   comprueba antes qué enseña la portada — el corte de arriba
+   sigue siendo por id descendente.
    ============================================================ */
-const MOSTRAR_DEMOS = true;
+const MOSTRAR_DEMOS = false;
 
 const CUANTOS_DEMOS = 4;
 

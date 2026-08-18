@@ -124,18 +124,31 @@
   border: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.16);
   border-radius: 22px;
 
-  /* Poso oscuro + un velo de blanco muy fino. El poso es lo que
-     asienta la tarjeta: a 0.42 se leía lavada sobre el morado de
-     la escena, casi como si no estuviera. A 0.62 vuelve a pesar y
-     el texto gana contraste, pero sigue dejando pasar el color y
-     el circuito del fondo — que es lo que la ata a la página en
-     vez de convertirla otra vez en un bloque negro. */
+  /* ---- POSO OSCURO: 0.92, Y ESTA VEZ CASI OPACO ----
+     Historia corta, porque este número ha ido y venido: nació en
+     0.86 (bloque negro), bajó a 0.42 cuando la tarjeta se hizo
+     cristal para tomar color de la página, subió a 0.62 al pedir
+     más peso... y con el rediseño a dos paneles se quedó corto.
+
+     El motivo es que ha cambiado lo que la tarjeta ES. Mientras
+     fue una banda de una línea flotando sobre la escena, dejar
+     pasar el fondo la ataba a la página. Ahora es una superficie
+     con dos paneles y un sitemap: por el panel derecho —que tiene
+     zonas sin contenido— se leían los alambres y la retícula del
+     circuito cruzando por debajo del texto, y eso no es cristal,
+     es una tarjeta que no tapa.
+
+     0.92 medido contra 0.62: la textura que se cuela baja de 1,78
+     a 0,80 de desviación (la mitad) y la superficie se asienta.
+     Sigue habiendo un 8% de transparencia y el desenfoque, que es
+     lo que impide que vuelva a leerse como un bloque negro
+     pegado. */
   background: linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.05),
       rgba(255, 255, 255, 0.02)
     ),
-    rgba(14, 10, 26, 0.62);
+    rgba(14, 10, 26, 0.92);
 
   backdrop-filter: blur(18px) saturate(1.15);
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
@@ -143,6 +156,167 @@
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================================
+   LOS DOS PANELES
+
+   Marca sobre acento a la izquierda, enlaces sobre oscuro a la
+   derecha, ambos a sangre hasta el borde de la tarjeta. El
+   contraste entre las dos mitades hace el trabajo que antes
+   hacían los filetes.
+
+   `.85fr / 1.15fr` y no mitades: el panel de marca lleva tres
+   piezas (logotipo, llamada y botón) y el de enlaces, cuatro
+   columnas — el reparto sigue al contenido, no a la simetría.
+   ============================================================ */
+.pie__split {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+
+  /* la tarjeta recorta con su propio radio, así que los paneles
+     pueden llegar al borde sin esquinas propias */
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* ---- PANEL DE ACENTO ----
+   El degradado no es adorno: es el fondo que al logotipo le
+   faltaba. Es un render 3D con luz propia y sobre el cristal
+   neutro de antes su volumen no se leía. */
+.pie__panel {
+  display: flex;
+  flex-direction: column;
+  /* `flex-start` y no `space-between`: con space-between el hueco
+     sobrante se repartía entre logotipo y llamada y estiraba el
+     panel —y con él la fila entera, porque la rejilla iguala las
+     dos mitades—. El pie pasaba de 325px a 554. Pegados por
+     arriba, el alto lo marca el contenido. */
+  justify-content: flex-start;
+  gap: clamp(1.25rem, 2vw, 1.75rem);
+
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+
+  background: linear-gradient(
+    155deg,
+    rgb(var(--rgb-accent-light, 240 144 212) / 0.2),
+    rgb(var(--rgb-primary, 139 92 246) / 0.12)
+  );
+}
+
+/* 10.5rem y no 13: el render es casi cuadrado (300×284), así que
+   cada rem de ancho es otro de alto — y como la rejilla iguala las
+   dos mitades, el logotipo estaba fijando el alto del pie entero.
+   A 13rem el pie se iba a 542px; a 10.5 se queda en el entorno de
+   los 460 sin que la pieza pierda presencia. */
+.pie__panel .pie__logo {
+  width: 100%;
+  max-width: 10.5rem;
+  height: auto;
+
+  filter: drop-shadow(0 10px 30px rgba(150, 80, 250, 0.4));
+}
+
+.pie__panel-pie {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.pie__llamada {
+  max-width: 18ch;
+
+  font-size: clamp(1.05rem, 0.9rem + 0.5vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.022em;
+
+  color: var(--color-text, #f6f0ff);
+}
+
+.pie__llamada span {
+  color: var(--color-rotulo, #ff9be8);
+}
+
+/* ---- PANEL DE ENLACES ---- */
+.pie__lado {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+/* ---- TANTAS COLUMNAS COMO LISTAS HAY ----
+   `repeat(3, …)` a mano dejaba una cuarta celda vacía cuando el
+   sitemap trae tres bloques: un boquete a la derecha del panel.
+   Con `auto-fit` la rejilla se ajusta sola, así que añadir o
+   quitar una lista en el JSX no obliga a volver aquí.
+
+   El mínimo va en `9rem` y no en `0`: con minmax(0,1fr) el
+   navegador cabe infinitas pistas y crea veintitantas vacías de
+   0px. Con un mínimo real, solo declara las que caben de verdad. */
+.pie__cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.pie__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pie__col-titulo {
+  margin: 0 0 0.85rem;
+
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  color: var(--color-text-muted, #afa0cc);
+}
+
+.pie-enlace {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  /* el relleno vertical es lo que da la diana táctil sin
+     separar las filas de la lista */
+  padding: 0.34rem 0;
+
+  font-size: 0.85rem;
+  text-decoration: none;
+
+  color: rgba(232, 224, 250, 0.82);
+
+  transition: color 0.22s ease;
+}
+
+.pie-enlace:hover,
+.pie-enlace.active {
+  color: var(--color-rotulo, #ff9be8);
+}
+
+/* sin `border-radius`: llevaba 4px, un valor que no está en la
+   escala del sistema (12/18/24/999) y que en un anillo de foco
+   alrededor de una línea de texto no aporta nada — el rectángulo
+   es lo estándar. Un redondeo inventado menos. */
+.pie-enlace:focus-visible {
+  outline: 2px solid var(--color-primary, #8b5cf6);
+  outline-offset: 3px;
+}
+
+.pie-enlace--red svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
 
 /* ---- EL FILO DE LUZ ----
@@ -182,312 +356,23 @@
 }
 
 /* ============================================================
-   LA BANDA
+   AQUÍ VIVÍA LA BANDA DE TRES COLUMNAS
 
-   Antes eran tres columnas de igual ancho, cada una con su
-   cabecera y su lista en vertical. Ahora es UNA franja: marca a la
-   izquierda, navegación en el centro y redes con el botón a la
-   derecha, todo alineado por su centro.
+   Se fue entera con el rediseño a dos paneles: .pie__cuerpo,
+   .pie__marca, .pie__reclamo, .pie__nav, .pie__enlaces, el
+   .pie-enlace de icono-sobre-texto con sus dos pseudos, y el
+   bloque .pie__social con .pie__redes y los discos .pie-red.
 
-   `auto 1fr auto`: los dos extremos ocupan lo que necesitan y el
-   centro se queda con lo que sobra. Con tres fracciones iguales,
-   la navegación —cinco enlaces cortos— se quedaba encajada en un
-   tercio mientras la marca desperdiciaba el suyo.
+   No se borró por limpieza sino porque ESTORBABA: aquel
+   `.pie-enlace` era `flex-direction: column; align-items: center`
+   —tenía el icono encima del rótulo— y, al ir después en el
+   archivo que el nuevo, le ganaba y centraba el texto de las
+   listas del sitemap. Un rato de "por qué salen centrados si
+   text-align es start".
+
+   Lo que sigue vivo del pie anterior: el filo de luz, el botón de
+   contacto, la barra legal y .pie__logo.
    ============================================================ */
-
-/* ---- LA TARJETA ES LARGA; EL CONTENIDO, NO ----
-   Este tope es lo que separa las dos cosas, y hace falta porque
-   son deseos opuestos: el pie tiene que cruzar la pantalla de
-   lado a lado, pero lo que lleva dentro son tres grupos que
-   juntos miden unos 1150px y no crecen por mucho sitio que se les
-   dé.
-
-   Sin tope, todo lo que la pantalla tenga por encima de eso se lo
-   queda la columna elástica del centro y se convierte en dos
-   huecos a los lados de la navegación. En un monitor ancho esos
-   huecos pasaban de 200px cada uno: la marca, los enlaces y las
-   redes se leían como tres cosas sueltas en una barra, no como un
-   pie.
-
-   Con el tope, la tarjeta sigue midiendo lo que mide y el
-   contenido se agrupa y se centra dentro. Es el dial de la
-   agrupación: bajarlo aprieta más los tres bloques. */
-/* ---- EL CONTENIDO OCUPA MÁS ANCHO DE LA TARJETA ----
-   Iba a 1150px centrados y, medido a 1440, dejaba 123px muertos a
-   CADA lado por dentro de la tarjeta: la marca no llegaba a
-   apoyarse en su borde y el bloque de redes se quedaba flotando
-   lejos del derecho. A 1290 esos márgenes bajan a ~53 y los tres
-   bloques se reparten el ancho de verdad — la marca se va a la
-   izquierda, "Síguenos" se va a la derecha y el hueco del centro
-   crece solo, porque la navegación es la columna elástica (1fr).
-
-   El mismo ancho lo lleva .pie__legal, más abajo: si no fueran
-   iguales, el "© 2026" dejaría de alinearse con el logotipo que
-   tiene justo encima. */
-.pie__cuerpo {
-  width: min(1290px, 100%);
-  margin-inline: auto;
-
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-
-  padding: clamp(1rem, 1.4vw, 1.5rem) clamp(1.1rem, 1.7vw, 1.9rem);
-}
-
-/* Los separadores siguen siendo BORDES y no elementos sueltos: al
-   apilarse en estrecho desaparecen solos, sin apagarlos uno a uno
-   con media queries. */
-/* El relleno sube de 0.9-1.6rem a 1.6-2.75rem: los tres bloques
-   son columnas contiguas, o sea que entre ellos hay CERO hueco y
-   todo lo que los separa es este relleno más el filete. Al ancho
-   anterior se leían apretados contra las líneas. */
-.pie__nav,
-.pie__social {
-  padding-left: clamp(1.6rem, 2.5vw, 2.75rem);
-  border-left: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.12);
-}
-
-.pie__marca {
-  padding-right: clamp(1.6rem, 2.5vw, 2.75rem);
-}
-
-/* ---- MARCA ---- */
-
-.pie__logo {
-  display: block;
-
-  /* ---- LA ALTURA DE LA BANDA LA MANDA ESTO ----
-     El render es casi cuadrado (300×284), así que cada rem de
-     ancho es otro de alto: a 17rem, el logo solo ya medía 258px y
-     obligaba a la franja entera a crecer para acompañarlo.
-
-     Se limita por ANCHO y no por alto porque es donde el dibujo
-     tiene su medida legible; 9rem es lo más bajo a lo que el
-     lettering del render sigue leyéndose. */
-  width: 100%;
-  max-width: clamp(6.5rem, 8vw, 8rem);
-  height: auto;
-
-  /* el render trae su propio alfa, así que no necesita caja ni
-     máscara; el halo corto lo asienta sobre la tarjeta */
-  filter: drop-shadow(0 10px 30px rgba(150, 80, 250, 0.35));
-}
-
-/* 30ch y no 22: la frase entra en DOS líneas en vez de tres, y
-   cada línea que se ahorra aquí es una línea menos de alto en toda
-   la banda. Sigue dentro del rango legible. */
-.pie__reclamo {
-  max-width: 30ch;
-  margin: 0.7rem 0 0;
-
-  font-size: clamp(0.78rem, 0.76rem + 0.1vw, 0.85rem);
-  line-height: 1.42;
-
-  color: rgba(232, 224, 250, 0.9);
-}
-
-/* "ideas" y "resultados": el reclamo tiene dos palabras que son
-   el mensaje y el resto es andamiaje. Se marcan en magenta, que
-   es el color que ya usan los titulares para lo mismo. */
-.pie__reclamo span {
-  color: var(--color-magenta, #e879f9);
-  font-weight: 600;
-}
-
-/* ============================================================
-   NAVEGACIÓN EN FILA
-   ============================================================ */
-
-.pie__enlaces {
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* la rayita entre enlaces, otra vez como borde del hermano: así
-   nunca sobra una al principio ni falta al final */
-.pie__enlaces li + li {
-  border-left: 1px solid rgb(var(--fb-linea, 196 132 252) / 0.1);
-}
-
-.pie__enlaces li {
-  display: flex;
-}
-
-/* ---- EL ENLACE, EN VERTICAL ----
-   Icono arriba, rótulo debajo y el subrayado del activo pegado al
-   texto. Es lo que permite que cinco enlaces quepan en una banda
-   baja: en horizontal (icono + texto en línea) la fila medía casi
-   el doble de ancho. */
-.pie-enlace {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-
-  padding: 0.3rem clamp(0.65rem, 1vw, 1rem);
-
-  font-size: 0.88rem;
-  text-decoration: none;
-
-  color: rgba(232, 224, 250, 0.82);
-
-  transition:
-    color 0.25s ease,
-    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1);
-}
-
-.pie-enlace__icono {
-  width: 19px;
-  height: 19px;
-
-  color: rgba(232, 224, 250, 0.7);
-
-  transition: color 0.25s ease;
-}
-
-/* ---- EL SUBRAYADO DEL ACTIVO ----
-   Va en un ::after y no en un `border-bottom` porque tiene que
-   medir lo que el TEXTO, no lo que la caja: con borde ocuparía
-   todo el ancho del enlace, relleno incluido, y se leería como una
-   pestaña en vez de como un subrayado.
-
-   Existe siempre y solo cambia de escala, para que la transición
-   tenga de dónde salir. */
-.pie-enlace__texto {
-  position: relative;
-  padding-bottom: 6px;
-}
-
-.pie-enlace__texto::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-
-  border-radius: 2px;
-
-  background: linear-gradient(
-    90deg,
-    var(--color-magenta, #e879f9),
-    var(--color-primary, #8b5cf6)
-  );
-
-  transform: scaleX(0);
-  transform-origin: center;
-
-  transition: transform 0.28s cubic-bezier(0.22, 0.8, 0.36, 1);
-}
-
-.pie-enlace:hover {
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-.pie-enlace:hover .pie-enlace__icono {
-  color: var(--color-magenta, #e879f9);
-}
-
-.pie-enlace:hover .pie-enlace__texto::after {
-  transform: scaleX(0.6);
-}
-
-/* `active` lo pone NavLink solo */
-.pie-enlace.active {
-  color: #fff;
-}
-
-.pie-enlace.active .pie-enlace__icono {
-  color: var(--color-magenta, #e879f9);
-}
-
-.pie-enlace.active .pie-enlace__texto::after {
-  transform: scaleX(1);
-}
-
-.pie-enlace:focus-visible {
-  outline: 2px solid var(--color-magenta, #e879f9);
-  outline-offset: 3px;
-  border-radius: 10px;
-}
-
-/* ============================================================
-   REDES + BOTÓN
-   ============================================================ */
-
-.pie__social {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 1.3vw, 1.4rem);
-}
-
-.pie__social-titulo {
-  margin: 0 0 0.6rem;
-
-  font-size: 0.82rem;
-  color: rgba(232, 224, 250, 0.85);
-}
-
-.pie__redes {
-  display: flex;
-  gap: 0.7rem;
-
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* ---- LOS CÍRCULOS ----
-   Se van la caja con texto y la flecha: en la banda no caben tres
-   elementos por red. Queda el disco de marca, que es lo que se
-   reconoce de un vistazo — y por eso cada uno conserva SU color:
-   un logotipo de plataforma fuera de su color deja de reconocerse,
-   que es justo para lo que está. */
-.pie-red {
-  display: grid;
-  place-items: center;
-
-  width: 34px;
-  height: 34px;
-
-  border-radius: 999px;
-
-  color: #fff;
-
-  transition:
-    transform 0.25s cubic-bezier(0.22, 0.8, 0.36, 1),
-    box-shadow 0.25s ease;
-}
-
-.pie-red svg {
-  width: 17px;
-  height: 17px;
-}
-
-.pie-red--ig {
-  background: linear-gradient(135deg, #f9737b 0%, #d92e7f 52%, #a930b8 100%);
-}
-
-.pie-red--in {
-  background: linear-gradient(135deg, #2f6fd0 0%, #1f4fa8 100%);
-}
-
-.pie-red:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
-}
-
-.pie-red:focus-visible {
-  outline: 2px solid var(--color-magenta, #e879f9);
-  outline-offset: 3px;
-}
 
 /* ============================================================
    EL BOTÓN DE CONTACTO
@@ -652,6 +537,28 @@
 /* ============================================================
    ESTRECHO
    ============================================================ */
+
+/* ============================================================
+   LOS PANELES, APILADOS
+
+   Es la ventaja de partir en dos y no en tres columnas: en
+   vertical no hay que reinventar nada, solo dejar que una mitad
+   caiga debajo de la otra. La marca sigue arriba —con su fondo de
+   acento, que ahora hace de cabecera del pie— y los enlaces
+   debajo.
+   ============================================================ */
+@media (max-width: 980px) {
+  .pie__split {
+    grid-template-columns: 1fr;
+  }
+
+  /* cuatro columnas de enlaces no caben: pasan a dos, que es lo
+     que aguanta un rótulo como "Cómo lo hacemos" sin partirse */
+  .pie__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1.25rem;
+  }
+}
 
 @media (max-width: 980px) {
   .pie__cuerpo {

@@ -1,0 +1,102 @@
+/* ============================================================
+   VOLVER ARRIBA — LA PERLA
+
+   El botón existe SIEMPRE en el DOM mientras estamos por debajo
+   de 1080px; lo que cambia es `data-ver`. Montarlo y desmontarlo
+   según el scroll dejaría la salida sin animación —el elemento
+   desaparecería del árbol a media transición— y además obligaría
+   a React a reconstruirlo en cada aparición.
+   ============================================================ */
+.perla-arriba {
+  position: fixed;
+  z-index: 60;
+
+  right: 18px;
+
+  /* ---- EL BORDE DE ABAJO NO ES EL BORDE DE LA PANTALLA ----
+     En los móviles con barra de gestos, los últimos ~34px son
+     zona del sistema: un botón ahí se toca sin querer al deslizar
+     para cerrar la app. `env(safe-area-inset-bottom)` devuelve
+     ese alto real, y el `max()` cubre los aparatos que no tienen
+     barra —ahí la variable vale 0 y manda el 22px. */
+  bottom: max(22px, calc(14px + env(safe-area-inset-bottom)));
+
+  /* 54 y no 44: 44px es el mínimo de zona táctil cómoda, no un
+     objetivo. Una perla de 44 al lado de un titular de 21 se lee
+     como un adorno; a 54 se lee como un mando. */
+  width: 54px;
+  height: 54px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  /* la MISMA perla que los nodos de la cadena (ver
+     InteligenciaIA.css). El brillo descentrado es lo que la hace
+     esfera y no círculo. */
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--perla-clara, #ffc0ef),
+    var(--perla, #f5a1ec) 52%,
+    var(--perla-honda, #e78bf0)
+  );
+
+  /* tinta oscura dentro: 9,0:1 contra el nácar. La flecha en
+     blanco daría 1,9:1 y sería ilegible sobre un rosa tan claro. */
+  color: #23143d;
+
+  box-shadow:
+    0 0 0 6px rgb(var(--rgb-magenta, 232 121 249) / 0.1),
+    0 8px 22px rgb(14 6 26 / 0.55);
+
+  opacity: 0;
+  transform: translateY(14px) scale(0.86);
+  pointer-events: none;
+
+  transition:
+    opacity 0.42s cubic-bezier(0.22, 0.8, 0.36, 1),
+    transform 0.42s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+.perla-arriba[data-ver] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.perla-arriba svg {
+  width: 21px;
+  height: 21px;
+}
+
+/* el hundido del toque va en `scale` sobre el estado visible: si
+   fuera un transform suelto pisaría el de la entrada */
+.perla-arriba[data-ver]:active {
+  transform: scale(0.94);
+}
+
+.perla-arriba:focus-visible {
+  outline: 2px solid var(--color-secondary, #c9a8ff);
+  outline-offset: 4px;
+}
+
+/* ---- CON MOVIMIENTO REDUCIDO NO SE DESLIZA, APARECE ----
+   Se conserva el fundido —que no es movimiento— y se retira el
+   desplazamiento vertical. Un elemento que se materializa de
+   golpe en una esquina se nota menos que uno que entra volando,
+   que es justo lo que esta preferencia pide evitar. */
+@media (prefers-reduced-motion: reduce) {
+  .perla-arriba {
+    transform: none;
+    transition: opacity 0.2s linear;
+  }
+
+  .perla-arriba[data-ver]:active {
+    transform: none;
+  }
+}

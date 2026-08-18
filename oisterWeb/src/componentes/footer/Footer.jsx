@@ -1,11 +1,9 @@
 import { Link, NavLink } from "react-router-dom";
-import {
-  ArrowRight,
-  Briefcase,
-  FileText,
-  Home,
-  Mail,
-} from "lucide-react";
+/* solo la flecha del CTA: los iconos de navegación se fueron con
+   la fila de enlaces con icono encima. En un sitemap de columnas
+   un icono por enlace es ruido — la cabecera de columna ya dice
+   de qué va la lista. */
+import { ArrowRight } from "lucide-react";
 /* fa y no fa6: es el paquete que ya usan TeamCard y Contact, y
    mezclar dos versiones del mismo set trae dos trazos distintos
    para el mismo logotipo */
@@ -13,7 +11,6 @@ import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
 
 import useEnPantalla from "../../hooks/useEnPantalla";
 import FondoNuevo from "../fondoNuevo/FondoNuevo";
-import PieDesplegable from "./PieDesplegable";
 /* ---- EL LOGO DEL PIE VA APARTE ----
    Antes salía de assets/hero/oysters-3d.webp, el render maestro
    del logotipo 3D, del que además se deriva la máscara
@@ -46,35 +43,37 @@ import "./Footer.css";
    una respuesta posible. Se monta <Footer /> y ya está.
    ============================================================ */
 
-/* Una entrada con `hijos` no lleva a ninguna parte: abre un
-   panel con ellos (ver PieDesplegable). El resto son enlaces
-   normales.
+/* ---- EL SITEMAP DEL PIE ----
+   SOLO rutas que existen de verdad en App.jsx: /, /works,
+   /services, /contact, /resources y /blog.
 
-   ---- LOS DESTINOS SALEN DEL MENÚ DE ESCRITORIO, NO DE
-   data/dropdown.js ----
-   Ese archivo tiene el mismo apartado "Recursos" y sería lo
-   inmediato para no repetir la lista, pero manda a "Entrenamiento
-   IA Generativa" a /training, que NO existe como ruta en
-   App.jsx: el enlace acabaría en la página de "no encontrado".
-   DesktopMenu resuelve lo mismo apuntando a /resources, que sí
-   existe, y es lo que se copia aquí para que el pie y el menú
-   digan lo mismo. Si algún día se crea /training, los tres sitios
-   se unifican. */
-const NAVEGACION = [
-  { icono: Home, label: "Inicio", to: "/" },
-  { icono: Briefcase, label: "Trabajos", to: "/works" },
+   No hay enlaces a secciones de la portada (#nosotros,
+   #que-hacemos, #proyectos) aunque esos anclajes existan en el
+   marcado: ScrollToTop hace `scrollTo(0, 0)` en cada cambio de
+   ruta y no mira el hash, así que un "/#nosotros" llevaría a la
+   portada y se quedaría arriba — un enlace que miente. Para que
+   funcionaran hay que enseñarle el hash a ScrollToTop primero.
+
+   Se fueron los iconos por enlace que traía la fila anterior: en
+   un sitemap de columnas, la cabecera ya dice de qué va la lista
+   y un icono por fila es ruido. */
+const SITEMAP = [
   {
-    icono: FileText,
-    label: "Recursos",
-    hijos: [
+    titulo: "Navegación",
+    enlaces: [
+      { label: "Inicio", to: "/", exacto: true },
+      { label: "Trabajos", to: "/works" },
+      { label: "Cómo lo hacemos", to: "/services" },
+      { label: "Contacto", to: "/contact" },
+    ],
+  },
+  {
+    titulo: "Recursos",
+    enlaces: [
       { label: "Gen AI Training", to: "/resources" },
       { label: "Blog", to: "/blog" },
     ],
   },
-  /* "Blog" NO va suelto aquí: ya está dentro de "Recursos", justo
-     arriba. Estaba en los dos sitios y el pie ofrecía dos caminos
-     al mismo destino con un clic de diferencia. */
-  { icono: Mail, label: "Contacto", to: "/contact" },
 ];
 
 /* ⚠️ URLS DE MARCADOR — Instagram y LinkedIn apuntan a los
@@ -148,9 +147,28 @@ function Footer({ conEscena = false }) {
             una fuente por encima. */}
         <span className="pie__filo" aria-hidden="true" />
 
-        <div className="pie__cuerpo">
-          {/* ---- MARCA ---- */}
-          <div className="pie__marca">
+        {/* ============================================================
+            DOS PANELES A SANGRE
+
+            El pie se parte en dos mitades que llegan hasta el borde
+            de la tarjeta: a la izquierda la MARCA sobre un
+            degradado de acento, a la derecha los ENLACES sobre el
+            oscuro de siempre.
+
+            El motivo no es decorativo. El logotipo es un render 3D
+            con alfa y luz propia, y hasta ahora flotaba sobre el
+            mismo cristal que el texto: sin fondo pensado para él,
+            su volumen no se leía. Aquí tiene el suyo.
+
+            Y de paso resuelve lo que estaba medido: la banda de
+            tres columnas dejaba 670px para cuatro enlaces que
+            ocupaban 400. El contraste entre paneles hace ahora el
+            trabajo que hacían los filetes, y el ancho se llena con
+            navegación en vez de con aire.
+            ============================================================ */}
+        <div className="pie__split">
+          {/* ---- PANEL DE ACENTO: LA MARCA ---- */}
+          <div className="pie__panel">
             <img
               className="pie__logo"
               src={logo}
@@ -161,86 +179,71 @@ function Footer({ conEscena = false }) {
               decoding="async"
             />
 
-            <p className="pie__reclamo">
-              Inteligencia artificial que transforma{" "}
-              <span>ideas</span> en <span>resultados</span>.
-            </p>
-          </div>
-
-          {/* ---- NAVEGACIÓN ----
-              En fila y con el icono ENCIMA del rótulo, no en lista
-              vertical. Sin cabecera de columna: en horizontal, un
-              "Navegación" encima no encabeza nada, solo añade una
-              línea de texto a una banda que se quiere baja.
-
-              NavLink y no Link: trae la clase de activo puesta, que
-              es lo que enciende el subrayado del apartado en el que
-              estás. `end` en Inicio para que "/" no salga activo en
-              todas las rutas — sin él, cualquier ruta empieza por
-              "/" y coincidiría siempre. */}
-          <nav className="pie__nav" aria-label="Enlaces del pie">
-            <ul className="pie__enlaces">
-              {NAVEGACION.map(({ icono: Icono, label, to, hijos }, i) => (
-                /* la clave es `to` cuando lo hay y el rótulo cuando
-                   no: las entradas desplegables no tienen destino */
-                <li key={to ?? label} style={{ "--i": i }}>
-                  {hijos ? (
-                    <PieDesplegable icono={Icono} label={label} items={hijos} />
-                  ) : (
-                    <NavLink to={to} end={to === "/"} className="pie-enlace">
-                      <Icono
-                        className="pie-enlace__icono"
-                        strokeWidth={1.6}
-                        aria-hidden="true"
-                      />
-                      <span className="pie-enlace__texto">{label}</span>
-                    </NavLink>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* ---- REDES + CONTACTO ---- */}
-          <div className="pie__social">
-            <div className="pie__redes-bloque">
-              {/* rótulo en texto plano y no con <Rotulo>: aquel
-                  trae versalitas anchas, filete y halo, calibrado
-                  para encabezar una sección entera. Aquí es una
-                  etiqueta de dos palabras sobre dos botones. */}
-              <p className="pie__social-titulo" id="pie-redes">
-                Síguenos
+            <div className="pie__panel-pie">
+              <p className="pie__llamada">
+                ¿Ponemos la IA a trabajar en <span>tu marca</span>?
               </p>
 
-              <ul className="pie__redes" aria-labelledby="pie-redes">
-                {REDES.map(({ icono: Icono, label, href, clase }, i) => (
-                  <li key={label} style={{ "--i": i }}>
-                    <a
-                      className={`pie-red ${clase}`}
-                      href={href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      /* el nombre de la red se va del marcado
-                         visible —ahora es solo el círculo— pero
-                         tiene que seguir estando para quien navega
-                         a oído */
-                      aria-label={label}
-                    >
-                      <Icono aria-hidden="true" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <Link to="/contact" className="pie__cta">
+                <span>Contactar</span>
+                <ArrowRight
+                  className="pie__cta-flecha"
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+              </Link>
             </div>
+          </div>
 
-            <Link to="/contact" className="pie__cta">
-              <span>Contactar</span>
-              <ArrowRight
-                className="pie__cta-flecha"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
-            </Link>
+          {/* ---- PANEL OSCURO: LOS ENLACES ---- */}
+          <div className="pie__lado">
+            <nav className="pie__cols" aria-label="Enlaces del pie">
+              {SITEMAP.map(({ titulo, enlaces }) => (
+                <div className="pie__col" key={titulo}>
+                  <h3 className="pie__col-titulo">{titulo}</h3>
+                  <ul>
+                    {enlaces.map(({ label, to, exacto }) => (
+                      <li key={to}>
+                        {/* NavLink y no Link: trae puesta la clase de
+                            activo, que es lo que marca en qué apartado
+                            estás. `end` en Inicio porque si no, "/"
+                            coincide con cualquier ruta. */}
+                        <NavLink to={to} end={exacto} className="pie-enlace">
+                          {label}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              {/* las redes, como una columna más: en una rejilla de
+                  sitemap dos círculos sueltos piden cabecera igual
+                  que las otras listas */}
+              <div className="pie__col">
+                <h3 className="pie__col-titulo">Síguenos</h3>
+                <ul>
+                  {/* sin la clase de marca (pie-red--ig / --in): esa
+                      pintaba el disco de Instagram o LinkedIn a todo
+                      color, y aquí no hay disco — es una fila de
+                      lista como las de al lado. Con ella puesta, el
+                      enlace entero salía con el degradado de fondo. */}
+                  {REDES.map(({ icono: Icono, label, href }) => (
+                    <li key={label}>
+                      <a
+                        className="pie-enlace pie-enlace--red"
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
+                        <Icono aria-hidden="true" />
+                        <span>{label}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
           </div>
         </div>
 

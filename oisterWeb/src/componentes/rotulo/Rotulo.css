@@ -153,3 +153,27 @@
     width: 30px;
   }
 }
+
+/* ---- MISMA APERTURA EN TODAS LAS SECCIONES (MÓVIL) ----
+   Las secciones del home abren igual: este rótulo y, debajo, su
+   titular. En la mano cada una dejaba un aire distinto y se
+   notaba: unas arrancaban apretadas y otras no.
+
+   La regla vive AQUÍ y no en cada sección por dos motivos. Uno,
+   es el sitio natural: las tres usan este mismo componente. Y
+   dos, lo intenté primero por sección y NO funcionaba — esta
+   hoja se importa después y su `.rotulo` (misma especificidad)
+   ganaba por orden de cascada. El síntoma era desconcertante:
+   la regla estaba escrita, era correcta, y el navegador seguía
+   aplicando el margen viejo.
+
+   El hueco va en el margen INFERIOR del rótulo, no en el
+   superior del titular: ver --hueco-rotulo en variables.css, que
+   explica por qué (los márgenes colapsan en unas secciones y en
+   otras no, así que ponerlo en los dos lados daba resultados
+   distintos según la sección). */
+@media (max-width: 560px) {
+  .rotulo {
+    margin-bottom: var(--hueco-rotulo, 2.6rem);
+  }
+}

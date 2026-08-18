@@ -1,0 +1,27 @@
+{
+  "buildPath": "comp",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#000",
+        "createdAt": "2026-08-17T20:01:55.076Z",
+        "reason": "Claude: no es un color de paleta sino una capa de mascara (mask-image: linear-gradient(#000,#000)), donde el negro significa zona opaca. Codigo preexistente en .fn--onda-arriba."
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.35, .64, 1)",
+        "createdAt": "2026-08-17T21:47:48.560Z",
+        "reason": "Claude: firma de movimiento del sitio, no un bounce — sobrepaso minimo estilo back.out (1.35) documentado en el propio CSS ('ese sobrepaso minimo al final es lo que separa un fundido de una entrada') y compartido con las tarjetas de Nosotros y el CTA del hero. La regla nueva (.uc__mano) lo reusa a proposito para entrar igual que las tarjetas a las que sustituye."
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.4, 0.64, 1)",
+        "createdAt": "2026-08-18T09:03:27.690Z",
+        "reason": "Claude: misma firma de movimiento del sitio que la variante .34/1.35 ya sancionada, escrita con ceros y decima distinta. Es un back.out de sobrepaso minimo, no un bounce: lo usan el hover y el pop del CTA del hero (btnBoom, la gota que brota del charquito) y viene del sistema, no de esta edicion. Preexistente: mi cambio de hoy solo apago bucles de fondo, no toco easing."
+      }
+    ]
+  }
+}

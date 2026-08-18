@@ -100,7 +100,22 @@
 
   position: relative;
 
-  overflow: hidden;
+  /* ---- `clip` Y NO `hidden`, Y NO ES COSMÉTICO ----
+     Recorta exactamente igual —el resplandor y las ondas siguen
+     sin salirse—, pero con una diferencia que aquí lo cambia
+     todo: `hidden` convierte al elemento en CONTENEDOR DE SCROLL
+     y `clip` no.
+
+     Con `hidden`, la línea de tiempo `view()` de la salida se
+     resolvía contra el propio hero en vez de contra la página. Y
+     como el hero no scrollea nunca, su contenido está siempre
+     "contenido": la fase de salida no llegaba a ocurrir y la
+     animación se quedaba clavada en el 0% (medido: el timeline
+     avanzaba al 46% mientras el progreso seguía en 0).
+
+     Es la misma corrección, y por parentesco el mismo motivo, que
+     ya llevan "Últimos proyectos", "Nosotros" y el pie. */
+  overflow: clip;
 }
 
 /* ══════════════ NAVBAR: MODIFICAR AQUÍ (2/3) ══════════════
@@ -1506,6 +1521,66 @@
   }
 }
 
+/* ============================================================
+   LA SALIDA DEL HERO — la lleva el scroll, no un reloj
+
+   Al abandonar la pantalla, la columna de texto se atenúa y sube
+   un punto. La progresión va atada al SCROLL (`animation-timeline:
+   view()`), así que responde al dedo: si paras a media salida, se
+   queda a medias; si vuelves atrás, se deshace. Un reloj no puede
+   hacer eso — se dispararía y correría solo.
+
+   ---- EL `@supports` NO ES OPCIONAL: SIN ÉL SE ROMPE FIREFOX ----
+   Firefox todavía no implementa las líneas de tiempo por scroll
+   (medido: Chrome y Safari sí, Firefox no). Y no las ignora
+   entero: descarta el `animation-timeline` pero EJECUTA la
+   animación en la línea de tiempo normal. O sea que sin este
+   guard, en Firefox el hero se desvanecería solo al cargar la
+   página y se quedaría invisible para siempre.
+
+   Con el guard, lo que pasa donde no hay soporte es que no hay
+   efecto de salida y el hero se va con el scroll como hasta hoy.
+   Degradación sana: se pierde el adorno, nunca el contenido.
+
+   ---- POR QUÉ `.hero__left` Y NO EL CONTENEDOR ----
+   El titular, la entradilla y el CTA ya tienen animación de
+   ENTRADA con `forwards`. Animar la salida sobre esos mismos
+   elementos sería pelearse por las mismas propiedades, así que la
+   salida va en el bloque que los envuelve.
+
+   Y NO se toca `.hero__right`: la ostra lleva su propio transform
+   atado a --h-scroll-p (useHeroScrollDock) para viajar hasta
+   "Qué hacemos". Animarla aquí le pisaría el viaje.
+
+   ---- TAMBIÉN EN MÓVIL ----
+   Nació con `min-width: 901px` por confundirlo con la congelación
+   del fondo, y son cosas distintas: allí se paró un degradado que
+   giraba SOLO, y esto responde al dedo de quien scrollea. En la
+   mano es donde más se nota, porque se scrollea más.
+   ============================================================ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__left {
+      animation: heroSalida linear both;
+      animation-timeline: view();
+
+      /* arranca en cuanto el hero empieza a irse y termina al 72%
+         del recorrido: así queda apagado ANTES de desaparecer del
+         todo, en vez de cortarse a medio fundido contra el borde */
+      animation-range: exit 0% exit 72%;
+    }
+  }
+}
+
+/* solo `to`: el estado de partida es el que tenga el elemento, así
+   que la salida no pelea con lo que dejó puesto la entrada */
+@keyframes heroSalida {
+  to {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.97);
+  }
+}
+
 @keyframes heroScrollCueIn {
   from {
     opacity: 0;
@@ -1747,6 +1822,44 @@
   }
 }
 
+/* ============================================================
+   ≤900px — LA ATMÓSFERA LLEGA, PERO LUEGO NO SE MUEVE
+
+   Mismo criterio y mismo corte que el fondo (ver FondoNuevo.css):
+   en la mano ninguna capa de fondo se mueve en bucle. Ahí el
+   fondo va pegado al texto y ocupa toda la ventana, así que lo
+   que en una pantalla ancha es ambiente, aquí es movimiento
+   debajo de lo que se está leyendo.
+
+   Se conservan las animaciones de LLEGADA —son de un disparo,
+   terminan y dejan la atmósfera puesta— y se quitan solo los
+   BUCLES infinitos: la deriva del orbe (heroOrbDrift) y el
+   ascenso de las motas (heroDust).
+
+   El corte es 900 y no el 1100 del bloque de arriba a propósito:
+   es el mismo ancho en el que se congela FondoNuevo, y tener dos
+   umbrales distintos dejaría una franja (901–1100) con el fondo
+   quieto y el polvo subiendo.
+
+   ---- POR QUÉ SE REPITE LA ENTRADA EN CADA REGLA ----
+   `animation` se sobrescribe entera, no se suma. Volver a
+   declarar SOLO la llegada es precisamente lo que borra el bucle;
+   si aquí no estuviera, la capa entraría sin animación y aparecería
+   de golpe. */
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .hero--enter .hero__container::before {
+    animation: heroOrbIn 1.6s cubic-bezier(0.22, 0.8, 0.36, 1) 0.1s forwards;
+  }
+
+  .hero--enter .hero__left::before {
+    animation: heroAtmosIn 2s ease 0.6s forwards;
+  }
+
+  .hero--enter .hero__left::after {
+    animation: heroAtmosIn 2.4s ease 0.9s forwards;
+  }
+}
+
 @keyframes heroAtmosIn {
   to {
     opacity: 1;
@@ -1866,11 +1979,30 @@
 
     display: flex;
     flex-direction: column;
+
+    /* ---- OJO CON EL EJE: AQUÍ SE GIRA ----
+       En escritorio esta caja es una FILA, y la regla base le pone
+       `align-items: center` para centrar los botones en vertical
+       respecto a su línea. Al pasar a COLUMNA, ese mismo
+       `align-items` deja de mandar en vertical y pasa a mandar en
+       HORIZONTAL: el botón se centraba en la caja y quedaba 83px
+       metido hacia dentro, desalineado del titular y del párrafo,
+       que arrancan pegados al margen.
+
+       No basta con `justify-content: flex-start` —en columna ese
+       controla el eje vertical, que aquí no hace nada—: lo que
+       alinea el botón con el texto es `align-items`. */
+    align-items: flex-start;
     justify-content: flex-start;
 
     gap: 0.6rem;
 
-    margin-top: 0.4rem;
+    /* Aire sobre el botón. Estaba en 0.4rem —6px— contra los 2rem
+       de escritorio, y en la mano el botón salía casi pegado al
+       último renglón del párrafo: se leía como parte del texto en
+       vez de como la acción que cierra el bloque. 1.4rem lo
+       despega sin descolgarlo. */
+    margin-top: 1.4rem;
   }
 
   .btn {

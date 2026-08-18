@@ -226,3 +226,69 @@
     display: none;
   }
 }
+
+/* ---- MENOS AIRE ARRIBA EN LA MANO ----
+   El relleno de la sección sale de `8vh`, que en una pantalla de
+   844px son 67px: en escritorio da respiro y en móvil deja el
+   titular medio viewport por debajo del borde. Se recorta arriba
+   y se conserva abajo, que es donde separa de la sección
+   siguiente. */
+@media (max-width: 900px) {
+  .how-we-work {
+    padding-top: clamp(1.75rem, 4vh, 2.75rem);
+  }
+}
+
+/* ---- EL FONDO ESTABA FUERA DE BANDA ----
+   DESIGN.md fija la luminosidad del fondo de sección entre el 29
+   y el 32%. Medido en un móvil de 390, esta sección corría entre
+   el 37 y el 45%: era la más clara del sitio con diferencia, y a
+   esa altura se le muere encima todo lo que sea un trazo fino.
+
+   No es una preferencia. Sobre un fondo al 42% se perdían el hilo
+   de la cadena, los filetes entre paradas y las versalitas de
+   apoyo — piezas dibujadas para el fondo que el sistema documenta,
+   no para este. Antes de subirles a ellas el contraste hay que
+   arreglar el suelo, porque si no acabas con un hilo gritando
+   sobre un fondo que sigue estando mal.
+
+   Se baja tocando los tres colores del degradado de FondoNuevo,
+   que ya están pensados como puntos de ajuste. Es lo mismo que se
+   hizo en "Últimos proyectos", que corría al 34,2%.
+
+   Solo en la mano: escritorio no se toca. */
+@media (max-width: 1079px) {
+  /* ---- MENOS COLA AL FINAL ----
+     Medido a 390: del último tag al borde de la sección había
+     126px, y por debajo arranca "Nuestros trabajos" con su propio
+     respiro — 153 en total entre el último dato y el rótulo
+     siguiente. Con la cadena, además, el bloque ya no cierra con
+     una tarjeta que tenga borde: cierra con etiquetas sueltas, y
+     el vacío por debajo se lee como que falta algo, no como aire.
+
+     Baja a 32, que deja ~86px hasta el borde. El relleno de
+     ARRIBA no se toca: ahí el aire sí hace falta, porque encima
+     viene la costura con el hero. */
+  .how-we-work {
+    padding-bottom: 2rem;
+  }
+
+  .how-we-work .how-we-work__fondo {
+    /* factor 0,66 sobre los tres, medido y no elegido: a 1,0 la
+       sección promedia 41,5%, a 0,72 cae en 29,5 y a 0,62 se pasa
+       hasta 26,4 —ahí el fondo se vuelve casi negro y pierde el
+       morado de la marca—.
+
+       Se queda en 0,66 por encargo: un punto y medio por debajo
+       de la banda 29–32 que documenta DESIGN.md. Es una desviación
+       consciente y pequeña, y juega a favor de lo que va encima —
+       el hilo de la cadena y sus versalitas ganan contraste sobre
+       un suelo más oscuro, no lo pierden. Si algún día se quiere
+       volver a la banda exacta, el número es 0,72 (32 23 57 /
+       69 48 122 / 94 48 78), que además son los de "Últimos
+       proyectos". */
+    --fn-rgb-oscuro: 29 21 52;
+    --fn-rgb-violeta: 63 44 112;
+    --fn-rgb-rosa: 86 44 72;
+  }
+}

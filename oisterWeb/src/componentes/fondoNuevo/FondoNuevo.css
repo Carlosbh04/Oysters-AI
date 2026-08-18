@@ -635,3 +635,120 @@
     opacity: 0;
   }
 }
+
+/* ---- EN LA MANO NO HAY ONDA: LAS SECCIONES SE TOCAN EN PLANO ----
+   Antes aquí solo se BAJABA la curva a ~50px. Se retira del todo,
+   y el motivo por el que se bajaba es el mismo por el que ahora se
+   quita: la curva está dibujada en un lienzo de 1440x120 y se
+   estira con `preserveAspectRatio: none`, así que cada pantalla la
+   deforma distinto. En un móvil de 390px se comprime 3,7x en
+   horizontal y solo 1,6x en vertical — sale MÁS EMPINADA de lo
+   dibujado, con las ondulaciones apretadas donde debían ser
+   largas. Rebajarla suavizaba eso, pero no lo arreglaba: seguía
+   siendo un dibujo pensado para un ancho que el móvil no tiene.
+
+   Y ocupaba alto —hasta 64px por juntura, en una página que en
+   vertical ya va apretada— para separar dos secciones que ya se
+   distinguen solas por su contenido.
+
+   Se apagan las DOS cosas, y hacen falta las dos:
+     · la máscara, que es la curva en sí;
+     · el `top` negativo, que es el estirón hacia arriba. Sin
+       anularlo el fondo seguiría invadiendo la sección de encima,
+       ahora con un corte recto en vez de curvo — peor que la onda.
+
+   En escritorio no cambia nada: la curva sigue donde estaba. */
+@media (max-width: 900px) {
+  .fn--onda-arriba {
+    top: 0;
+
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* ============================================================
+     EN LA MANO EL FONDO NO SE MUEVE
+
+     Queda QUIETO, en un solo estado, y en TODAS las secciones —
+     esta hoja gobierna las cinco que montan la escena (hero, qué
+     hacemos, últimos proyectos, nosotros, casos de uso) más el
+     pie, así que apagarlo aquí lo apaga en toda la web.
+
+     Lo que se para es el degradado que gira, la llegada, el
+     barrido y el revelado del circuito. El estado que queda no es
+     un fotograma a medias: es la posición de diseño, una
+     composición terminada por sí sola — el mismo destino al que
+     ya llegaba `prefers-reduced-motion`, cuyo bloque es
+     literalmente esta receta.
+
+     ---- POR QUÉ EN MÓVIL Y NO SOLO POR PREFERENCIA ----
+     El giro dura una vuelta larga y su gracia es percibirse de
+     reojo en una pantalla ancha. En un móvil el fondo va pegado
+     al texto y ocupa toda la ventana: lo que en escritorio es un
+     ambiente que respira, en la mano es el fondo moviéndose
+     debajo de lo que estás leyendo. Además cada fotograma es un
+     repintado a pantalla completa, que es justo lo que peor
+     sienta a una batería y a una GPU de móvil.
+
+     ---- LA MÁSCARA HAY QUE QUITARLA A MANO ----
+     Con las demás capas basta `animation: none`, porque su estado
+     natural ES el bueno. La trama no: sin animación se queda con
+     la máscara puesta y el circuito dependería de dónde caiga
+     `mask-position` por defecto. `mask-image: none` la saca de esa
+     lotería y lo enseña entero. (Mismo motivo, palabra por
+     palabra, que en el bloque de movimiento reducido.) */
+  .fn__giro,
+  .fn__entrada,
+  .fn::after {
+    animation: none;
+  }
+
+  .fn .fn__trama {
+    animation: none;
+
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  /* el barrido no llega a pasar, así que no puede quedarse quieto
+     en mitad del encuadre tapando lo que hay detrás */
+  .fn::after {
+    opacity: 0;
+  }
+
+  /* ---- Y EL LATIDO DE LOS NODOS ----
+     Vive dentro de la trama (ft-pulso, un bucle de 9s) y es el
+     único movimiento que sobreviviría a lo de arriba: no es una
+     animación de llegada, es continua.
+
+     Se apaga SOLO dentro de `.fn`, no en `.ft__pulso` a secas,
+     para no tocar la página de laboratorio que monta la trama
+     suelta — allí el pulso es justo lo que se está probando. */
+  .fn .fn__trama .ft__pulso {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* ---- LOS PUNTOS, MÁS APAGADOS EN LA MANO ----
+     El 0.25 del blanco está medido para escritorio, donde la
+     retícula es un fondo lejano detrás de un ancho de 1440px. En
+     un móvil el mismo paso de 22px cae MUCHO más cerca del ojo y
+     justo debajo del texto: a esa distancia los puntos dejan de
+     leerse como textura y empiezan a leerse como suciedad sobre
+     el titular.
+
+     Baja el punto (0.25 → 0.14) y con él la retícula entera vía
+     su velo (0.55 → 0.38), que es lo que gradúa cuánto se apaga
+     en el centro del encuadre — donde precisamente vive el
+     contenido en una columna. La línea y el hexágono se dejan
+     quietos: son trazo largo, no grano, y son ellos los que
+     sostienen el dibujo del circuito. Apagarlos también dejaría
+     el fondo liso, que no es lo que se pide. */
+  .fn .fn__trama {
+    --ft-punto: rgba(240, 248, 255, 0.14);
+  }
+
+  .fn .fn__trama .ft__reticula {
+    --ft-reticula-velo: 0.38;
+  }
+}

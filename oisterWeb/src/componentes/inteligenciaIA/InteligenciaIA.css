@@ -602,10 +602,19 @@
   color: var(--iia-tinta-suave);
 }
 
-.iia__metodo-entrada b {
-  font-weight: 600;
-  color: var(--iia-enlace);
-}
+/* ---- SE FUE LA NEGRITA DE COLOR ----
+   Aquí hubo un realce (`b` en lila, y en rosa sobre el fondo) para
+   "ecosistema avanzado de herramientas de IA". La marca se ha
+   quitado del JSX y con ella estas reglas.
+
+   El motivo no es de color sino de proporción: el trozo realzado
+   medía línea y media de un párrafo que en el móvil ocupa cinco.
+   Un énfasis que abarca un tercio del texto deja de leerse como
+   énfasis —se lee como un segundo titular— y parte el párrafo en
+   dos bloques en vez de señalar algo dentro de uno.
+
+   Si algún día vuelve a hacer falta destacar ahí, que sea sobre
+   tres o cuatro palabras, no sobre media frase. */
 
 /* ---- LA REJILLA DEL MAPA ----
    Tres columnas: tarjetas, anillo, tarjetas. La del medio con
@@ -801,6 +810,13 @@
    canto iluminado justo mientras es el centro de atención.
 
    La elevación se lee igual de bien solo con el movimiento. */
+
+/* Aquí vivía `iiaTagIn`, la entrada escalonada de las etiquetas.
+   Se retira junto con su única regla: en la cadena el plegable
+   nace abierto, así que la animación corría al montar —con la
+   sección fuera de pantalla— y nadie llegaba a verla. Se deja
+   dicho para que no se reintroduzca sin cambiar antes eso. */
+
 @keyframes iia-alza {
   0% {
     transform: translateY(0);
@@ -868,6 +884,35 @@
 
 .iia__tarjeta-cuerpo {
   min-width: 0;
+}
+
+/* ---- EL PLEGABLE ES TRANSPARENTE PARA LA MAQUETA ----
+   La tarjeta pasó a envolver su contenido en <details> para que
+   en móvil la fila entera abra las herramientas. Para que eso no
+   cambie NADA en escritorio, el <details> y su cabecera se
+   disuelven: la fila vuelve a ser el mismo flex de siempre —
+   icono a la izquierda, cuerpo a la derecha— y la cabecera pierde
+   cursor y triángulo. */
+.iia__paso {
+  display: contents;
+}
+
+.iia__paso-fila {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95rem;
+
+  list-style: none;
+}
+
+.iia__paso-fila::-webkit-details-marker {
+  display: none;
+}
+
+/* la flecha y la cuenta son piezas de móvil */
+.iia__paso-flecha,
+.iia__tarjeta-cuenta {
+  display: none;
 }
 
 .iia__tarjeta h3 {
@@ -1007,11 +1052,57 @@
     grid-column: auto;
   }
 
-  /* el vídeo primero: es lo que engancha, y en columna el
-     titular tiene todo el ancho justo debajo */
-  .iia__marco {
-    order: -1;
+  /* ---- SUBIR EL BLOQUE ----
+     Sobre el titular se acumulaban 175px de aire repartidos en
+     tres capas que en escritorio tienen sentido y en la mano no:
+     el relleno de la sección (67px), el de la caja (32) y el
+     hueco de rejilla que deja la pista (38 de alto + 38 de
+     separación).
+
+     La PISTA no se toca, y conviene saber por qué: es el halo que
+     ilumina la ostra al aterrizar, pero además es el elemento que
+     vigila el IntersectionObserver de HowWeWork con un umbral del
+     45% de su superficie. Colapsarla dejaría a la sección sin su
+     clase `--landed`, o sea sin ninguna de sus animaciones de
+     entrada. Lo que se recorta es el aire de alrededor. */
+  .iia {
+    padding-top: clamp(1rem, 3vw, 1.75rem);
   }
+
+  /* ---- Y LA PISTA TAMPOCO PINTA NADA AQUÍ ----
+     Ocupaba una fila entera de la rejilla (20px de alto más su
+     hueco) para no enseñar nada: su único contenido es
+     `.how-we-work__scene` —el halo que ilumina la ostra al
+     aterrizar— y esa escena está en `display: none` por debajo de
+     1100px, porque la ostra del hero tampoco existe ahí.
+
+     De paso queda explicado algo que asusta al medirlo: en móvil
+     la clase `--landed` NUNCA se activa. No está roto — el
+     IntersectionObserver observa esa escena oculta, y lo único
+     que la clase enciende son el halo y la sombra, que viven
+     dentro de ella. No hay contenido que dependa de eso.
+
+     ⚠️ Si algún día la escena se muestra en móvil, hay que quitar
+     esta regla o volverá a no verse. */
+  .iia__pista {
+    display: none;
+  }
+
+  .iia__intro {
+    row-gap: 1.25rem;
+  }
+
+  /* ---- EL TITULAR VA PRIMERO, NO EL VÍDEO ----
+     Estaba al revés: el vídeo llevaba `order: -1` con el
+     argumento de que es lo que engancha. En columna no funciona
+     así — el bloque abría con un reproductor sin contexto y había
+     que bajar para enterarse de de qué iba. Quitando el `order`,
+     manda el orden del marcado: primero "Combinamos pensamiento
+     humano y creatividad con la IA", y el vídeo justo debajo, ya
+     sabiendo qué se está viendo.
+
+     No se pone `order: 0`: basta con no tocarlo. La regla existía
+     solo para invertir. */
 
   .iia__parrafo {
     max-width: none;
@@ -1031,8 +1122,101 @@
 }
 
 @media (max-width: 560px) {
-  .iia__titulo span {
-    display: inline;
+  /* ---- DOS LÍNEAS, NO TRES ----
+     Aquí los dos trozos del titular pasaban a `inline` para que
+     fluyeran, y el resultado eran TRES renglones con el último
+     casi vacío ("creatividad con la IA"). Vuelven a ser bloque,
+     que es como se partió la frase a propósito:
+
+       "Combinamos pensamiento humano"
+       "y creatividad con la IA"
+
+     Para que cada renglón quepa hay que bajar el cuerpo, y NO
+     vale un número fijo: la línea larga ("Combinamos pensamiento
+     humano") pide un ancho proporcional al cuerpo, así que lo que
+     cabe depende de la pantalla. Medido: el texto ocupa 16,5px de
+     ancho por cada px de cuerpo, o sea que en una caja de 358px
+     (móvil de 390) entra a 21,7 y en una de 288 (móvil de 320)
+     solo a 17,5. Con un valor fijo, o se parte en los estrechos o
+     se queda enano en los anchos.
+
+     De ahí la fórmula: el cuerpo sale del ancho disponible. El
+     tope de 26px evita que crezca de más al acercarse a 560, y el
+     -2px es el margen de seguridad para que nunca roce el borde.
+
+     La interlínea se cierra a 1,2: con dos líneas, el 1,34 de
+     escritorio deja un hueco de más entre ellas. */
+  .iia__titulo span.iia__titulo-linea {
+    display: block;
+  }
+
+  /* los dos bloques abren igual: el hueco lo pone el rótulo (ver
+     --hueco-rotulo en variables.css, que explica por qué va ahí y
+     no en el titular) */
+  .iia__rotulo-centro {
+    margin-bottom: var(--hueco-rotulo, 2.6rem);
+  }
+
+  .iia__metodo-titulo {
+    margin-top: 0;
+
+    /* ---- QUE ENTRE EN DOS LÍNEAS, NO EN TRES ----
+       A 20,8px esta frase parte en tres, y el resultado no fallaba
+       por el número de líneas sino por el ANCHO: medido a 390, las
+       tres líneas daban 255/243/234 dentro de una caja de 358,
+       mientras el párrafo de debajo iba de borde a borde. Un
+       titular más estrecho que su propio texto de apoyo invierte
+       la jerarquía — pesa más lo que explica que lo que anuncia.
+
+       Y no se arregla soltando `text-wrap: balance`: sin él la
+       frase llena las dos primeras líneas y deja la tercera en un
+       muñón de 87px. Balance no era el problema, era el parche.
+
+       Así que el titular baja de cuerpo lo justo para caber en dos
+       líneas llenas. Los números salen de medir el corte real en
+       el navegador a 320/360/390/414/430:
+
+         ancho    cuerpo máximo con 2 líneas
+         320px    15px
+         360px    17px
+         390px    19px
+         414px    20,5px
+         430px    21px
+
+       La recta que pasa por debajo de todos ellos es 5,1vw-1,65px.
+       El tope de 21px iguala lo que ya había a 560 (no se nota el
+       cambio al cruzar el corte); el suelo de 16px es para no
+       quedar por debajo de `.iia__titulo`, que a 320 mide 16,9 —
+       ahí sí vuelven las tres líneas, y es preferible a un titular
+       de 15px.
+
+       OJO SI CAMBIA EL TEXTO: la recta está ajustada a ESTA frase.
+       Si se reescribe, hay que volver a medir; el síntoma de que
+       se ha quedado corta son otra vez tres líneas cortas. */
+    font-size: clamp(16px, 5.1vw - 1.65px, 21px);
+  }
+
+  .iia__titulo {
+    font-size: min(26px, calc(5.9vw - 2px));
+    line-height: 1.2;
+
+    /* ---- AIRE ENTRE EL RÓTULO Y EL TITULAR ----
+       Los 16px que dejaba el rótulo valían cuando el titular era
+       grande y pesaba por sí solo; con el cuerpo bajado para que
+       entre en dos líneas, los dos bloques quedan a una altura
+       visual parecida y se leen pegados.
+
+       OJO CON EL NÚMERO: los márgenes verticales de hermanos
+       COLAPSAN —se quedan con el mayor, no se suman—, así que
+       poner aquí menos de los 16px del rótulo no hace
+       absolutamente nada. Se probó con 12 y el hueco siguió
+       midiendo 16 clavados: cualquier valor por debajo de 16 es
+       tiempo perdido. De ahí que el número sea alto — es el que
+       gana al colapso y el único que de verdad se ve.
+
+       El hueco lo pone ahora el rótulo (--hueco-rotulo), así que
+       aquí solo hay que no estorbar. */
+    margin-top: 0;
   }
 
   /* el cuerpo sube: 12,2px se lee bien en una tarjeta de
@@ -1190,32 +1374,8 @@
   color: var(--color-rotulo, #ff9be8);
 }
 
-/* ---- LA NEGRITA NO PUEDE COPIAR A LA DE LAS TARJETAS ----
-   Primero le puse el mismo lila (--color-primary-light) que a los
-   nombres de herramienta, buscando que "destacado dentro de un
-   párrafo" significara lo mismo en toda la página. Medido, EMPEORÓ:
-   de 4,57 a 4,02.
-
-   El motivo es que no están en el mismo sitio. En las tarjetas el
-   lila cae sobre cristal OSCURO y destaca; aquí cae sobre el
-   degradado, que es morado medio — un lila sobre morado es el
-   mismo tono con otro nombre.
-
-   Así que lo que se copia es el CRITERIO, no el color: un tono que
-   destaque sobre lo que tenga detrás. Aquí eso es un rosa claro,
-   emparentado con el del rótulo de encima.
-
-   ---- Y TIENE QUE IR POR ENCIMA DEL PÁRRAFO, NO SOLO SER OTRO
-        COLOR ----
-   Con el párrafo en #e8e0fb, el rosa anterior (#f3c2ff) se quedaba
-   POR DEBAJO en luz: destacaba por tono pero se leía más flojo que
-   el texto que lo rodea, que es justo lo contrario de destacar.
-   Este sube por encima y además gana peso — un destacado dentro de
-   un párrafo se nota por las dos cosas a la vez, no por una. */
-.iia--sobre-fondo .iia__metodo-entrada b {
-  color: #ffcdf9;
-  font-weight: 700;
-}
+/* (aquí estaba el rosa #ffcdf9 de esa misma negrita: se explica
+   arriba, junto a la regla base que también se ha ido) */
 
 /* ---- LOS FILETES DEL RÓTULO "¿CÓMO LO HACEMOS?" ----
    Son dos degradados que nacen del morado oscuro y mueren en
@@ -1533,4 +1693,876 @@
 .iia__cerrar:focus-visible {
   outline: 2px solid var(--iia-morado-claro);
   outline-offset: 3px;
+}
+
+/* ============================================================
+   MÓVIL — "¿CÓMO LO HACEMOS?" COMO RECORRIDO
+
+   En escritorio los cuatro apartados son un MAPA: tarjetas
+   alrededor del anillo, unidas por curvas medidas. Apilados en
+   una columna eso deja de existir —las curvas se ocultan— y lo
+   que quedaba era el peor de los dos mundos: cuatro muros de
+   texto seguidos (~1.400px medidos en un móvil de 844) con el
+   anillo suelto en medio sin explicar nada.
+
+   Aquí se convierte en lo que sí funciona en vertical: un
+   RECORRIDO numerado 01→04, unido por una línea, con la prosa en
+   una frase y las herramientas como etiquetas.
+
+   Nada de esto toca escritorio: todo vive bajo el mismo 1079 que
+   ya apaga las curvas.
+
+   ---- LOS COLORES SALEN DE LOS TOKENS DEL SITIO ----
+   Y conviene saber por qué está escrito así. La primera versión
+   llevaba trece colores a mano, y entre ellos CINCO lilas casi
+   iguales —(216,190,255), (226,200,255), (200,170,255)— que solo
+   se distinguían mirándolos en el inspector. Eso no es una
+   jerarquía: es ruido, y garantiza que el día que se retoque la
+   marca esta sección se quede atrás.
+
+   Ahora todo sale de tres tokens que el proyecto ya tenía:
+
+     --rgb-secondary      el lila de apoyo: textos secundarios,
+                          iconos, flechas y bordes de etiqueta
+     --rgb-primary-light  el violeta de marca: filos y rellenos
+     --color-magenta      el acento: solo el punto de la cuenta
+
+   La jerarquía la marca la OPACIDAD del mismo lila (0.95 para lo
+   que se lee, 0.8 para lo secundario, 0.35 y 0.12 para filos y
+   fondos), no un tono nuevo por cada pieza.
+   ============================================================ */
+
+@media (max-width: 1079px) {
+  /* ---- EL ANILLO SE VA ----
+     Sin las curvas que lo conectan no es el centro de nada: eran
+     173px de imagen más su espacio para un adorno que ya no
+     explica el bloque. Sigue en el DOM (escritorio lo necesita) y
+     su geometría no se mide aquí, porque `conCurvas` ya es false
+     en este ancho. */
+  .iia__nucleo {
+    display: none;
+  }
+
+  /* ---- LOS RÓTULOS, A LA IZQUIERDA ----
+     Iban centrados entre dos guías y dos galones, que es como
+     nacieron en la maquetación de referencia —una pantalla ancha,
+     con sitio de sobra a los lados—. En una columna de 358px ese
+     centrado hace dos cosas malas: parte el margen izquierdo del
+     bloque (el rótulo empieza en un sitio y el titular en otro),
+     y compite con el hilo de la cadena, que sí tiene un margen
+     propio y fijo.
+
+     Alineados a la izquierda, rótulo, titular, texto y hilo
+     arrancan todos de la misma vertical. Es además como se
+     anuncian ya "Nosotros" y "Últimos proyectos": esta sección
+     era la que iba por libre. */
+  .iia__metodo {
+    text-align: left;
+  }
+
+  .iia__rotulo-centro {
+    justify-content: flex-start;
+  }
+
+  /* la guía de la derecha y los dos galones sobran: sin centrado
+     no cierran nada, solo hacen ruido a un lado del texto */
+  .iia__rotulo-centro::after,
+  .iia__rotulo-flecha {
+    display: none;
+  }
+
+  .iia__rotulo-centro::before {
+    width: 26px;
+  }
+
+  /* ---- EL SEGUNDO PÁRRAFO ASCIENDE A CITA ----
+     La intro abre con 687px de prosa seguida —dos párrafos, 90
+     palabras— antes de que aparezca nada que no sea texto: casi
+     dos pantallas. Los dos párrafos iban además en el mismo
+     cuerpo, distinguidos solo por la negrita, así que ni siquiera
+     se leían como dos cosas distintas.
+
+     Este segundo lleva el mensaje, así que se saca de la masa: un
+     filete magenta a la izquierda, cuerpo mayor y la interlínea
+     más cerrada. Deja de ser "más texto" y pasa a ser la frase
+     que uno se lleva. Y no hace falta tocar el marcado: sigue
+     siendo el mismo <p>. */
+  p.iia__parrafo--fuerte {
+    margin-top: 1.7rem;
+    padding-left: 1.05rem;
+
+    border-left: 2px solid var(--color-magenta, #e879f9);
+
+    font-size: 15.5px;
+    font-weight: 600;
+    line-height: 1.55;
+    letter-spacing: -0.012em;
+  }
+
+  /* ============================================================
+     LA CADENA — el método deja de ser cuatro tarjetas y pasa a
+     ser UN RECORRIDO.
+
+     El porqué: en escritorio son el anillo y las cuatro curvas
+     los que cuentan que esto tiene un orden. Por debajo de 1080
+     todo eso se apaga —las curvas cruzarían el texto— y hasta
+     ahora no lo sustituía nada: quedaban cuatro rectángulos
+     idénticos, que se leen como una lista y no como un proceso.
+
+     El hilo lo devuelve. Un nervio de nácar baja por el margen
+     con un nodo numerado en cada parada y se llena con el scroll;
+     al llegar al 04 está entero. Son los MISMOS números que el
+     sumario de trabajos —hilo a 28px del borde de pantalla, texto
+     arrancando en 46—, así que las dos secciones alinean y se
+     leen como del mismo sitio.
+
+     Y las herramientas dejan de estar plegadas: eran cuatro
+     toques para llegar a los 26 nombres que son la prueba más
+     fuerte que tiene la sección.
+     ============================================================ */
+
+  /* ---- LAS CUATRO EN UNA SOLA COLUMNA, EN ORDEN ----
+     `display: contents` disuelve las dos columnas para que las
+     cuatro tarjetas pasen a ser hijas directas del mapa. Es lo
+     que permite ordenarlas 01→04 con `order`: repartidas en dos
+     columnas quedaban intercaladas (01, 03, 02, 04) porque el
+     reparto de escritorio es por LADO, no por orden. */
+  .iia__mapa {
+    display: flex;
+    flex-direction: column;
+
+    /* ⚠ HAY QUE DESHACER EL `center` DE LA REJILLA DE ESCRITORIO.
+       Allí `align-items: center` centra verticalmente las cuatro
+       tarjetas respecto al anillo, que es lo que se quiere. Aquí,
+       en una columna flex, el eje transversal es el HORIZONTAL:
+       cada paso dejaba de estirarse y se encogía al ancho de su
+       texto, centrado. A 390 no se notaba porque el texto llena
+       la medida; a 768 la tarjeta quedaba en 484px centrados y el
+       nodo se iba con ella, a 83px del hilo — que sí seguía
+       pegado al margen. */
+    align-items: stretch;
+
+    /* Sin hueco: lo que separa un paso del siguiente es un filete
+       y su aire, no un vacío. Con hueco, el hilo tendría que
+       cruzar tierra de nadie entre parada y parada. */
+    gap: 0;
+
+    /* 30px = los 46 desde el borde de la pantalla menos los 16
+       que ya mete el contenedor. El hilo cae entonces en 12
+       (28 - 16). Cambiar el relleno del contenedor obliga a
+       rehacer estas dos cuentas. */
+    padding-left: 30px;
+
+    text-align: left;
+  }
+
+  .iia__columna {
+    display: contents;
+  }
+
+  .iia__tarjeta {
+    order: var(--paso, 0);
+  }
+
+  /* ---- LA SOMBRA DEL CARRIL ----
+     Por detrás de la cadena pasa la cuña clara del degradado
+     giratorio del fondo. Medida en el canalón izquierdo: a media
+     altura del paso 02 el suelo sube a rgb(105 85 134) mientras
+     arriba y abajo está en rgb(68 44 108). O sea que el hilo
+     recorre un fondo que cambia de tono a mitad de camino, y en
+     el tramo claro se apaga.
+
+     No se puede quitar en origen: esa cuña ES el degradado de la
+     sección, no un adorno encima. Así que se tapa por delante.
+
+     ⚠ Y no con un rectángulo. Se probó un velo de lado a lado y
+     se leía como una tarjeta gigante metida en mitad de la
+     sección. Este va anclado al borde IZQUIERDO y se desvanece
+     antes de llegar a la mitad, así que no tiene canto derecho
+     que delatar; y la máscara vertical le quita los de arriba y
+     abajo. Lo que queda no es una caja: es que el carril está en
+     sombra. */
+  .iia__mapa::before {
+    content: "";
+
+    position: absolute;
+    z-index: -1;
+
+    top: -1.2rem;
+    bottom: -1.2rem;
+    /* `calc(50% - 50vw)` sobre un absoluto: el 50% es del bloque
+       contenedor y el 50vw de la pantalla, así que la resta da el
+       margen del contenedor sea cual sea. Sin números a mano. */
+    left: calc(50% - 50vw);
+    right: calc(50% - 50vw);
+
+    background: linear-gradient(
+      90deg,
+      rgb(18 10 34 / 0.72) 0%,
+      rgb(18 10 34 / 0.5) 34%,
+      rgb(18 10 34 / 0) 78%
+    );
+
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      #000 5%,
+      #000 95%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      #000 5%,
+      #000 95%,
+      transparent 100%
+    );
+  }
+
+  /* ---- EL HILO ----
+     Dos capas: la guía apagada y el relleno de nácar encima. El
+     relleno va en un ::after con scaleY —que resuelve el
+     compositor— y no con `height`, que repintaría en cada
+     fotograma de scroll.
+
+     `top` y --iia-hilo-largo NO se escriben aquí: los pone el JS
+     midiendo los nodos, porque el alto de cada paso depende de
+     cuántas líneas ocupen su resumen y sus etiquetas. Ver el
+     efecto del hilo en InteligenciaIA.jsx. */
+  /* ---- EL GRUESO Y LA GUÍA, MEDIDOS SOBRE EL FONDO REAL ----
+     Medido con el fondo ya en banda, en siete puntos a lo largo
+     del recorrido: la guía en lila claro al 30% daba **1,26:1** en
+     el peor punto. Un trazo a ese contraste no es un trazo tenue,
+     es un trazo que no está — que es justo lo que se veía: el hilo
+     sólo aparecía en el tramo ya recorrido y por debajo se cortaba
+     en seco.
+
+     Y el lila no da más de sí: ni al 70% de alfa pasa de 2,02:1
+     sobre este fondo. Así que la guía cambia de color, no de
+     opacidad — pasa a `tinta-perla-alta` (#E8E0FB, DESIGN.md),
+     que al 55% da 2,7:1 en el peor punto y 3,3 de media. Es la
+     misma familia de nácar del relleno, un peldaño por debajo.
+
+     El grueso sube a 3: con 2 y a 28px del borde, el hilo competía
+     en peso con las líneas del circuito del fondo, que son del
+     mismo grosor. A 3 deja de haber duda sobre cuál es cuál. */
+  .iia__hilo {
+    position: absolute;
+    left: 12px;
+
+    width: 4px;
+    height: var(--iia-hilo-largo, 0px);
+
+    border-radius: 4px;
+    background: rgba(232, 224, 251, 0.55);
+  }
+
+  .iia__hilo::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    transform: scaleY(var(--iia-hilo-avance, 0));
+    transform-origin: top;
+
+    /* ---- FUERA EL VIOLETA ----
+       El degradado bajaba a `--color-primary` (#8B5CF6) y ahí se
+       moría: 1,50:1 contra este fondo, contra los 3,4 del rosa y
+       los 5,0 de la perla. O sea que el tercio final del recorrido
+       —el que uno acaba de completar, el que más quiere ver— era
+       el más invisible de los tres. Era un degradado elegido sobre
+       la maqueta, donde el suelo era casi negro y el violeta sí
+       recortaba.
+
+       Ahora se queda dentro del nácar: perla arriba, rosa en el
+       centro, lila abajo. Ninguno baja de 3,19:1. */
+    background: linear-gradient(
+      180deg,
+      #e8e0fb,
+      var(--color-rotulo, #ff9be8) 45%,
+      rgb(var(--rgb-secondary, 201 168 255))
+    );
+
+    border-radius: inherit;
+
+    /* Halo doble: uno corto que pega el brillo al trazo y otro
+       largo que abre un claro en el circuito del fondo. Con uno
+       solo, el hilo se cruzaba con las líneas decorativas y a
+       ratos no se sabía cuál era cuál.
+
+       Bajado por encargo: iba a 0,55 y 0,30 y el resplandor se
+       comía el propio trazo —el hilo se leía como una mancha de
+       luz de unos 20px de ancho en vez de como una línea de 4—.
+       Ahora el halo sólo despega, no ilumina. El contraste del
+       hilo no depende de él: lo pone el nácar macizo, que ya da
+       de 3,97 a 5,74:1. */
+    box-shadow:
+      0 0 4px rgb(var(--rgb-magenta, 232 121 249) / 0.28),
+      0 0 11px rgb(var(--rgb-magenta, 232 121 249) / 0.13);
+  }
+
+  /* ---- LA PARADA: SIN CAJA ----
+     La tarjeta pierde filo, fondo y sombra. No es por ahorrar
+     adorno: con caja, el hilo pasaría POR FUERA de cuatro
+     rectángulos cerrados y se leería como un adorno al margen. Sin
+     ella, el nodo entra en el texto y el recorrido es la
+     composición, no una decoración a un lado.
+
+     ⚠ `overflow` vuelve a visible. Estaba en hidden para recortar
+     el barrido de luz del anillo, que en este ancho no existe
+     —ni anillo, ni curvas, ni LuzAnillo—, y con hidden el nodo,
+     que se sale 31px por la izquierda, quedaba cortado por la
+     mitad. */
+  /* ⚠ VA CALIFICADA CON .iia--sobre-fondo, y no es adorno.
+     El aspecto de la tarjeta sobre fondo oscuro lo pinta
+     `.iia--sobre-fondo .iia__tarjeta` —dos clases—, que le gana a
+     una clase sola por mucho que esta esté más abajo en el
+     archivo y dentro de una media query (las media queries no
+     suman especificidad). Sin calificar, el filo, el cristal
+     esmerilado y la sombra seguían ahí: se veía un panel oscuro
+     detrás de la cadena con el nodo montado en su borde.
+     Es el mismo tropiezo que ya documenta el mosaico del icono
+     unas líneas más arriba. */
+  .iia--sobre-fondo .iia__tarjeta,
+  .iia__tarjeta {
+    display: block;
+
+    padding: 1.45rem 0;
+    overflow: visible;
+
+    border: 0;
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* ---- LA PARADA NO SE LEVANTA ----
+     `.iia__tarjeta:hover` sube la caja 2px y le enciende filo y
+     sombra. En escritorio es correcto: hay ratón, el gesto pasa y
+     vuelve. En táctil no: el `:hover` se queda PEGADO después de
+     tocar, así que un paso quedaba levantado y con relieve
+     mientras los otros tres no — y ahí ya no queda ninguna caja
+     que levantar, sólo texto sobre el fondo, con lo que el
+     desplazamiento de 2px se lee como un salto sin causa.
+
+     Van los dos selectores porque el aspecto sobre fondo oscuro
+     lo pinta `.iia--sobre-fondo .iia__tarjeta:hover` —dos clases—
+     y le gana a `.iia__tarjeta:hover`. Neutralizar sólo el corto
+     dejaba el filo y la sombra encendiéndose igual. */
+  .iia--sobre-fondo .iia__tarjeta:hover,
+  .iia__tarjeta:hover {
+    transform: none;
+    box-shadow: none;
+
+    /* el filete entre paradas SOBREVIVE al hover: es estructura
+       del recorrido, no un realce. Si se dejara caer con el resto
+       del borde, tocar un paso borraría la línea que lo separa
+       del anterior — y en táctil se quedaría borrada. */
+    border-color: transparent;
+    border-top-color: var(--filo-claro, rgb(255 255 255 / 0.14));
+  }
+
+  .iia--sobre-fondo .iia__tarjeta[data-inicio]:hover,
+  .iia__tarjeta[data-inicio]:hover {
+    border-top-color: transparent;
+  }
+
+  /* el filete entre paradas, y quién NO lo lleva.
+     `data-inicio` y no `:first-child` por el mismo motivo que ya
+     obligó a inventar `data-fin`: las cuatro tarjetas viven
+     repartidas en DOS columnas del DOM (el reparto de escritorio)
+     y `order` solo cambia el orden VISUAL, no el del árbol. Un
+     selector posicional marcaría como primera a la primera de
+     cada columna — o sea a dos. */
+  .iia--sobre-fondo .iia__tarjeta,
+  .iia__tarjeta {
+    border-top: 1px solid var(--filo-claro, rgb(255 255 255 / 0.14));
+  }
+
+  .iia--sobre-fondo .iia__tarjeta[data-inicio],
+  .iia__tarjeta[data-inicio] {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .iia__tarjeta[data-fin] {
+    padding-bottom: 0.35rem;
+  }
+
+  /* ---- EL NODO NUMERADO ----
+     Se sale 31px por la izquierda para caer centrado sobre el
+     hilo (12px del mapa − 30 de relleno − 13 de medio nodo). Nace
+     apagado y se enciende cuando el paso cruza la línea de agua:
+     el atributo lo pone el JS. */
+  /* −31 = 12px del hilo + 2 de su medio grueso − 15 de medio nodo
+     − 30 de relleno del mapa. Si cambia el grueso del hilo o el
+     diámetro del nodo, esta cuenta se rehace. */
+  .iia__paso-numero {
+    position: absolute;
+    left: -31px;
+    top: 1.45rem;
+
+    display: grid;
+    place-items: center;
+
+    /* 30 y no 26: el nodo es el eslabón, y con el hilo a 3px un
+       círculo de 26 con una cifra de 10 se quedaba corto de peso
+       al lado de un titular de 17. */
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid rgba(232, 224, 251, 0.5);
+    border-radius: 50%;
+
+    /* opaco a propósito: el nodo TAPA el hilo que pasa por
+       detrás, y con fondo translúcido se veía la línea
+       cruzándole la cara. */
+    background: var(--color-bg, #372550);
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+
+    /* 0,85 y no 0,75: son cifras de 10px, el tamaño al que menos
+       perdona el contraste. Da 4,94:1 contra el fondo medido. */
+    color: rgb(var(--rgb-secondary, 201 168 255) / 0.85);
+
+    transition:
+      border-color 0.45s ease,
+      color 0.45s ease,
+      box-shadow 0.45s ease;
+  }
+
+  .iia__tarjeta[data-inicio] .iia__paso-numero {
+    top: 0;
+  }
+
+  /* ---- LA PARADA RECORRIDA ES UNA PERLA ----
+     Era un aro fino rosa sobre fondo oscuro: mismo peso visual que
+     el aro apagado, distinto sólo en el tono. A 30px y con el
+     titular al lado, esa diferencia no se veía — la cadena no se
+     notaba porque sus eslabones no pesaban.
+
+     Maciza sí se nota, y además dice de qué va la casa: el
+     recorrido se va llenando de perlas. El degradado radial con el
+     brillo descentrado es lo que la hace esfera y no círculo, y
+     los tres tonos son los de DESIGN.md (perla-clara, perla,
+     perla-honda). La cifra se invierte a tinta oscura: 9,7:1
+     contra el nácar, o sea que se lee mejor que antes. */
+  .iia__tarjeta[data-visto] .iia__paso-numero {
+    border-color: transparent;
+
+    background: radial-gradient(
+      circle at 34% 30%,
+      var(--perla-clara, #ffc0ef),
+      var(--perla, #f5a1ec) 52%,
+      var(--perla-honda, #e78bf0)
+    );
+
+    color: #23143d;
+
+    box-shadow:
+      0 0 0 5px rgb(var(--rgb-magenta, 232 121 249) / 0.08),
+      0 2px 9px rgb(20 11 38 / 0.45);
+  }
+
+  /* ---- LA FILA DEJA DE SER UNA FILA ----
+     Sin icono a la izquierda, el <summary> ya no compone nada:
+     pasa a bloque. Y deja de responder al puntero porque no hay
+     nada que abrir — el plegable nace abierto y el JS cancela el
+     toggle (ver alPulsarFila). */
+  .iia__paso {
+    display: block;
+  }
+
+  .iia__paso-fila {
+    display: block;
+
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* ---- LO QUE SOBRA EN LA CADENA ----
+     El mosaico del icono competía con el nodo por el mismo sitio
+     —dos marcas a la izquierda del mismo titular—, y la cuenta y
+     su flecha anunciaban un despliegue que ya no existe. */
+  .iia__tarjeta-icono,
+  .iia__tarjeta-cuenta,
+  .iia__paso-flecha {
+    display: none;
+  }
+
+  /* ---- EL TITULAR DE LA PARADA ----
+     Los dos trozos vuelven a ir apilados, pero al revés que en
+     escritorio: manda el nombre —"Aprendizaje"— y "impulsado por
+     IA" baja a versalitas de apoyo. Sin caja que lo sostenga, el
+     titular es lo único que marca dónde empieza cada parada, así
+     que sube de 13,5 a 17px. */
+  .iia__tarjeta h3 {
+    display: block;
+
+    /* ---- EL TITULAR SE APARTA DE LA PERLA ----
+       Es la ÚNICA línea del paso que comparte altura con el nodo,
+       y quedaba a 1px de su borde: 46 el texto, 45 el canto de la
+       perla. Los dos se tocaban y el conjunto se leía apretado.
+
+       El sangrado va sólo en el titular y su versalita —lo que
+       está a la altura de la perla— y no en el resumen ni en las
+       etiquetas, que caen por debajo y no tienen de qué apartarse.
+       No es una desalineación: es que sólo estorba arriba. */
+    padding-left: 12px;
+
+    margin-bottom: 0;
+    font-size: 17px;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .iia__tarjeta h3 span {
+    display: block;
+  }
+
+  .iia__tarjeta h3 span + span {
+    margin-top: 0.2rem;
+
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    /* 0,62 daba 3,39:1 — por debajo del mínimo para texto, y
+       encima en versalitas de 11,5px, que es donde el interletrado
+       adelgaza los trazos. A 0,85 sube a 4,94:1 y sigue leyéndose
+       como apoyo del titular, no como competencia suya: quien las
+       separa es el cuerpo, no el color. */
+    color: rgb(var(--rgb-secondary, 201 168 255) / 0.85);
+  }
+
+  /* ---- PROSA CORTA + ETIQUETAS ----
+     Se cambia el párrafo largo por el resumen y la lista (ver el
+     comentario de APARTADOS en el JSX). */
+  .iia__tarjeta-texto {
+    display: none;
+  }
+
+  /* ---- OJO CON LA ESPECIFICIDAD ----
+     `.iia__tarjeta p` (clase + elemento) le gana a una clase
+     sola, así que el 13,5px que fija el bloque de 560px pisaba
+     estos tamaños por mucho que fueran más abajo en el archivo.
+     Por eso van calificados con el elemento: sin eso, ajustar
+     aquí no servía de nada. */
+  .iia__tarjeta p.iia__tarjeta-resumen {
+    display: block;
+
+    margin: 0.55rem 0 0;
+
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ---- EL CAJÓN DEJA DE SER UN CAJÓN ----
+     Tenía filete y aire por encima porque era "lo que se ha
+     desplegado". Ya no se despliega nada: las herramientas son
+     parte de la parada, así que el filete se retira —si no,
+     habría dos líneas por paso y ninguna significaría lo mismo. */
+  .iia__tarjeta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+
+    margin: 0.85rem 0 0;
+    padding: 0;
+
+    border-top: 0;
+
+    list-style: none;
+  }
+
+  /* ---- LAS ETIQUETAS ----
+     Antes eran casi un fantasma: relleno al 12%, filo al 32% y el
+     rótulo en lila al 95% sobre un lila más oscuro — sobre la
+     tarjeta oscura se leían apagadas y sin peso.
+
+     Ahora el relleno es un degradado (arriba más claro: da volumen
+     de píldora en vez de mancha plana), el filo sube y el rótulo
+     va casi blanco, que es lo que las hace destacar de verdad. El
+     filo interior blanco y la sombra corta las despegan del
+     fondo: se leen como pastillas posadas, no pintadas. */
+  .iia__tarjeta-tags li {
+    padding: 0.32rem 0.72rem;
+
+    border: 1px solid rgb(var(--rgb-primary-light, 183 148 255) / 0.42);
+    border-radius: 999px;
+
+    background: linear-gradient(
+      180deg,
+      rgb(var(--rgb-primary-light, 183 148 255) / 0.22),
+      rgb(var(--rgb-primary-light, 183 148 255) / 0.11)
+    );
+
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.28);
+
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+
+    color: #ede4ff;
+  }
+
+
+  /* Aquí iba la entrada escalonada de las etiquetas, colgada de
+     `.iia__paso[open]`. Se retira con la cadena: el plegable nace
+     abierto, así que esa animación corría UNA vez al montar el
+     componente —con la sección todavía fuera de pantalla— y para
+     cuando el lector llegaba ya había terminado. Una animación que
+     nadie puede ver es solo trabajo. --t sigue en el JSX porque no
+     estorba y lo pide de vuelta cualquier futuro escalonado. */
+
+  /* ---- UNA PIEZA PARTIDA, NO DOS CAJAS ----
+     El comentario del JSX lo dice desde el principio: misión y
+     visión son las dos caras de lo mismo, y meterlas en dos cajas
+     las enfrenta. En escritorio la rejilla de dos columnas ya las
+     lee como un par; apiladas en el móvil se convertían en dos
+     tarjetas idénticas una encima de otra — el mismo problema que
+     la cadena viene a resolver un poco más abajo.
+
+     Así que el filo, el radio y el fondo suben de las mitades a la
+     pieza, y lo que separa a las dos pasa a ser un filete
+     interior. Una caja, dos apartados. */
+  .iia__proposito {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+
+    border: 1px solid var(--iia-filo);
+    border-radius: var(--iia-radio);
+    overflow: hidden;
+
+    background: var(--iia-tarjeta);
+    box-shadow: var(--iia-sombra);
+  }
+
+  .iia__proposito-mitad {
+    /* ⚠ ARRIBA, NO CENTRADO. Iba centrado porque el bloque nacía
+       PLEGADO: una línea de titular junto a un medallón de 48px,
+       y con el texto anclado arriba sobraban ~23px de hueco. Ahora
+       nace abierto y ese mismo centrado deja el medallón flotando
+       a media altura del párrafo, lejos del titular al que
+       acompaña. Vuelve arriba, que es donde está lo que anuncia. */
+    align-items: flex-start;
+
+    padding: 1.35rem 1.25rem;
+
+    border: 0;
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+  }
+
+  .iia__proposito-mitad + .iia__proposito-mitad {
+    border-top: 1px solid var(--iia-filo);
+  }
+
+  .iia__proposito-mitad > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ---- MISIÓN Y VISIÓN DEJAN DE SER PLEGABLES ----
+     Se plegaron para ahorrar altura y el ahorro era real, pero
+     con la cadena debajo enseñando sus 26 herramientas sin pedir
+     un toque, este par era lo único escondido de la sección — y
+     encima justo antes, así que se llegaba al método habiendo
+     leído dos rótulos y ningún contenido.
+
+     Ya nacían con `open`. Lo que faltaba era quitarles la manija:
+     `open` es un atributo que React aplica al MONTAR, y basta con
+     que alguien lo cierre —o con que el elemento sobreviva a un
+     recambio en caliente con el estado ya cambiado— para que se
+     quede plegado sin manera de volver, porque la prop no cambia
+     y React no la reaplica. Sin manija no hay estado que se
+     tuerza.
+
+     Es la misma solución que escritorio lleva desde siempre (ver
+     el bloque de min-width 1080): el <details> se queda como
+     envoltorio semántico y se lee como un <h2> con su párrafo.
+
+     Aquí iba también el indicador que giraba —una punta de flecha
+     en ::after—. Fuera: anunciaba un despliegue que ya no existe,
+     y una flecha que no responde al dedo es peor que ninguna. */
+  .iia__desplegable > summary {
+    display: block;
+
+    cursor: default;
+    pointer-events: none;
+    list-style: none;
+  }
+
+  .iia__desplegable > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .iia__desplegable > p {
+    margin-top: 0.7rem;
+  }
+}
+
+/* ---- Y EN ESCRITORIO NO CAMBIA NADA ----
+   Las piezas de móvil existen en el DOM en los dos anchos (ver el
+   comentario de Tarjeta en el JSX), así que aquí se apagan. Y el
+   <details> se queda abierto y sin manija: nace con `open` y su
+   summary no responde al ratón, o sea que se lee igual que
+   cuando era un <h2> suelto. */
+@media (min-width: 1080px) {
+  .iia__tarjeta-resumen,
+  .iia__tarjeta-tags,
+  /* el nodo de la cadena: aquí el orden lo cuentan el anillo y
+     las cuatro curvas, así que un número suelto al borde de la
+     tarjeta sería una segunda numeración diciendo lo mismo */
+  .iia__paso-numero {
+    display: none;
+  }
+
+  .iia__desplegable > summary {
+    list-style: none;
+    pointer-events: none;
+  }
+
+  .iia__desplegable > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* ============================================================
+   LAS SALIDAS — cada apartado se va por su cuenta
+
+   La sección tiene tres bloques y cada uno abandona la pantalla
+   en un momento distinto: el enunciado ("Combinamos pensamiento
+   humano…"), la banda de propósito y el método con su anillo. En
+   vez de una salida única para todo, cada bloque lleva la SUYA.
+
+   Eso es lo que hace `view()`: cada elemento genera su propia
+   línea de tiempo contra su propia posición, así que no hay que
+   escribir ningún retardo — el escalonado sale solo del orden en
+   que cada bloque cruza el borde de la ventana. Un `@keyframes`
+   compartido y tres elementos, no tres animaciones distintas.
+
+   Y va atado al SCROLL, no a un reloj: si paras a media salida se
+   queda a medias, y si subes se deshace.
+
+   ---- EL `@supports` NO ES OPCIONAL ----
+   Firefox no implementa líneas de tiempo por scroll, y no las
+   ignora entero: descarta el `animation-timeline` pero EJECUTA la
+   animación en el reloj normal. Sin este guard, los tres bloques
+   se desvanecerían solos al cargar y se quedarían invisibles.
+   Donde no hay soporte, no hay salida y la sección se va con el
+   scroll como siempre: se pierde el adorno, nunca el contenido.
+
+   ---- SIN `scale`, Y ES A PROPÓSITO ----
+   Las curvas que unen las tarjetas con el anillo se MIDEN en
+   píxeles reales (ver useConectores). Un `translateY` desplaza por
+   igual al mapa y al núcleo, así que la geometría relativa no
+   cambia; un `scale` sí la distorsionaría y los conectores
+   apuntarían a donde las tarjetas ya no están.
+
+   ---- FUERA DE MÓVIL ----
+   Mismo corte de 900px que el resto: en la mano se acaba de
+   congelar el fondo por encargo, y meter movimiento de salida ahí
+   lo contradiría.
+   ============================================================ */
+/* ---- ENTRADA *Y* SALIDA, NO SOLO SALIDA ----
+   La primera versión solo tenía salida, y el efecto no se veía: la
+   salida ocurre cuando el bloque cruza el borde de ARRIBA, que es
+   justo donde no estás mirando mientras bajas. Estos tres bloques
+   además no tenían ninguna entrada —la sección simplemente
+   aparecía—, así que al bajar no pasaba nada.
+
+   Ahora cada bloque lleva las dos, cada una con su propio tramo de
+   la misma línea de tiempo: entra desde abajo (donde SÍ miras) y
+   se retira por arriba.
+
+   ---- EL RELLENO DE CADA UNA NO ES EL MISMO, Y ES CLAVE ----
+   Las dos animan `opacity`, así que la que va DESPUÉS en la lista
+   gana donde ambas apliquen. La salida va con `forwards` y no con
+   `both` a propósito: con `both` se aplicaría también ANTES de su
+   tramo, sujetando la opacidad a 1 y pisando a la entrada — el
+   bloque aparecería de golpe. Con `forwards` no existe hasta que
+   le toca.
+
+   La entrada sí lleva `both`: necesita sujetar su estado de
+   partida (invisible) antes de entrar en cuadro. */
+/* ---- SÍ EN MÓVIL, Y NO ES UNA CONTRADICCIÓN ----
+   Estas reglas nacieron con `min-width: 901px` porque veníamos de
+   congelar el fondo en la mano. Era un error de bulto: lo que se
+   congeló ahí es el FONDO —un degradado girando solo, sin que
+   nadie lo pida—, y esto es lo contrario: contenido que responde
+   al dedo del que scrollea. Una cosa es movimiento gratis y la
+   otra es respuesta. En móvil es donde MÁS se nota, porque se
+   scrollea más y se ve una pieza cada vez.
+
+   ---- LA ENTRADA VA PIEZA A PIEZA, LA SALIDA POR BLOQUES ----
+   Y no se pueden mezclar: si el contenedor y sus hijos se atenúan
+   a la vez, las opacidades se MULTIPLICAN (0,5 × 0,5 = 0,25) y
+   sale un doble fundido sucio.
+
+   Así que entran los elementos de dentro —el texto, el vídeo, las
+   dos mitades del propósito, el titular del método y las cuatro
+   tarjetas— y salen los tres bloques que los envuelven. Cada
+   elemento genera su propia línea de tiempo contra su propia
+   posición, así que el escalonado sale solo: no hay ni un retardo
+   escrito, y las cuatro tarjetas entran una detrás de otra porque
+   cruzan el borde una detrás de otra. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* ENTRADA — las piezas, no los contenedores */
+    .iia__intro-texto,
+    .iia__marco,
+    .iia__proposito-mitad,
+    .iia__metodo-titulo,
+    .iia__metodo-entrada,
+    .iia__tarjeta {
+      animation: iiaEntrada linear both;
+      animation-timeline: view();
+
+      /* se completa al 40% de asomar: la pieza queda legible en
+         cuanto entra, no a medio gas hasta el centro de la
+         pantalla — que en móvil, con piezas altas, sería la mitad
+         del scroll con el texto a medias */
+      animation-range: entry 0% entry 40%;
+    }
+
+    /* SALIDA — los bloques que envuelven */
+    .iia__intro,
+    .iia__proposito,
+    .iia__metodo {
+      animation: iiaSalida linear forwards;
+      animation-timeline: view();
+      animation-range: exit 0% exit 78%;
+    }
+  }
+}
+
+@keyframes iiaEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(38px);
+  }
+}
+
+/* solo `to`: el estado de partida es el que tenga el elemento, así
+   que la salida no pelea con lo que dejó puesto la entrada */
+@keyframes iiaSalida {
+  to {
+    opacity: 0;
+    transform: translateY(-32px);
+  }
 }

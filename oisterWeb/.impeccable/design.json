@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-17T11:57:02Z",
+  "title": "Design System: OYSTERS",
+  "extensions": {
+    "colorMeta": {
+      "nacar-violeta": {
+        "role": "primary",
+        "displayName": "Nácar Violeta",
+        "canonical": "oklch(60.6% 0.2189 292.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0985 292.7)",
+          "oklch(26.4% 0.1499 292.7)",
+          "oklch(37.9% 0.1871 292.7)",
+          "oklch(49.3% 0.2101 292.7)",
+          "oklch(60.7% 0.2188 292.7)",
+          "oklch(72.1% 0.2133 292.7)",
+          "oklch(83.6% 0.1936 292.7)",
+          "oklch(95.0% 0.1596 292.7)"
+        ]
+      },
+      "nacar-violeta-claro": {
+        "role": "primary",
+        "displayName": "Nácar Violeta Claro",
+        "canonical": "oklch(74.1% 0.1535 297.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0691 297.6)",
+          "oklch(26.4% 0.1052 297.6)",
+          "oklch(37.9% 0.1313 297.6)",
+          "oklch(49.3% 0.1474 297.6)",
+          "oklch(60.7% 0.1535 297.6)",
+          "oklch(72.1% 0.1496 297.6)",
+          "oklch(83.6% 0.1358 297.6)",
+          "oklch(95.0% 0.1119 297.6)"
+        ]
+      },
+      "nacar-violeta-hondo": {
+        "role": "primary",
+        "displayName": "Nácar Violeta Hondo",
+        "canonical": "oklch(50.8% 0.2105 291.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0947 291.5)",
+          "oklch(26.4% 0.1442 291.5)",
+          "oklch(37.9% 0.1800 291.5)",
+          "oklch(49.3% 0.2021 291.5)",
+          "oklch(60.7% 0.2105 291.5)",
+          "oklch(72.1% 0.2051 291.5)",
+          "oklch(83.6% 0.1861 291.5)",
+          "oklch(95.0% 0.1535 291.5)"
+        ]
+      },
+      "lila-nacar": {
+        "role": "secondary",
+        "displayName": "Lila Nácar",
+        "canonical": "oklch(79.2% 0.1251 301.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0563 301.0)",
+          "oklch(26.4% 0.0857 301.0)",
+          "oklch(37.9% 0.1070 301.0)",
+          "oklch(49.3% 0.1201 301.0)",
+          "oklch(60.7% 0.1251 301.0)",
+          "oklch(72.1% 0.1219 301.0)",
+          "oklch(83.6% 0.1106 301.0)",
+          "oklch(95.0% 0.0912 301.0)"
+        ]
+      },
+      "rosa-concha": {
+        "role": "tertiary",
+        "displayName": "Rosa Concha",
+        "canonical": "oklch(69.9% 0.1663 340.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0748 340.2)",
+          "oklch(26.4% 0.1139 340.2)",
+          "oklch(37.9% 0.1422 340.2)",
+          "oklch(49.3% 0.1596 340.2)",
+          "oklch(60.7% 0.1662 340.2)",
+          "oklch(72.1% 0.1620 340.2)",
+          "oklch(83.6% 0.1470 340.2)",
+          "oklch(95.0% 0.1212 340.2)"
+        ]
+      },
+      "rosa-concha-claro": {
+        "role": "tertiary",
+        "displayName": "Rosa Concha Claro",
+        "canonical": "oklch(77.4% 0.1424 338.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0641 338.7)",
+          "oklch(26.4% 0.0975 338.7)",
+          "oklch(37.9% 0.1217 338.7)",
+          "oklch(49.3% 0.1366 338.7)",
+          "oklch(60.7% 0.1423 338.7)",
+          "oklch(72.1% 0.1387 338.7)",
+          "oklch(83.6% 0.1259 338.7)",
+          "oklch(95.0% 0.1038 338.7)"
+        ]
+      },
+      "magenta-filo": {
+        "role": "tertiary",
+        "displayName": "Magenta Filo",
+        "canonical": "oklch(74.8% 0.2070 322.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0931 322.2)",
+          "oklch(26.4% 0.1418 322.2)",
+          "oklch(37.9% 0.1769 322.2)",
+          "oklch(49.3% 0.1986 322.2)",
+          "oklch(60.7% 0.2069 322.2)",
+          "oklch(72.1% 0.2017 322.2)",
+          "oklch(83.6% 0.1830 322.2)",
+          "oklch(95.0% 0.1509 322.2)"
+        ]
+      },
+      "rosa-perla": {
+        "role": "tertiary",
+        "displayName": "Rosa Perla",
+        "canonical": "oklch(81.6% 0.1514 335.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0681 335.9)",
+          "oklch(26.4% 0.1037 335.9)",
+          "oklch(37.9% 0.1294 335.9)",
+          "oklch(49.3% 0.1453 335.9)",
+          "oklch(60.7% 0.1513 335.9)",
+          "oklch(72.1% 0.1475 335.9)",
+          "oklch(83.6% 0.1339 335.9)",
+          "oklch(95.0% 0.1104 335.9)"
+        ]
+      },
+      "ciruela-honda": {
+        "role": "neutral",
+        "displayName": "Ciruela Honda",
+        "canonical": "oklch(35.7% 0.0924 299.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0416 299.7)",
+          "oklch(26.4% 0.0633 299.7)",
+          "oklch(37.9% 0.0790 299.7)",
+          "oklch(49.3% 0.0886 299.7)",
+          "oklch(60.7% 0.0923 299.7)",
+          "oklch(72.1% 0.0900 299.7)",
+          "oklch(83.6% 0.0817 299.7)",
+          "oklch(95.0% 0.0673 299.7)"
+        ]
+      },
+      "ciruela-media": {
+        "role": "neutral",
+        "displayName": "Ciruela Media",
+        "canonical": "oklch(37.3% 0.0988 306.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0445 306.5)",
+          "oklch(26.4% 0.0677 306.5)",
+          "oklch(37.9% 0.0845 306.5)",
+          "oklch(49.3% 0.0948 306.5)",
+          "oklch(60.7% 0.0988 306.5)",
+          "oklch(72.1% 0.0963 306.5)",
+          "oklch(83.6% 0.0874 306.5)",
+          "oklch(95.0% 0.0720 306.5)"
+        ]
+      },
+      "ciruela-alzada": {
+        "role": "neutral",
+        "displayName": "Ciruela Alzada",
+        "canonical": "oklch(38.9% 0.0991 311.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0446 311.4)",
+          "oklch(26.4% 0.0678 311.4)",
+          "oklch(37.9% 0.0847 311.4)",
+          "oklch(49.3% 0.0951 311.4)",
+          "oklch(60.7% 0.0990 311.4)",
+          "oklch(72.1% 0.0965 311.4)",
+          "oklch(83.6% 0.0876 311.4)",
+          "oklch(95.0% 0.0722 311.4)"
+        ]
+      },
+      "concha-fondo": {
+        "role": "neutral",
+        "displayName": "Concha Fondo",
+        "canonical": "oklch(34.1% 0.0900 300.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0405 300.3)",
+          "oklch(26.4% 0.0617 300.3)",
+          "oklch(37.9% 0.0769 300.3)",
+          "oklch(49.3% 0.0864 300.3)",
+          "oklch(60.7% 0.0900 300.3)",
+          "oklch(72.1% 0.0877 300.3)",
+          "oklch(83.6% 0.0796 300.3)",
+          "oklch(95.0% 0.0656 300.3)"
+        ]
+      },
+      "tinta-perla": {
+        "role": "neutral",
+        "displayName": "Tinta Perla",
+        "canonical": "oklch(96.4% 0.0209 304.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0094 304.0)",
+          "oklch(26.4% 0.0143 304.0)",
+          "oklch(37.9% 0.0178 304.0)",
+          "oklch(49.3% 0.0200 304.0)",
+          "oklch(60.7% 0.0208 304.0)",
+          "oklch(72.1% 0.0203 304.0)",
+          "oklch(83.6% 0.0184 304.0)",
+          "oklch(95.0% 0.0152 304.0)"
+        ]
+      },
+      "tinta-perla-alta": {
+        "role": "neutral",
+        "displayName": "Tinta Perla Alta",
+        "canonical": "oklch(92.1% 0.0373 299.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0168 299.2)",
+          "oklch(26.4% 0.0255 299.2)",
+          "oklch(37.9% 0.0319 299.2)",
+          "oklch(49.3% 0.0358 299.2)",
+          "oklch(60.7% 0.0373 299.2)",
+          "oklch(72.1% 0.0363 299.2)",
+          "oklch(83.6% 0.0329 299.2)",
+          "oklch(95.0% 0.0272 299.2)"
+        ]
+      },
+      "tinta-perla-suave": {
+        "role": "neutral",
+        "displayName": "Tinta Perla Suave",
+        "canonical": "oklch(83.1% 0.0473 301.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0213 301.9)",
+          "oklch(26.4% 0.0324 301.9)",
+          "oklch(37.9% 0.0404 301.9)",
+          "oklch(49.3% 0.0454 301.9)",
+          "oklch(60.7% 0.0473 301.9)",
+          "oklch(72.1% 0.0461 301.9)",
+          "oklch(83.6% 0.0418 301.9)",
+          "oklch(95.0% 0.0345 301.9)"
+        ]
+      },
+      "tinta-perla-tenue": {
+        "role": "neutral",
+        "displayName": "Tinta Perla Tenue",
+        "canonical": "oklch(73.4% 0.0647 300.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0291 300.4)",
+          "oklch(26.4% 0.0443 300.4)",
+          "oklch(37.9% 0.0553 300.4)",
+          "oklch(49.3% 0.0621 300.4)",
+          "oklch(60.7% 0.0647 300.4)",
+          "oklch(72.1% 0.0630 300.4)",
+          "oklch(83.6% 0.0572 300.4)",
+          "oklch(95.0% 0.0472 300.4)"
+        ]
+      },
+      "sombra-honda": {
+        "role": "neutral",
+        "displayName": "Sombra Honda",
+        "canonical": "oklch(24.9% 0.0568 300.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0256 300.8)",
+          "oklch(26.4% 0.0389 300.8)",
+          "oklch(37.9% 0.0486 300.8)",
+          "oklch(49.3% 0.0545 300.8)",
+          "oklch(60.7% 0.0568 300.8)",
+          "oklch(72.1% 0.0554 300.8)",
+          "oklch(83.6% 0.0502 300.8)",
+          "oklch(95.0% 0.0414 300.8)"
+        ]
+      },
+      "perla-clara": {
+        "role": "tertiary",
+        "displayName": "Perla Clara",
+        "canonical": "oklch(87.9% 0.0936 335.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0421 335.7)",
+          "oklch(26.4% 0.0641 335.7)",
+          "oklch(37.9% 0.0800 335.7)",
+          "oklch(49.3% 0.0898 335.7)",
+          "oklch(60.7% 0.0936 335.7)",
+          "oklch(72.1% 0.0912 335.7)",
+          "oklch(83.6% 0.0828 335.7)",
+          "oklch(95.0% 0.0682 335.7)"
+        ]
+      },
+      "perla": {
+        "role": "tertiary",
+        "displayName": "Perla",
+        "canonical": "oklch(81.6% 0.1371 330.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0617 330.6)",
+          "oklch(26.4% 0.0939 330.6)",
+          "oklch(37.9% 0.1172 330.6)",
+          "oklch(49.3% 0.1316 330.6)",
+          "oklch(60.7% 0.1370 330.6)",
+          "oklch(72.1% 0.1336 330.6)",
+          "oklch(83.6% 0.1212 330.6)",
+          "oklch(95.0% 0.0999 330.6)"
+        ]
+      },
+      "perla-honda": {
+        "role": "tertiary",
+        "displayName": "Perla Honda",
+        "canonical": "oklch(76.8% 0.1691 323.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0761 323.8)",
+          "oklch(26.4% 0.1158 323.8)",
+          "oklch(37.9% 0.1445 323.8)",
+          "oklch(49.3% 0.1623 323.8)",
+          "oklch(60.7% 0.1690 323.8)",
+          "oklch(72.1% 0.1648 323.8)",
+          "oklch(83.6% 0.1495 323.8)",
+          "oklch(95.0% 0.1232 323.8)"
+        ]
+      },
+      "filo-claro": {
+        "role": "neutral",
+        "displayName": "Filo Claro",
+        "canonical": "rgb(255 255 255 / 0.14)",
+        "tonalRamp": [
+          "rgb(255 255 255 / 0.04)",
+          "rgb(255 255 255 / 0.08)",
+          "rgb(255 255 255 / 0.12)",
+          "rgb(255 255 255 / 0.14)",
+          "rgb(255 255 255 / 0.18)",
+          "rgb(255 255 255 / 0.22)",
+          "rgb(255 255 255 / 0.28)",
+          "rgb(255 255 255 / 0.34)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular del hero. Uno por página, nunca dos."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Los titulares que abren sección."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Titulares de bloque dentro de una sección."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Párrafo de lectura. Interlínea 1.75 porque van a ancho largo."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Rótulos de sección, en monoespaciada y versalitas. Única voz técnica del sistema."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Resúmenes y pies dentro de una pieza."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Dato consultable de un vistazo: año, categoría, herramienta. Monoespaciada."
+      },
+      "body-compact": {
+        "displayName": "Body compacto",
+        "purpose": "El cuerpo dentro de una pieza (tarjeta, sello, plegable): acompaña a su titular en vez de competir con él."
+      }
+    },
+    "shadows": [
+      {
+        "name": "cristal",
+        "value": "0 20px 50px rgba(10,4,24,.45), inset 0 1px 0 rgba(255,255,255,.14)",
+        "purpose": "Tarjetas y superficies flotantes. La proyectada despega; el brillo interior dibuja el canto de vidrio."
+      },
+      {
+        "name": "accion",
+        "value": "0 1px 2px rgba(0,0,0,.4), 0 8px 16px -4px rgb(109 63 209 / .4), 0 24px 48px -12px rgb(139 92 246 / .45)",
+        "purpose": "Botones y elementos pulsables. Negro para separar, halo morado para el volumen."
+      },
+      {
+        "name": "accion-hover",
+        "value": "0 1px 2px rgba(0,0,0,.45), 0 12px 24px -6px rgb(109 63 209 / .5), 0 32px 64px -16px rgb(139 92 246 / .55)",
+        "purpose": "El mismo relieve, más abierto, al pasar el cursor."
+      },
+      {
+        "name": "suave",
+        "value": "0 30px 80px rgba(0,0,0,.45), 0 0 60px rgba(139,92,246,.10)",
+        "purpose": "Bloques grandes de página."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transicion-base",
+        "value": ".35s ease",
+        "purpose": "Transición por defecto del sistema."
+      },
+      {
+        "name": "acordeon",
+        "value": "420ms cubic-bezier(.22,.8,.36,1)",
+        "purpose": "Apertura y cierre de plegables. Compartida por las tarjetas de método y por Misión/Visión."
+      },
+      {
+        "name": "muelle-boton",
+        "value": "0.3s cubic-bezier(0.34, 1.4, 0.64, 1)",
+        "purpose": "El rebote del botón al levantarse. El overshoot es lo que lo hace táctil."
+      },
+      {
+        "name": "llenado-liquido",
+        "value": "0.6s cubic-bezier(0.4, 0, 0.6, 1)",
+        "purpose": "El rosa subiendo dentro del CTA del hero."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "movil-tipografia",
+        "value": "560px"
+      },
+      {
+        "name": "maquetacion",
+        "value": "1080px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "CTA del hero",
+      "kind": "button",
+      "refersTo": "cta-hero",
+      "description": "La única superficie clara del sitio. Anillo orbitando en reposo; al pasar el cursor se llena de rosa desde abajo.",
+      "html": "<button class=\"ds-cta\"><span class=\"ds-cta__label\">Descubre cómo</span><svg class=\"ds-cta__arrow\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": "@property --ds-spin { syntax: \"<angle>\"; initial-value: 0turn; inherits: false; } @keyframes ds-spin { to { --ds-spin: 1turn; } } .ds-cta { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .95rem 1.9rem; border: 0; border-radius: 999px; overflow: hidden; font: inherit; font-size: 14.72px; font-weight: 600; letter-spacing: -.01em; color: #261A38; background: linear-gradient(160deg, #FFC0EF 0%, #F5A1EC 48%, #E78BF0 100%); box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 16px -4px rgb(109 63 209 / .4), 0 24px 48px -12px rgb(139 92 246 / .45); cursor: pointer; transition: transform .3s cubic-bezier(.34,1.4,.64,1), box-shadow .3s ease; } .ds-cta::before { content: \"\"; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; background: conic-gradient(from var(--ds-spin), transparent 0turn .55turn, rgba(109,73,224,.45) .66turn, #6D49E0 .76turn, transparent .9turn); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; animation: ds-spin 3.2s linear infinite; transition: opacity .3s ease; } .ds-cta::after { content: \"\"; position: absolute; left: -30%; top: 100%; width: 160%; height: 220%; border-radius: 46% 44% 0 0 / 44px 38px 0 0; background: linear-gradient(180deg, #E070BE, #D46BD0); transition: transform .6s cubic-bezier(.4,0,.6,1); transform: translateY(0); z-index: 0; } .ds-cta__label, .ds-cta__arrow { position: relative; z-index: 1; } .ds-cta:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(0,0,0,.45), 0 12px 24px -6px rgb(109 63 209 / .5), 0 32px 64px -16px rgb(139 92 246 / .55); } .ds-cta:hover::before { opacity: 0; } .ds-cta:hover::after { transform: translateY(-100%); } .ds-cta:focus-visible { outline: 2px solid #8B5CF6; outline-offset: 3px; } .ds-cta:active { transform: translateY(0) scale(.98); transition-duration: .12s; } @media (prefers-reduced-motion: reduce) { .ds-cta, .ds-cta::before, .ds-cta::after { animation: none; transition: none; } }"
+    },
+    {
+      "name": "Tarjeta de cristal",
+      "kind": "card",
+      "refersTo": "tarjeta-cristal",
+      "description": "La superficie base del sistema: blanco al 6% con desenfoque de fondo, filo claro y sombra de despegue.",
+      "html": "<article class=\"ds-card\"><span class=\"ds-card__icon\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/></svg></span><div><h3 class=\"ds-card__title\">Aprendizaje impulsado por IA</h3><p class=\"ds-card__text\">Analiza el comportamiento de las audiencias y genera insights y estrategia.</p></div></article>",
+      "css": ".ds-card { display: flex; gap: .95rem; align-items: flex-start; padding: 1.3rem; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; background: rgba(255,255,255,.06); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); box-shadow: 0 20px 50px rgba(10,4,24,.45), inset 0 1px 0 rgba(255,255,255,.14); transition: transform .35s ease, box-shadow .35s ease; } .ds-card:hover { transform: translateY(-2px); box-shadow: 0 26px 60px rgba(10,4,24,.5), inset 0 1px 0 rgba(255,255,255,.2); } .ds-card__icon { display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 56px; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; background: rgba(201,168,255,.1); color: #fff; } .ds-card__title { margin: 0 0 .5rem; font-size: 14.5px; font-weight: 700; line-height: 1.28; letter-spacing: -.01em; color: #F6F0FF; } .ds-card__text { margin: 0; font-size: 12.2px; line-height: 1.62; color: #DDD3F2; }"
+    },
+    {
+      "name": "Rótulo de sección",
+      "kind": "custom",
+      "refersTo": "rotulo-seccion",
+      "description": "Abre todas las secciones del sitio. Versalitas monoespaciadas en Rosa Perla, con filetes en degradado a los lados.",
+      "html": "<p class=\"ds-rotulo\"><span class=\"ds-rotulo__filete\"></span>Nuestros trabajos<span class=\"ds-rotulo__filete ds-rotulo__filete--der\"></span></p>",
+      "css": ".ds-rotulo { display: flex; align-items: center; gap: 14px; margin: 0 0 1.4rem; font-family: ui-monospace, \"SFMono-Regular\", Menlo, monospace; font-size: 16px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FF9BE8; text-shadow: 0 1px 2px rgba(14,6,26,.75), 0 2px 14px rgba(14,6,26,.6); } .ds-rotulo__filete { flex: 1; max-width: 68px; height: 1px; background: linear-gradient(90deg, rgb(201 168 255 / 0), rgb(201 168 255 / .55)); } .ds-rotulo__filete--der { background: linear-gradient(90deg, rgb(201 168 255 / .55), rgb(201 168 255 / 0)); }"
+    },
+    {
+      "name": "Etiqueta de herramienta",
+      "kind": "chip",
+      "refersTo": "etiqueta-herramienta",
+      "description": "Nombra una herramienta de IA. Es la expresión visual del taller abierto, no un adorno reutilizable.",
+      "html": "<ul class=\"ds-tags\"><li>Midjourney</li><li>Runway</li><li>Google Veo 3</li><li>Magnific</li></ul>",
+      "css": ".ds-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; list-style: none; } .ds-tags li { padding: .3rem .68rem; border-radius: 999px; background: rgba(201,168,255,.1); font-size: 11.5px; font-weight: 600; letter-spacing: .01em; color: #C9A8FF; }"
+    },
+    {
+      "name": "Plegable",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Acordeón nativo <details>. Exclusivo dentro de su grupo, con animación de altura de 420ms y flecha que gira.",
+      "html": "<details class=\"ds-plegable\"><summary class=\"ds-plegable__fila\"><h3>Nuestra Misión</h3><svg class=\"ds-plegable__flecha\" width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg></summary><p>OYSTERS AI aprovecha el poder de la inteligencia artificial para ayudar a las marcas a alcanzar sus objetivos.</p></details>",
+      "css": ".ds-plegable { border-bottom: 1px solid rgba(255,255,255,.12); } .ds-plegable__fila { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .9rem 0; cursor: pointer; list-style: none; } .ds-plegable__fila::-webkit-details-marker { display: none; } .ds-plegable__fila h3 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: #F6F0FF; } .ds-plegable__flecha { flex-shrink: 0; color: rgb(201 168 255 / .85); transition: transform .25s ease; } .ds-plegable[open] .ds-plegable__flecha { transform: rotate(90deg); } .ds-plegable p { margin: 0 0 .9rem; font-size: 13.5px; line-height: 1.7; color: #E8E0FB; } @media (prefers-reduced-motion: reduce) { .ds-plegable__flecha { transition: none; } }"
+    },
+    {
+      "name": "Medallón",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Círculo completo con filo claro. Marca los bloques de propósito (Misión, Visión).",
+      "html": "<span class=\"ds-medallon\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"6\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg></span>",
+      "css": ".ds-medallon { display: grid; place-items: center; width: 58px; height: 58px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; background: rgba(255,255,255,.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Interior de la Ostra",
+    "overview": "El visitante no está mirando una web sobre una ostra: está dentro de una. Las paredes son ciruela profunda, la luz entra de lado y rebota en nácar, y cada pieza de contenido —una tarjeta, un proyecto, un titular— es una perla en formación: algo que la casa ha ido depositando capa sobre capa. Esa metáfora no es decoración retrospectiva, es la herramienta de decisión: cuando aparezca un elemento nuevo y no esté claro qué color, qué material o cuánta luz merece, la pregunta es dónde cae dentro de la concha.\n\nEl carácter es nocturno y seguro, con pulso técnico. Nocturno porque el fondo nunca se aclara: la página entera vive entre el 29% y el 32% de luminosidad y todo lo que se lee lo hace por contraste de luz, no por oscurecerse sobre blanco. Seguro porque los titulares son grandes, tranquilos y con el tracking cerrado —no gritan, ocupan—. Y con pulso técnico por una sola decisión que atraviesa todo el sitio: los rótulos de sección van en monoespaciada con 0.2em de tracking, y esa voz de instrumento es lo que impide que la atmósfera se vuelva perfume. Hay un estudio detrás, no un ambiente.\n\nEl sistema es vivo siempre, y esto es doctrina, no descripción. El movimiento no espera al ratón: el anillo del CTA del hero orbita en bucle, el oleaje de su relleno se ladea sin parar, el fondo respira. Una pieza quieta a la espera de que alguien pase por encima es una pieza muerta en un sitio que va de generación en tiempo real. La única excepción es prefers-reduced-motion, que se honra en todo el sistema y no se negocia.",
+    "keyCharacteristics": [
+      "Fondo ciruela continuo, nunca blanco, encadenado sección a sección",
+      "Dos niveles de profundidad y solo dos: atmósfera y cristal",
+      "Titulares grandes con tracking negativo; rótulos monoespaciados en versalitas",
+      "Rosa como acento que sube, morado como base que sostiene",
+      "Movimiento permanente, con motion reducido como única excepción"
+    ],
+    "rules": [
+      {
+        "name": "La Regla de la Cadena",
+        "section": "colors",
+        "body": "Cada sección del home arranca exactamente en el tono donde terminó la anterior y viaja hacia el otro: ciruela honda → alzada → honda → alzada. Así los empalmes son invisibles y la página respira en vez de irse aclarando sin freno."
+      },
+      {
+        "name": "La Regla del 29-32",
+        "section": "colors",
+        "body": "Lo que decide el salto visible no es con qué color arranca una sección, sino cuánta luz se le echa encima. La luminosidad HSL medida en los márgenes vive entre 29% y 32%. Si una capa nueva se sale de esa banda, se le baja la opacidad; no se le cambia el tono."
+      },
+      {
+        "name": "La Regla del Canal Suelto",
+        "section": "colors",
+        "body": "Ninguna transparencia se escribe a mano: se usa rgb(var(--rgb-primary) / .4) y sus hermanos. Antes de existir esos canales, la portada tenía 423 colores escritos a mano y 252 distintos."
+      },
+      {
+        "name": "La Regla de las Dos Voces",
+        "section": "typography",
+        "body": "Solo dos familias: la sans para todo lo que se lee, la monoespaciada exclusivamente para rótulos de sección. Una tercera no entra."
+      },
+      {
+        "name": "La Regla del 2,6",
+        "section": "typography",
+        "body": "Un rótulo no puede ser más de ~2,6 veces menor que el titular al que acompaña. A 13,5px contra un titular de 3rem el salto pasaba de 3× y el rótulo caía fuera de la jerarquía, no por contraste sino por peso."
+      },
+      {
+        "name": "La Regla del Titular Ancho",
+        "section": "typography",
+        "body": "Ningún titular puede quedar más estrecho que el párrafo que lleva debajo. Cuando pasa, pesa más lo que explica que lo que anuncia."
+      },
+      {
+        "name": "La Regla del Halo",
+        "section": "elevation",
+        "body": "En un sistema oscuro la sombra negra no esculpe. Todo relieve lleva dos capas: una negra densa para la separación y un halo de color de la paleta para el volumen."
+      },
+      {
+        "name": "La Regla de los Dos Niveles",
+        "section": "elevation",
+        "body": "Atmósfera abajo, cristal arriba. Si una pieza nueva no encaja limpiamente en uno de los dos, el problema es la pieza."
+      },
+      {
+        "name": "La Regla de la Píldora",
+        "section": "shapes",
+        "body": "Lo que se pulsa es píldora completa. Lo que contiene es rectángulo blando. Un botón con 18px de radio está mal aunque 18px sea un token válido."
+      }
+    ],
+    "dos": [
+      "Do encadenar el color de una sección nueva con el tono en que cierra su vecina de arriba, y comprobar después que los márgenes miden entre 29% y 32% de luminosidad HSL.",
+      "Do escribir toda transparencia como rgb(var(--rgb-*) / α). Si necesitas un color con alfa y no hay canal suelto para él, añade el canal al token; no escribas el hex.",
+      "Do abrir cada sección con el rótulo monoespaciado, y separarlo de su titular con --hueco-rotulo aplicado como margin-bottom del rótulo.",
+      "Do dar a cada sombra su halo de color además de la capa negra.",
+      "Do mover las cosas en reposo. El sistema es vivo siempre.",
+      "Do honrar prefers-reduced-motion en cada pieza que se mueva. Es la única excepción a lo anterior y no se negocia.",
+      "Do usar 1080px y 560px como cortes. Si hace falta otro, escribe al lado por qué, con la medida que lo justifica.",
+      "Do comprobar que cada titular nuevo llena al menos el 90% del ancho de su párrafo."
+    ],
+    "donts": [
+      "Don't montar una pantalla que podría llevar el logotipo de otro estudio. Tres tarjetas iguales con icono redondo, degradado de banco de imágenes y retícula sin acento es la anti-referencia confirmada.",
+      "Don't introducir un tercer nivel de profundidad. Atmósfera o cristal.",
+      "Don't usar filos oscuros. En este fondo desaparecen; el canto se dibuja con blanco al 12-18%.",
+      "Don't poner tinta oscura sobre el fondo. Sombra Honda solo existe encima de la píldora clara del CTA.",
+      "Don't dar radio de tarjeta a un botón, ni forma de píldora a un contenedor.",
+      "Don't meter una tercera familia tipográfica, ni usar la monoespaciada para prosa.",
+      "Don't usar el rosa de los rótulos (#FF9BE8) para nada que no sea un rótulo de sección.",
+      "Don't dejar un fondo transparente en html o body. El color sólido #402B5F es lo que evita el fogonazo blanco durante el rasterizado.",
+      "Don't aplicar el hueco rótulo-titular como margin-top del titular: colapsa en flujo normal y suma en flex."
+    ]
+  }
+}

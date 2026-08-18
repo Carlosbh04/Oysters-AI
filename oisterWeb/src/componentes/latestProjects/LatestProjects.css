@@ -1727,3 +1727,1049 @@
     opacity: 1;
   }
 }
+
+
+/* ============================================================
+   LA MANO — DESTACADO + ÍNDICE ENHEBRADO
+
+   Todo lo de aquí abajo vive dentro de `@media (max-width:1079px)`
+   y cuelga de `.lp-mano`, un árbol que en escritorio NI SIQUIERA
+   SE MONTA (ver CORTE_MANO en el JSX). O sea que hay dos
+   aislamientos, no uno: ninguna regla de este bloque puede
+   alcanzar a la maqueta de escritorio ni por cascada ni por
+   accidente.
+
+   El problema que resuelve, medido: cinco tarjetas apiladas daban
+   2.791px de alto a 390px de ancho. La sección se comía un tercio
+   del scroll de la portada enseñando cinco veces lo mismo.
+
+   La idea: uno de los trabajos se queda con el escenario entero y
+   los demás bajan a un sumario colgado de un hilo de nácar. Para
+   quien está evaluando —que es el visitante de esta página— un
+   sumario con cliente, categoría y año pesa más que cuatro
+   miniaturas: es el formato en el que ya lee credenciales.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .lp-mano {
+    /* a sangre por los dos lados: el contenedor va al 92% del
+       ancho y aquí se recupera el 8% que le falta. Es lo que
+       convierte la foto del destacado en una imagen de portada y
+       no en una tarjeta con márgenes. */
+    margin-inline: calc(50% - 50vw);
+  }
+
+  /* ---- LA PERLA MAYOR ----------------------------------- */
+
+  .lp-mano__perla {
+    display: block;
+    position: relative;
+
+    color: inherit;
+    text-decoration: none;
+
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .lp-mano__perla-media {
+    display: block;
+    position: relative;
+
+    /* 4:3 en la mano. Más apaisado y el nombre montado encima se
+       come la foto; más cuadrado y el bloque empuja la cita fuera
+       de la primera pantalla. */
+    aspect-ratio: 4 / 3;
+    width: 100%;
+
+    overflow: hidden;
+  }
+
+  /* ---- UNA CAPA POR TRABAJO, TODAS ENCIMA ----
+     Solo la del turno es opaca; el resto esperan a cero. El
+     fundido de 0,9s es lo que convierte el relevo en un cambio de
+     luz y no en un corte. */
+  .lp-mano__perla-capa {
+    position: absolute;
+    inset: 0;
+
+    opacity: 0;
+    transition: opacity 0.9s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .lp-mano__perla-capa[data-actual] {
+    opacity: 1;
+  }
+
+  .lp-mano__perla-media img,
+  .lp-mano__perla-media video,
+  .lp-mano__perla-relleno {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    /* el interés de una creatividad publicitaria suele estar
+       arriba —titular y producto—, no en el centro geométrico */
+    object-position: 50% 38%;
+
+    display: block;
+  }
+
+  .lp-mano__perla-relleno {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    background:
+      radial-gradient(circle at 32% 30%, rgb(var(--rgb-accent-light) / 0.35), transparent 62%),
+      linear-gradient(150deg, var(--color-primary-dark), var(--color-accent));
+  }
+
+  /* ---- EL VELO ----
+     El nombre va montado sobre el pie de la foto, así que la foto
+     tiene que ceder ahí. Es un degradado que arranca transparente
+     y muere en el color de la sección: por debajo del velo, el
+     nombre se apoya en fondo propio y no en lo que traiga la
+     imagen ese día.
+
+     La parada del 55% no es decorativa — por encima de ahí el
+     velo empezaba a comerse la mitad útil de la creatividad. */
+  .lp-mano__perla-velo {
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+      180deg,
+      rgba(26, 14, 43, 0) 48%,
+      rgba(26, 14, 43, 0.55) 70%,
+      rgba(26, 14, 43, 0.88) 86%,
+      rgba(26, 14, 43, 0.97) 100%
+    );
+  }
+
+  .lp-mano__perla-texto {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: block;
+    padding: 0 6vw 1.1rem;
+  }
+
+  /* El nombre del cliente es lo único que crece de verdad en esta
+     maqueta: es el activo. ACCIONA o BESTINVER dicen más de la
+     casa que cualquier titular que pudiéramos escribir.
+
+     `vw` y no `clamp()` con tope: entre 390 y 430 tiene que
+     crecer con la pantalla, y el tope de 2.9rem solo entra en
+     juego a partir de ~640, donde ya no estamos en la mano. */
+  .lp-mano__perla-nombre {
+    display: block;
+
+    font-size: min(2.9rem, 11.4vw);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.038em;
+
+    color: var(--color-text, #f6f0ff);
+
+    /* el nombre cae sobre foto: sin esto depende de qué imagen
+       toque, y una creatividad clara lo borra */
+    text-shadow: 0 2px 18px rgba(14, 6, 26, 0.75);
+  }
+
+  .lp-mano__perla-dato {
+    display: block;
+
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 12.2px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+
+    /* ---- SUBE DE LILA A NÁCAR CLARO ----
+       Iba en el lila de apoyo, que funciona sobre el fondo de la
+       sección pero no sobre una fotografía: aquí lo que hay
+       detrás lo decide la creatividad del cliente, y con una
+       clara —la de ALSEA es cian a plena luz— un lila medio
+       desaparece. El nombre ya se defendía con su sombra; esta
+       línea no tenía ninguna. */
+    color: #e8e0fb;
+    text-shadow:
+      0 1px 3px rgba(14, 6, 26, 0.9),
+      0 2px 12px rgba(14, 6, 26, 0.75);
+  }
+
+  .lp-mano__perla-dato i {
+    font-style: normal;
+    /* el punto separador no es texto: es puntuación tipográfica,
+       y a plena tinta compite con los datos que separa */
+    margin: 0 0.5em;
+    opacity: 0.5;
+  }
+
+  /* la cita cae FUERA de la foto, sobre el fondo de la sección:
+     es texto de lectura y encima de una imagen no se lee */
+  .lp-mano__perla-cita {
+    /* ---- TRES LÍNEAS, NO SIETE ----
+       El resultado completo daba 7 líneas a 390px: eso ya no es
+       una cita, es el primer párrafo de la ficha. Y esta sección
+       es un aperitivo que lleva a /works — el texto entero vive
+       allí, que es adonde apunta el toque.
+
+       -webkit-line-clamp con su display:-webkit-box: sigue siendo
+       la forma que entienden todos los navegadores en uso.
+       `line-clamp` a secas se declara al lado para cuando deje de
+       hacer falta el prefijo. */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+
+    /* ---- Y AQUÍ SE DISUELVE LA FOTO ----
+       El velo moría a plena tinta en el borde inferior de la
+       imagen y debajo empezaba el fondo de la sección: un corte
+       horizontal visible, justo lo que la regla de la cadena
+       prohíbe. La cita recoge el velo donde lo dejó la foto y lo
+       apaga a lo largo de sus tres líneas, así que no hay borde
+       que ver — la sombra de la imagen se acaba dentro del texto.
+
+       De paso el texto gana contraste arriba, que es donde
+       empieza a leerse. */
+    background: linear-gradient(
+      180deg,
+      rgba(26, 14, 43, 0.92),
+      rgba(26, 14, 43, 0)
+    );
+
+    /* ⚠️ SIN RELLENO ABAJO, Y NO ES UN OLVIDO.
+       `overflow: hidden` recorta en la caja de RELLENO, no en la
+       de contenido: con 1,1rem de padding-bottom, la cuarta línea
+       se dibujaba dentro de ese relleno y asomaba entera por
+       debajo de los puntos suspensivos. El recorte parecía roto y
+       lo que estaba mal era el hueco. El aire de abajo lo pone el
+       margen superior del índice. */
+    padding: 1.15rem 6vw 0;
+
+    font-size: 15.5px;
+    line-height: 1.62;
+    text-wrap: pretty;
+
+    color: #e8e0fb;
+  }
+
+  /* ---- EL ANILLO DE TURNO ------------------------------
+     Aquí hubo un índice de filas colgando de un hilo de nácar. Se
+     fue por dos motivos, y el segundo pesa más:
+
+     1· El hilo prometía un recorrido que no existe. Tres trabajos
+        no son pasos ni dependen unos de otros; la cuenta encendida
+        solo decía cuál estaba arriba.
+     2· El índice DUPLICABA el escenario. Arriba ya se ve un
+        trabajo, y cada 5,6 s cambia; debajo, una lista con los
+        mismos tres nombres. Dos sitios diciendo lo mismo.
+
+     La tira de anillos resuelve las dos: gobierna el escenario en
+     vez de repetirlo, y el aro dibuja cuánto queda para el relevo
+     — un dato real de algo que ya está pasando, no un adorno. */
+  .lp-mano__turnos {
+    display: flex;
+    gap: clamp(0.9rem, 4vw, 1.4rem);
+
+    margin-top: 1.9rem;
+    padding: 0 6vw;
+
+    /* ---- CENTRADAS SI CABEN, DESLIZABLES SI NO ----
+       Con tres sobra sitio y quedaban pegadas a la izquierda, como
+       si faltara una cuarta. Con cinco —el máximo— la tira mide
+       432px contra los 342 útiles de un móvil de 390, así que hay
+       que poder arrastrarla.
+
+       ⚠️ `safe` NO sobra. Un `justify-content: center` a secas
+       centra desbordando por los DOS lados, y el desbordamiento
+       por la izquierda es INALCANZABLE con scroll: la primera
+       miniatura quedaría fuera para siempre. `safe center` centra
+       mientras quepa y se comporta como `start` en cuanto no.
+       La línea de arriba queda como respaldo para navegadores que
+       no lo entiendan — preferible descentrado que inalcanzable. */
+    justify-content: center;
+    justify-content: safe center;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    /* proximity y no mandatory: con la tira deslizándose sola al
+       cambiar de turno, un anclaje obligatorio pelearía con el
+       scrollIntoView del JS */
+    scroll-snap-type: x proximity;
+  }
+
+  .lp-mano__turnos::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lp-mano__turno {
+    flex-shrink: 0;
+    scroll-snap-align: center;
+
+    display: block;
+    width: 74px;
+    padding: 0;
+
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .lp-mano__aro {
+    position: relative;
+    display: block;
+
+    width: 74px;
+    height: 74px;
+  }
+
+  .lp-mano__aro svg {
+    position: absolute;
+    inset: 0;
+
+    /* el trazo arranca arriba y no a las tres en punto */
+    transform: rotate(-90deg);
+  }
+
+  .lp-mano__aro circle {
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .lp-mano__aro-pista {
+    stroke: rgb(255 255 255 / 0.16);
+  }
+
+  /* ---- EL TRAZO QUE CUENTA ----
+     220 es la longitud de la circunferencia de r=35 (2·π·35 =
+     219,9): el `dasharray` completo, así que el `dashoffset` va de
+     220 —nada dibujado— a 0 —vuelta entera—.
+
+     En reposo no se ve: solo corre en la que está en turno, y
+     dura exactamente lo que el reloj del JS (ver ROTACION_MS). Si
+     se cambia allí, hay que cambiarlo aquí — es el único sitio
+     donde el mismo número vive dos veces, y no hay forma de
+     evitarlo sin publicar una variable por render. */
+  .lp-mano__aro-avance {
+    stroke: var(--color-rotulo, #ff9be8);
+    stroke-linecap: round;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+  }
+
+  /* ---- EL ARO DABA VUELTAS DE MÁS ----
+     Estuvo en `infinite`, y era un bug de verdad: el reloj que
+     cambia de trabajo SE PARA cuando el escenario sale de
+     pantalla, pero una animación CSS infinita no se entera y
+     sigue girando. Al volver, el reloj arrancaba de cero y el aro
+     ya iba por su tercera vuelta sobre el mismo proyecto — dos
+     relojes contando cosas distintas.
+
+     Ahora da UNA vuelta por turno (`forwards`, sin infinite) y
+     solo se dibuja mientras hay turno que contar: el atributo
+     `data-contando` lo pone el JSX cuando el reloj corre de
+     verdad. Parado el reloj, el aro no cuenta nada. */
+  .lp-mano__turnos[data-contando] .lp-mano__turno[aria-current] .lp-mano__aro-avance {
+    animation: lpVuelta 5.6s linear forwards;
+  }
+
+  @keyframes lpVuelta {
+    from {
+      stroke-dashoffset: 220;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .lp-mano__cara {
+    position: absolute;
+    inset: 7px;
+
+    display: block;
+    overflow: hidden;
+    border-radius: 50%;
+
+    /* la que no está en turno se desatura: así la única cara a
+       color de la tira es siempre la que se ve arriba */
+    filter: grayscale(0.6);
+    transition:
+      filter 0.45s ease,
+      transform 0.45s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .lp-mano__turno[aria-current] .lp-mano__cara {
+    filter: none;
+    transform: scale(1.04);
+  }
+
+  .lp-mano__cara img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    display: block;
+  }
+
+  .lp-mano__cara-relleno {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    background:
+      radial-gradient(circle at 34% 30%, rgb(var(--rgb-accent-light, 240 144 212) / 0.4), transparent 62%),
+      linear-gradient(150deg, var(--color-primary-dark, #6d3fd1), var(--color-accent, #e070be));
+  }
+
+  .lp-mano__turno-nombre {
+    display: block;
+    margin-top: 0.5rem;
+
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+
+    /* el nombre completo, aunque parta en dos líneas: recortar
+       "BESTINVER" a "BESTINV…" en un índice de credenciales es
+       peor que una línea de más */
+    color: var(--color-text-muted, #afa0cc);
+    transition: color 0.4s ease;
+  }
+
+  .lp-mano__turno[aria-current] .lp-mano__turno-nombre {
+    color: var(--color-rotulo, #ff9be8);
+  }
+
+  .lp-mano__turno:active .lp-mano__cara {
+    transform: scale(0.96);
+    transition-duration: 0.12s;
+  }
+
+  /* ---- FOCO ----
+     Lo que no dibujamos también lleva el diseño. El anillo por
+     defecto del navegador no pertenece a ningún sistema. */
+  .lp-mano__perla:focus-visible,
+  .lp-mano__turno:focus-visible {
+    outline: 2px solid var(--color-primary, #8b5cf6);
+    outline-offset: 3px;
+  }
+}
+
+/* ---- A PARTIR DE 430 ----
+   Entre 390 y 430 la maqueta crece con la pantalla y ya está. El
+   ajuste real llega en tabletas: ahí el destacado a sangre se
+   vuelve una foto enorme y la cita se estira más allá del rango
+   cómodo de lectura, así que la maqueta se ciñe y se centra en
+   vez de seguir creciendo. */
+@media (min-width: 620px) and (max-width: 1079px) {
+  .lp-mano {
+    margin-inline: auto;
+    max-width: 34rem;
+  }
+
+  .lp-mano__perla-media {
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius-md, 18px);
+  }
+
+  .lp-mano__perla-cita {
+    padding-inline: 0;
+  }
+
+  .lp-mano__perla-texto {
+    padding-inline: 1.4rem;
+  }
+
+  /* la tira se centra en vez de pegarse al borde: a 34rem sobra
+     sitio y tres anillos alineados a la izquierda se leen
+     descolgados */
+  .lp-mano__turnos {
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+}
+
+
+/* ============================================================
+/* ---- LA LÍNEA DE DATOS DE LA FICHA ----
+   Dato del trabajo a la izquierda, posición en la serie a la
+   derecha. `baseline` y no `center`: son dos textos, y alinearlos
+   por su caja los dejaba descuadrados medio píxel. */
+@media (max-width: 1079px) {
+  .lp-mano__perla-linea {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .lp-mano__contador {
+    flex-shrink: 0;
+
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    /* cifras de ancho fijo: al pasar de 01 a 02 no baila nada */
+    font-variant-numeric: tabular-nums;
+
+    color: var(--color-text-light, #cdc1e2);
+    text-shadow:
+      0 1px 3px rgba(14, 6, 26, 0.9),
+      0 2px 12px rgba(14, 6, 26, 0.75);
+  }
+
+  .lp-mano__contador b {
+    font-weight: 700;
+    color: var(--color-rotulo, #ff9be8);
+  }
+
+  .lp-mano__contador i {
+    margin: 0 0.3em;
+    font-style: normal;
+    opacity: 0.45;
+  }
+}
+
+/* ============================================================
+   LA MANO · MICROINTERACCIONES
+
+   Un solo momento con autoría —el hilo encendiéndose— y estados
+   de pulsación que responden. Nada de una entrada idéntica en
+   cada elemento: eso no es movimiento, es ruido con retardo.
+
+   Todo arranca desde un estado YA VISIBLE. Si el JS no llega, si
+   el observador no dispara o si el navegador no soporta algo, lo
+   que queda en pantalla es la sección entera legible y pulsable.
+   El movimiento añade; nunca sostiene.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- LA ENTRADA DEL DESTACADO ----
+     La foto llega ya ampliada y se posa a su tamaño: el
+     movimiento es de la IMAGEN dentro de su marco, no del marco
+     dentro de la página. Un bloque que se desliza hacia arriba es
+     la entrada que hace todo el mundo; una imagen que se asienta
+     se lee como que la pieza estaba ahí y ha enfocado.
+
+     0.9s y no 0.4: es una superficie grande, y a las superficies
+     grandes un movimiento rápido las hace parecer ligeras. */
+  .lp-mano__perla-media img,
+  .lp-mano__perla-media video {
+    transform: scale(1.06);
+    transition: transform 0.9s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .lp-mano--in .lp-mano__perla-media img,
+  .lp-mano--in .lp-mano__perla-media video {
+    transform: scale(1);
+  }
+
+  /* ---- EL TEXTO ENTRA ENFOCANDO ----
+     Ni al aparecer la sección ni en cada relevo se desplaza: sobre
+     una foto, un texto que se mueve compite con la imagen; uno que
+     enfoca parece que emerge de ella.
+
+     Va por `animation` y no por `transition` porque el bloque se
+     rehace en cada turno (lleva `key`): una transición necesita
+     dos estados en el mismo elemento, y aquí el elemento es
+     nuevo. */
+  /* ⚠️ NO va colgado de `.lp-mano--in`, y eso importa.
+     Colgándolo del scroll, el texto nacía VISIBLE —sin animación
+     no hay estado inicial que aplicar—, y en el momento en que la
+     sección entraba en pantalla la animación lo mandaba a opacidad
+     cero para traerlo de vuelta: un parpadeo justo cuando el
+     visitante empezaba a mirar.
+
+     Colgado del montaje corre sola, y corre otra vez en cada
+     relevo porque el bloque lleva `key`. Que es exactamente
+     cuando tiene que correr. */
+  .lp-mano__perla-nombre,
+  .lp-mano__perla-dato,
+  .lp-mano__perla-cita {
+    animation: lpEnfoca 0.75s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+  }
+
+  .lp-mano__perla-dato {
+    animation-delay: 0.1s;
+  }
+
+  .lp-mano__perla-cita {
+    animation-delay: 0.16s;
+  }
+
+  @keyframes lpEnfoca {
+    from {
+      opacity: 0;
+      filter: blur(7px);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+
+  /* ---- PULSACIÓN ----
+     En la mano no hay hover: hay `:active`, y dura lo que dura el
+     dedo. Tiene que responder DENTRO de ese tiempo, así que va a
+     120ms — el resto de la sección va a medio segundo.
+
+     El destacado se hunde muy poco (0.994): en una superficie que
+     ocupa el ancho de la pantalla, un 2% ya se lee como que se
+     rompe. */
+  .lp-mano__perla:active .lp-mano__perla-media {
+    transform: scale(0.994);
+    transition: transform 0.12s ease;
+  }
+
+  .lp-mano__perla-media {
+    transition: transform 0.35s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  /* ---- LAS SUPERFICIES QUE NO DIBUJAMOS ----
+     La selección de texto trae por defecto el azul del sistema,
+     que no pertenece a este mundo. */
+  .lp-mano ::selection {
+    background: rgb(var(--rgb-accent, 224 112 190) / 0.35);
+    color: var(--color-text, #f6f0ff);
+  }
+}
+
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  /* Se quitan los recorridos. Lo que NO se quita son los estados
+     de pulsación: un toque sin respuesta se siente roto, y
+     responder no es "movimiento" en el sentido que pide la
+     preferencia. */
+  .lp-mano__perla-media,
+  .lp-mano__perla-media img,
+  .lp-mano__perla-media video,
+  .lp-mano__perla-capa,
+  .lp-mano__cara,
+  .lp-mano__turno-nombre {
+    transition: none;
+  }
+
+  /* el aro se para y se muestra entero: sigue diciendo "esta es la
+     que está puesta", que es su otra función, sin contar nada */
+  .lp-mano__turno[aria-current] .lp-mano__aro-avance {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .lp-mano__perla-media img,
+  .lp-mano__perla-media video {
+    transform: none;
+  }
+
+  /* el brillo de nácar del botón se para: es ambiente, y el
+     ambiente es justo lo que esta preferencia viene a pedir que
+     no se mueva. La píldora se queda con su rosa, que es lo que
+     la hacía visible. */
+  .lp-cabeza .latest-projects__all::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* el JS ya no rota, así que aquí solo hay que dejar el texto
+     puesto: sin animación, `both` lo dejaría en su fotograma
+     inicial, o sea invisible */
+  .lp-mano__perla-nombre,
+  .lp-mano__perla-dato,
+  .lp-mano__perla-cita {
+    animation: none;
+    opacity: 1;
+    filter: none;
+  }
+}
+
+
+/* ============================================================
+   LA MANO · LA CABECERA, CABEZA DE LA MISMA SARTA
+
+   Antes: todo centrado, el titular con un degradado recortado
+   sobre "3 proyectos" y una píldora rosa a plena tinta. Tres
+   problemas, y ninguno es de gusto.
+
+   Uno· Centrado, la cabecera no pertenecía al sumario de abajo,
+   que va alineado a la izquierda contra un hilo. Eran dos
+   maquetas seguidas en la misma sección.
+
+   Dos· El degradado sobre el número: en un titular de 34px en la
+   mano, un degradado de dos paradas se lee como decoración y
+   pierde tinta justo en los extremos de cada glifo. El énfasis lo
+   dan el cuerpo y el peso, que es lo que dice la propia hoja de
+   estilo del sistema.
+
+   Tres· La píldora rosa a plena tinta cae a 40px de una fotografía
+   a sangre que ocupa el ancho de la pantalla. Dos gritos seguidos:
+   el segundo es del cliente y ese es el que interesa.
+
+   ---- Y LA IDEA QUE LOS RESUELVE A LA VEZ ----
+   El hilo de nácar del índice no empieza en el índice: empieza
+   aquí. Es la MISMA línea, a la misma x de pantalla, y por eso
+   cabecera, trabajo destacado y sumario se leen como un solo
+   objeto. La perla grande la interrumpe a media altura, que es
+   exactamente lo que hace una perla en un collar.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- UNA COLUMNA EN TODO EL RANGO ----
+     La rejilla del bloque es de dos columnas por encima de 900, y
+     el cristal —que llenaba la segunda— ya no se monta en la mano.
+     Entre 901 y 1079 quedaba media cabecera vacía. */
+  .latest-projects__intro {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-cabeza {
+    position: relative;
+
+    /* ---- POR QUÉ ESTE CÁLCULO, Y NO UN NÚMERO ----
+       El hilo del índice está a `6vw + 5px` del borde de la
+       PANTALLA, porque `.lp-mano` va a sangre. Esta cabecera, en
+       cambio, vive dentro del contenedor, que mide el 92% y va
+       centrado: su borde izquierdo cae en 4vw.
+
+       Para que las dos líneas sean la misma línea hay que restar
+       esa diferencia. De ahí el 2vw: 6vw − 4vw. Si algún día
+       cambia el ancho del contenedor, este número cambia con él —
+       está anotado en los dos sitios.
+
+       El texto arranca 18px más allá, que es donde arrancan los
+       nombres del índice (cuenta de 12px + hueco de 0,7rem). */
+    padding-left: calc(2vw + 23px);
+
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .lp-cabeza__hilo {
+    position: absolute;
+    left: calc(2vw + 5px);
+    top: 0.55rem;
+    bottom: 0;
+    width: 2px;
+
+    border-radius: var(--radius-full, 999px);
+
+    /* muere desvanecido por abajo: el hilo no se acaba ahí, lo
+       tapa la fotografía. Un corte limpio diría que termina. */
+    background: linear-gradient(
+      180deg,
+      rgb(var(--rgb-secondary, 201 168 255) / 0.34),
+      rgb(var(--rgb-secondary, 201 168 255) / 0.34) 62%,
+      rgb(var(--rgb-secondary, 201 168 255) / 0)
+    );
+  }
+
+  /* el broche: la cuenta de la que cuelga todo, a la altura del
+     rótulo. Es la única encendida de la cabecera. */
+  .lp-cabeza__broche {
+    position: absolute;
+    top: 0;
+    left: -4px;
+
+    width: 10px;
+    height: 10px;
+
+    border-radius: 50%;
+    background: var(--color-rotulo, #ff9be8);
+    box-shadow:
+      0 0 0 3px var(--sec-lift, #56336b),
+      0 0 14px rgb(var(--rgb-accent-light, 240 144 212) / 0.7);
+  }
+
+  /* ---- EL TITULAR ----
+     A la izquierda, en dos líneas, de una sola tinta. */
+  .lp-cabeza .latest-projects__title {
+    max-width: none;
+
+    font-size: min(2.15rem, 8.8vw);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  /* ---- SE FUE EL DEGRADADO ----
+     El span de "N proyectos" lleva en escritorio un degradado
+     recortado a la forma de las letras, con su drop-shadow. Aquí
+     se apagan las DOS vías —el relleno y la imagen de fondo—
+     porque apagar solo `color` no haría nada: en un texto con
+     `background-clip`, el color ya está en transparente y lo que
+     se ve viene del fondo.
+
+     El énfasis pasa al peso, que es de donde tiene que venir. */
+  .lp-cabeza .latest-projects__title span {
+    background: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    -webkit-text-fill-color: var(--color-text, #f6f0ff);
+    color: var(--color-text, #f6f0ff);
+    filter: none;
+  }
+
+  .lp-cabeza .latest-projects__description {
+    max-width: 32ch;
+    margin-top: 0.9rem;
+
+    font-size: 15.5px;
+    line-height: 1.62;
+    color: #e8e0fb;
+  }
+
+  /* ---- EL PIE DE LA CABECERA ----
+     Acción a la izquierda, estado a la derecha. La tensión entre
+     las dos es lo que convierte dos elementos sueltos en una
+     línea con sintaxis. */
+  /* ---- EL BOTÓN, CON VOZ ----
+     Estuvo un rato en cristal, buscando no competir con la
+     fotografía a sangre que viene debajo. Mirado en pantalla, se
+     hundía: sobre el ciruela del fondo, una píldora de blanco al
+     6% no se lee como un control sino como un hueco. El texto
+     medía 9,65 de contraste y aun así el BOTÓN no estaba. Vuelve
+     el rosa de marca, que es el que dice "esto se pulsa".
+
+     ---- Y AQUÍ FUERA EL ARO ORBITAL ----
+     El aro de escritorio anima `--lp-spin`, el ángulo de un
+     `conic-gradient`. Eso no es un movimiento de compositor: el
+     navegador tiene que RE-RASTERIZAR el degradado en cada
+     fotograma, sin parar, también con el móvil en el bolsillo.
+     Es el efecto más caro de esta sección y el que menos se ve en
+     una pantalla de cinco pulgadas.
+
+     En su lugar va otro efecto, y a propósito otro: un brillo de
+     nácar que barre la píldora y descansa. Es la misma idea de la
+     casa —la luz moviéndose sobre el nácar— resuelta con un
+     `translate`, que sí es de compositor, y sonando una vez cada
+     cuatro segundos y medio en lugar de sesenta veces por
+     segundo. */
+  .lp-cabeza .latest-projects__all {
+    /* ---- EL ROSA DE MARCA, SIN TOCAR ----
+       Aquí hubo tres intentos míos y los tres sobraban:
+
+       1· Cristal — se hundía en el fondo.
+       2· Nácar casi blanco — subía el contraste medido pero se
+          leía pálido, que era justo lo que se venía a arreglar.
+       3· Ciruela casi negra — demasiado lejos: perdía el rosa,
+          que es lo que hace que este botón sea de esta casa.
+
+       El botón nunca fue el problema. El problema era su SUELO:
+       la sección medía 34,2% de luminosidad HSL cuando la banda
+       del sistema es 29-32, y sobre un fondo pasado de luz
+       cualquier píldora parece lavada por muy saturada que sea.
+       Bajado el fondo a 30,8% (ver el bloque del suelo, más
+       abajo), el rosa de siempre vuelve a despegar solo.
+
+       Así que esta regla ya no declara color: hereda el mismo
+       degradado que escritorio. Un solo sitio donde tocarlo. */
+    margin-top: 1.6rem;
+    overflow: hidden;
+  }
+
+  /* la flecha heredaba el blanco del escritorio */
+  .lp-cabeza .latest-projects__all svg {
+    color: currentColor;
+  }
+
+  .lp-cabeza .latest-projects__all::before {
+    display: none;
+  }
+
+  .lp-cabeza .latest-projects__all::after {
+    content: "";
+    position: absolute;
+    top: -60%;
+    bottom: -60%;
+    left: -45%;
+    z-index: 0;
+
+    width: 34%;
+
+    /* ---- EL BRILLO ----
+       Sobre el rosa de marca el barrido vuelve a ser LUZ, que es
+       lo que hace el nácar. Va con una punta de magenta a cada
+       lado del blanco: un barrido blanco puro sobre rosa se lee
+       como un reflejo de plástico, y con las puntas se lee como
+       nácar. */
+    background: linear-gradient(
+      100deg,
+      rgb(var(--rgb-magenta, 232 121 249) / 0),
+      rgb(var(--rgb-magenta, 232 121 249) / 0.4) 34%,
+      rgb(255 255 255 / 0.62) 52%,
+      rgb(var(--rgb-accent-light, 240 144 212) / 0.4) 68%,
+      rgb(var(--rgb-accent-light, 240 144 212) / 0)
+    );
+
+    pointer-events: none;
+
+    animation: lpNacar 4.5s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+  }
+
+  /* el barrido ocupa el último tercio del ciclo: la píldora pasa
+     más tiempo quieta que brillando, que es lo que hace que el
+     brillo se note cuando llega */
+  @keyframes lpNacar {
+    0%,
+    64% {
+      transform: translateX(0) rotate(9deg);
+    }
+    100% {
+      transform: translateX(600%) rotate(9deg);
+    }
+  }
+
+  /* el texto y la flecha, por encima del barrido */
+  .lp-cabeza .latest-projects__all-label,
+  .lp-cabeza .latest-projects__all svg {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- TODO EL RELEVO DE TEXTO, DESENCHUFADO ----
+     Esto empezó escondiendo el texto del relevo y quitando los
+     manejadores del JSX. No bastaba, y el resultado era peor que
+     no hacer nada: en táctil NO EXISTE "salir del hover". Al
+     tocar, el navegador aplica `:hover` y lo deja pegado hasta
+     que tocas en otro sitio — así que la regla que vacía el texto
+     de reposo se quedaba activa, y como el de relevo estaba
+     oculto, el botón se quedaba EN BLANCO justo mientras el dedo
+     lo pulsaba.
+
+     La lección: esconder la mitad visible de un efecto no lo
+     apaga, solo esconde su resultado. Aquí se apagan las dos
+     mitades y las reglas de `:hover` que las mueven.
+
+     ⚠️ Nada de esto toca escritorio: todo cuelga de `.lp-cabeza`,
+     que solo existe por debajo de 1080. */
+  .lp-cabeza .latest-projects__all-water,
+  .lp-cabeza .latest-projects__all-label--hover {
+    display: none;
+  }
+
+  /* el texto de reposo se queda puesto, pase lo que pase */
+  .lp-cabeza .latest-projects__all:hover
+    .latest-projects__all-label--rest
+    .latest-projects__all-char,
+  .lp-cabeza .latest-projects__all--bye
+    .latest-projects__all-label--rest
+    .latest-projects__all-char {
+    opacity: 1;
+    animation: none;
+    transition: none;
+  }
+
+  /* Y el botón no se LEVANTA por un toque: eso es lenguaje de
+     cursor, y aquí el gesto es `:active`.
+
+     La sombra se repone a la de reposo en vez de anularse. Con
+     `box-shadow: none` —que es lo que escribí primero— el botón
+     PERDÍA su relieve justo al tocarlo, y con el hover pegado se
+     quedaba plano hasta que tocaras en otro sitio. Cambiar un
+     estado no es quitarlo. */
+  .lp-cabeza .latest-projects__all:hover {
+    transform: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 1px 2px rgba(23, 18, 43, 0.2),
+      0 2px 10px rgba(18, 9, 32, 0.4),
+      0 8px 16px -4px rgba(214, 75, 190, 0.25),
+      0 24px 48px -12px rgba(183, 109, 240, 0.3);
+  }
+
+  .lp-cabeza .latest-projects__all:hover svg {
+    animation: none;
+  }
+
+  .lp-cabeza .latest-projects__all:active {
+    transform: scale(0.975);
+    transition: transform 0.12s ease;
+  }
+}
+
+
+/* ---- LA CABECERA, CEÑIDA CON LA SARTA EN TABLETA ----
+   Va AL FINAL del archivo a propósito. Estas mismas reglas
+   estuvieron arriba, junto al resto de los ajustes de tableta, y
+   allí no servían: el bloque de la cabecera se declara después y
+   su `padding-left: calc(2vw + 23px)` ganaba por orden de cascada
+   —misma especificidad—. Medido, dejaba 43px de relleno donde
+   pedía 23, y los 20 de diferencia eran justo lo que separaba el
+   hilo de la cabecera del hilo del índice.
+
+   El hilo tiene que ser el MISMO en toda la sección, así que la
+   cabecera hereda la caja de la sarta: 34rem centradas. */
+@media (min-width: 620px) and (max-width: 1079px) {
+  .lp-cabeza {
+    /* ⚠️ EL `width: 100%` NO SOBRA.
+       Esta cabecera es un elemento de REJILLA, y un margen `auto`
+       le quita el estirado por defecto: pasa a medir su contenido.
+       Medido daba 440 donde tocaban 544, así que se centraba una
+       caja del tamaño equivocado. Con el ancho declarado, el
+       margen `auto` solo centra — que es lo único que se le pide. */
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+    padding-left: 23px;
+  }
+
+  .lp-cabeza__hilo {
+    left: 5px;
+  }
+}
+
+
+/* ============================================================
+   LA MANO · EL SUELO, MÁS HONDO
+
+   La portada se iba aclarando sin freno al bajar. Medida la
+   luminosidad HSL en los márgenes —que es como el sistema define
+   el suelo de una sección, ver la Regla del 29-32— salía esto:
+
+     Cómo lo hacemos ...... 22,2%   (oscura)
+     Nuestros trabajos .... 32,6%   (pasada)
+     Sobre nosotros ....... 34,2%   (pasada)
+     Casos de uso ......... 37,9%   (muy pasada)
+
+   La cabecera de esta sección, en concreto, 34,2%. Con el suelo
+   ahí, cualquier cosa que se ponga encima parece lavada por muy
+   saturada que sea: no era el botón, era el sitio donde estaba
+   apoyado.
+
+   ---- CÓMO SE BAJA, SEGÚN LA PROPIA HOJA DEL FONDO ----
+   No con un velo oscuro por encima. Eso ya se probó en su día y
+   está contado en FondoNuevo.css: el degradado GIRA, con una
+   vuelta de 48s, así que un parche quieto acierta en algunas
+   fases y falla en otras — y encima se veía como una mancha.
+
+   Lo que sí vale es bajarle la luz al color, que acierta en
+   todas. Y sus tres canales se mueven JUNTOS por un factor: el
+   comentario del componente avisa de que retocar uno solo rompe
+   la relación entre ellos y el degradado empieza a virar de tono.
+
+   Factor 0,72, elegido midiendo. A 0,85 la sección seguía en
+   32,3 —fuera de banda—; a 0,5 se caía a 25,5 y rompía la cadena
+   por el otro lado, quedando más oscura que "Cómo lo hacemos".
+
+   ⚠️ SOLO EN LA MANO Y SOLO EN ESTA SECCIÓN. FondoNuevo lo
+   comparten el hero y "Cómo lo hacemos", y en escritorio la
+   medida no es esta. Por eso el ajuste va como variables locales
+   sobre la instancia y no tocando el componente.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .latest-projects .latest-projects__fondo {
+    --fn-rgb-oscuro: 32 23 57;
+    --fn-rgb-violeta: 69 48 122;
+    --fn-rgb-rosa: 94 48 78;
+  }
+}

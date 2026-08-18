@@ -12,6 +12,20 @@
 
   width: 100%;
   padding-block: clamp(3rem, 7vh, 6rem);
+
+  /* ---- LO PIDE LA PORTADA DE MÓVIL ----
+     Allí la pieza sangra a los dos bordes con `width: 100vw` y
+     márgenes negativos (ver el bloque de ≤640px). Sin contener,
+     esos 100vw se suman al ancho del documento en cuanto haya
+     barra de scroll y aparece scroll lateral en toda la página.
+
+     `clip` y no `hidden`: contiene en horizontal sin crear un
+     contenedor de scroll, así el eje vertical se queda libre para
+     lo que tenga que salirse por arriba o por abajo. Es la misma
+     corrección que ya llevan "Últimos proyectos", "Nosotros" y el
+     pie. */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .uc__rejilla {
@@ -469,28 +483,426 @@
   }
 }
 
-@media (max-width: 640px) {
-  /* ---- EN UNA COLUMNA, EL CUADRADO SOBRA ----
-     La cuenta de arriba solo vale para 2×2. Con una columna y
-     cuatro filas, un contenedor cuadrado daría celdas cuatro
-     veces más anchas que altas — y además la tarjeta ocuparía
-     el ancho de la pantalla, o sea un cuadrado de 400px de lado
-     para cuatro viñetas. Aquí manda el contenido, y
-     `grid-auto-rows: 1fr` sigue igualando las cuatro entre sí
-     (con las filas explícitas fuera de en medio). */
-  .uc__tarjetas {
-    grid-template-columns: 1fr;
-    width: min(100%, 26rem);
+/* ============================================================
+   MÓVIL (≤640px) — EL CONMUTADOR
 
-    aspect-ratio: auto;
-    grid-template-rows: none;
+   La dirección 03 de la galería de propuestas: en la mano, las
+   cuatro tarjetas apiladas (21 viñetas, ~1.400px de lista) se
+   sustituyen por un conmutador de cuatro segmentos y UN panel
+   que cambia con fundido. La sección entera pasa a medir el alto
+   de una pantalla escasa.
+
+   El árbol del conmutador (.uc__mano) existe siempre en el DOM
+   (ver el comentario del JSX); aquí solo se decide cuál de los
+   dos se ve. Por eso la base lo apaga y este bloque lo enciende.
+   ============================================================ */
+
+/* base (escritorio y tableta): el conmutador no existe */
+.uc__mano {
+  display: none;
+}
+
+/* ---- Y LA PORTADA TAMPOCO EXISTE FUERA DE MÓVIL ----
+   `display: contents` la borra como caja: rótulo y titular vuelven
+   a ser hijos directos de la columna flex del enunciado, en su
+   orden de siempre. Escritorio y tableta no se enteran de que este
+   div está en el marcado. */
+.uc__portada {
+  display: contents;
+}
+
+@media (max-width: 640px) {
+  /* ---- LA SECCIÓN SUBE ----
+     El `padding-block` general vale para una sección que empieza
+     con un rótulo: ahí el aire de arriba es lo que la separa de la
+     anterior. Pero desde que abre con la PORTADA a sangre, ese
+     colchón trabaja en contra — deja una franja de fondo entre la
+     costura y la imagen, y la portada deja de leerse como el
+     arranque de la sección para parecer una foto suelta con hueco
+     por encima.
+
+     Baja de ~59px a ~29 (la mitad): suficiente para que no se
+     pegue a la sección anterior, y ya no lo bastante para abrir
+     una banda muerta. El de abajo no se toca: ahí sí cierra. */
+  .uc {
+    padding-top: clamp(1.25rem, 3.5vh, 2rem);
   }
 
-  /* el cuerpo vuelve a 14: el recorte a 13 era para que cupieran
-     seis viñetas en un cuadrado, y aquí no hay cuadrado que
-     respetar. En mano, 14 se agradece. */
-  .uc__puntos li {
-    font-size: 14px;
+  /* ============================================================
+     LA PORTADA — el titular sobre la pieza
+
+     La pieza de AI FIRST era un cuadrado de 359×359: medido en un
+     móvil de 390, el 34% de toda la sección y MÁS que el propio
+     contenido (el conmutador ocupa 288). Una imagen decorativa
+     pesando más que las cuatro capacidades que la sección existe
+     para contar, y encima interpuesta entre la promesa y la
+     prueba: había que pasarla entera para llegar a lo que importa.
+
+     Ahora es la PORTADA: se recorta a una franja de 250px, sangra
+     a los dos bordes de la ventana y el rótulo y el titular se
+     apoyan encima. La sección abre como abre un reportaje, y la
+     pieza deja de costar altura porque el texto que antes iba
+     debajo ahora va dentro.
+     ============================================================ */
+
+  /* la rejilla del enunciado: portada arriba, entradilla debajo.
+     Se declaran las FILAS a mano porque la pieza es el último
+     hijo del DOM (su sitio en escritorio) y aquí tiene que subir
+     a la primera — con `order` bastaría, pero necesita además
+     COMPARTIR celda con la portada, y eso solo lo da la rejilla. */
+  .uc__enunciado {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .uc__portada,
+  .uc__pieza {
+    grid-area: 1 / 1;
+  }
+
+  .uc__entradilla {
+    grid-row: 2;
+  }
+
+  /* ---- LA PIEZA, A SANGRE ----
+     `calc(50% - 50vw)` la saca del contenedor del 92% hasta el
+     borde de la ventana. Lo que va de lado a lado se lee como un
+     respiro editorial; contenida, sería una tarjeta más.
+
+     El recorte va al 34% de la altura y no al centro: ahí es
+     donde vive el logotipo dentro del render. */
+  .uc__pieza {
+    width: 100vw;
+    max-width: none;
+    height: 250px;
+
+    margin-inline: calc(50% - 50vw);
+    margin-block: 0;
+
+    object-fit: cover;
+    object-position: 50% 34%;
+  }
+
+  /* ---- EL TEXTO, APOYADO ABAJO ----
+     Ocupa toda la celda y empuja su contenido al pie: así el
+     titular se asienta en la zona oscura del velo y la parte de
+     arriba de la imagen queda despejada. */
+  .uc__portada {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    position: relative;
+    z-index: 1;
+
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    min-height: 250px;
+
+    /* el aire lateral vuelve a ser el del contenedor: el texto no
+       sangra aunque la imagen sí */
+    padding: 0 4vw 1.1rem;
+  }
+
+  /* el velo: transparente arriba, opaco abajo. Es lo que permite
+     que la letra se lea sobre una imagen que tiene blancos puros,
+     sin apagar la imagen entera.
+
+     El color del final NO es --sec-deep: en móvil lo que hay
+     detrás de esta sección es la escena de FondoNuevo, cuyo
+     extremo oscuro es 44 32 79 (--fn-rgb-oscuro, dentro de `.fn`
+     y fuera del alcance de esta hoja). Terminar ahí es lo que
+     hace que la portada se funda con lo de abajo en vez de
+     cortar. Si ese indigo cambia allí, cámbialo aquí. */
+  .uc__portada::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background: linear-gradient(
+      180deg,
+      rgba(44, 32, 79, 0.3) 0%,
+      rgba(44, 32, 79, 0.18) 38%,
+      rgba(44, 32, 79, 0.94) 92%
+    );
+  }
+
+  /* ---- EL RÓTULO, A LA ESQUINA ----
+     Sale del flujo y se ancla arriba a la izquierda de la
+     portada. Así deja de ser el renglón que precede al titular y
+     pasa a ser la ETIQUETA de la imagen: marca de qué sección es
+     esto en cuanto entra en pantalla, sin esperar a leer el
+     titular. El titular se queda solo abajo y gana peso.
+
+     Va en `absolute` y no como primer hijo del flex porque el
+     contenedor empuja su contenido al pie (justify-content:
+     flex-end): en el flujo, el rótulo bajaría pegado al titular,
+     que es justo de donde se le quiere sacar.
+
+     El `left` repite el 4vw del relleno lateral de la portada
+     para que alinee con el titular; el `top` iguala al aire de
+     abajo, así el texto queda a la misma distancia de los dos
+     bordes de la franja. */
+  .uc__rotulo {
+    position: absolute;
+    top: 0.55rem;
+    left: 4vw;
+
+    margin: 0;
+  }
+
+  .uc__titulo {
+    margin-bottom: 0;
+  }
+
+  .uc__entradilla {
+    margin-top: 1.1rem;
+  }
+
+  /* en la mano mandan los segmentos: fuera la pila de tarjetas */
+  .uc__tarjetas {
+    display: none;
+  }
+
+  .uc__mano {
+    display: block;
+    width: min(100%, 26rem);
+    margin-inline: auto;
+  }
+
+  /* ---- LA BOTONERA ----
+     Cuatro celdas iguales en una pastilla honda: el fondo oscuro
+     bajo los segmentos es lo que hace que el encendido se lea
+     como "estás aquí" y no como un botón más. */
+  .uc__seg {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+
+    padding: 5px;
+
+    border: 1px solid rgb(var(--rgb-secondary) / 0.3);
+    border-radius: 14px;
+
+    background: rgba(20, 10, 40, 0.45);
+  }
+
+  .uc__seg [role="tab"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    min-height: 56px; /* target táctil holgado (44px es el suelo) */
+    padding: 8px 2px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background: none;
+    cursor: pointer;
+    touch-action: manipulation;
+
+    color: rgba(226, 214, 255, 0.62);
+
+    transition:
+      color 0.25s ease,
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .uc__seg [role="tab"] svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .uc__seg [role="tab"] small {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  /* el encendido, en el rosa de acento del sitio: el mismo
+     registro que marca "activo" en el resto de la portada */
+  .uc__seg [role="tab"][aria-selected="true"] {
+    color: var(--color-text, #f6f0ff);
+
+    border-color: rgb(var(--rgb-accent-light, 240 144 212) / 0.5);
+    background: linear-gradient(
+      180deg,
+      rgb(var(--rgb-accent-light, 240 144 212) / 0.16),
+      rgb(var(--rgb-accent-light, 240 144 212) / 0.06)
+    );
+  }
+
+  .uc__seg [role="tab"]:focus-visible {
+    outline: 2px solid var(--color-primary, #8b5cf6);
+    outline-offset: 2px;
+  }
+
+  /* ---- EL LIENZO DE PANELES ----
+     Todos apilados en la MISMA celda de grid: el marco mide
+     siempre lo que el panel más alto, así que cambiar de pestaña
+     no mueve nada de lo que hay debajo (cero salto de layout,
+     que en un conmutador es lo primero que delata la costura). */
+  .uc__panes {
+    display: grid;
+    margin-top: 12px;
+  }
+
+  .uc__pane {
+    grid-area: 1 / 1;
+
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+
+    transition:
+      opacity 0.32s ease,
+      transform 0.32s ease;
+
+    position: relative;
+    overflow: hidden; /* recorta la cifra fantasma */
+
+    padding: 16px 14px;
+
+    /* la misma superficie que las tarjetas de escritorio: mismo
+       cristal, mismo filo — es la misma pieza en otro formato */
+    border: 1px solid rgb(var(--rgb-secondary) / 0.38);
+    border-radius: 16px;
+    background: rgba(48, 25, 83, 0.78);
+
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  }
+
+  .uc__pane--activa {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  /* la cifra fantasma: el número trazado de las tarjetas, en
+     grande y al fondo — mantiene la firma de la sección sin
+     gastar sitio en una fila de número */
+  .uc__pane::after {
+    content: attr(data-cifra);
+
+    position: absolute;
+    right: 6px;
+    bottom: -14px;
+
+    font-size: 84px;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(var(--rgb-secondary) / 0.16);
+
+    pointer-events: none;
+  }
+
+  .uc__pane-cab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 12px;
+  }
+
+  .uc__pane-cab h3 {
+    margin: 0;
+
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+
+    color: #fff;
+  }
+
+  .uc__pane-cnt {
+    margin-left: auto;
+
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+
+    color: rgba(226, 214, 255, 0.55);
+  }
+
+  /* ---- LAS CAPACIDADES, EN MINI-TARJETAS ----
+     Fueron píldoras en flex-wrap y el problema estaba medido: los
+     rótulos van de 7 caracteres ("Eventos") a 31 ("Branding /
+     Alineamiento de Marca"), así que las filas quedaban con el
+     borde derecho irregular — hasta 233px de hueco en la peor y
+     99 de media.
+
+     Se probaron y se descartaron dos atajos, por si vuelven a
+     proponerse: REORDENAR por longitud daba exactamente el mismo
+     sobrante (tres rótulos son casi de ancho completo y ocupan
+     fila propia en cualquier orden), y ACORTAR los textos sin más
+     lo empeoraba —113px de media— porque solo mueve el hueco de
+     sitio. Con contenido de longitud libre, el flex-wrap no tiene
+     arreglo: o se justifica, o se dejan de montar filas.
+
+     Esto último es lo que hace la rejilla: dos columnas fijas, así
+     que no hay fila que pueda quedar coja. Y al ser caja y no
+     píldora, un rótulo largo crece en ALTO en vez de romper la
+     línea — que es justo lo que las píldoras no sabían hacer. */
+  .uc__chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .uc__chips li {
+    display: flex;
+    align-items: center;
+
+    padding: 0.5rem 0.6rem 0.5rem 0.65rem;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+
+    /* el filo de acento a la izquierda: es lo que convierte una
+       caja neutra en una ficha, y repite el gesto del filete que
+       ya abre el rótulo y las tarjetas de escritorio */
+    border-left: 2px solid var(--color-accent-light, #f090d4);
+
+    background: rgba(255, 255, 255, 0.05);
+
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.32;
+    letter-spacing: -0.005em;
+
+    color: var(--color-text-light, #e8e0fb);
+  }
+
+  /* la última en solitario ocupa las dos columnas: con 5 puntos
+     (Personalización) quedaría media fila vacía */
+  .uc__chips li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* con motion reducido el panel cambia en seco */
+  @media (prefers-reduced-motion: reduce) {
+    .uc__pane {
+      transition: none;
+    }
   }
 }
 
@@ -538,7 +950,8 @@
   .uc__titulo,
   .uc__entradilla,
   .uc__pieza,
-  .uc__tarjeta {
+  .uc__tarjeta,
+  .uc__mano {
     opacity: 0;
   }
 
@@ -560,6 +973,14 @@
   .uc--dentro .uc__tarjeta {
     animation: uc-tarjeta .52s cubic-bezier(.34, 1.35, .64, 1)
       calc(1.15s + var(--i, 0) * .11s) forwards;
+  }
+
+  /* el conmutador de móvil entra donde entraba la primera
+     tarjeta: es la fase 3 en su formato de mano. Un solo bloque,
+     un solo golpe — el escalonado de cuatro no tiene sentido
+     cuando lo que aparece es una sola pieza. */
+  .uc--dentro .uc__mano {
+    animation: uc-tarjeta .52s cubic-bezier(.34, 1.35, .64, 1) 1.15s forwards;
   }
 
   @keyframes uc-entra {

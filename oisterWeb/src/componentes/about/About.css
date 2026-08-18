@@ -409,3 +409,815 @@
   .about-hero::after { transform: scale(.44); }
 }
 
+
+/* ============================================================
+   LA MANO — DOS NOMBRES + LOS VALORES COMO CUENTAS
+
+   Todo lo de aquí abajo vive dentro de `@media (max-width:1079px)`
+   y cuelga de `.ab-gente` / `.ab-valores`, dos árboles que en
+   escritorio NI SIQUIERA SE MONTAN (ver CORTE_MANO en el JSX). Dos
+   aislamientos, no uno: ninguna regla puede alcanzar a la maqueta
+   de escritorio ni por cascada ni por accidente.
+
+   Lo que resuelve, medido: 2.414px de alto a 390 contra 1.049 en
+   escritorio, con los cinco valores en cinco tarjetas idénticas
+   de icono + título + texto — el patrón que DESIGN.md prohíbe por
+   su nombre.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- LA COSTURA CON LAS SECCIONES VECINAS ----
+     Medidas todas las junturas de la portada en un móvil de 390,
+     el reparto era este:
+
+       Cómo lo hacemos → Trabajos ..... 113px
+       Trabajos → Nosotros ............ 144px
+       Nosotros → Casos de uso ........ 144px
+
+     `.about` era la única con 81px arriba Y abajo —las demás
+     andan entre 36 y 63—, así que ensanchaba sus DOS costuras y
+     se leía despegada de sus vecinas por los dos lados.
+
+     Ese 81 no estaba mal cuando la sección medía 2.414px: un
+     bloque largo pide más aire alrededor. Con la maqueta de la
+     mano bajó a 1.579 y el relleno se quedó grande.
+
+     50px deja las tres costuras en 113 — que no es un número
+     inventado, es el ritmo que ya tenían las dos primeras. En
+     escritorio no se toca: allí la sección mide 1.049px y su aire
+     está bien medido. */
+  .about {
+    padding-top: 50px;
+
+    /* ---- LA BANDA CIERRA LA SECCIÓN ----
+       Cero abajo, y es una excepción deliberada al ritmo de 113px
+       que tienen las demás costuras de la portada.
+
+       El motivo es que aquí la juntura no es fondo contra fondo:
+       la pieza de "Cómo trabajamos" va a sangre y es una
+       SUPERFICIE, así que su borde inferior ya termina la sección
+       por sí solo. Con relleno quedaba una tira de fondo entre la
+       banda y la sección siguiente que se leía como un sobrante —
+       comparados los tres valores en pantalla, 18px era lo peor
+       de los dos mundos y 50 dejaba el hueco que se veía.
+
+       Si algún día el último bloque de esta sección deja de ser
+       una banda a sangre, este cero hay que devolverlo a 50. */
+    padding-bottom: 0;
+  }
+
+  /* ---- DOS NOMBRES ------------------------------------- */
+
+  .ab-gente {
+    /* a sangre por los dos lados: el contenedor va ceñido y aquí
+       se recupera el ancho completo. Es lo que convierte el
+       retrato en una imagen de portada y no en una ficha. */
+    margin-inline: calc(50% - 50vw);
+    margin-top: clamp(2rem, 6vw, 3rem);
+
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2.2rem, 7vw, 3.2rem);
+  }
+
+  .ab-gente__persona {
+    display: block;
+  }
+
+  .ab-gente__media {
+    display: block;
+    position: relative;
+
+    /* 5:4 y no 4:3: es un retrato, y un encuadre más alto deja
+       sitio a la cara sin que el velo se coma los hombros */
+    aspect-ratio: 5 / 4;
+    width: 100%;
+
+    overflow: hidden;
+  }
+
+  .ab-gente__media img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    /* la cara vive en el tercio superior de un retrato, no en el
+       centro geométrico */
+    object-position: 50% 26%;
+
+    display: block;
+  }
+
+  .ab-gente__relleno {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    background:
+      radial-gradient(circle at 45% 32%, rgb(var(--rgb-accent-light, 240 144 212) / 0.35), transparent 60%),
+      linear-gradient(150deg, var(--color-primary-dark, #6d3fd1), var(--color-accent, #e070be));
+  }
+
+  /* el velo: por debajo de él, el nombre se apoya en fondo propio
+     y no en lo que traiga la fotografía */
+  .ab-gente__velo {
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+      180deg,
+      rgba(26, 14, 43, 0) 46%,
+      rgba(26, 14, 43, 0.55) 70%,
+      rgba(26, 14, 43, 0.9) 88%,
+      rgba(26, 14, 43, 0.98) 100%
+    );
+  }
+
+  .ab-gente__texto {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: block;
+    padding: 0 6vw 1rem;
+  }
+
+  .ab-gente__nombre {
+    margin: 0;
+
+    font-size: min(2.5rem, 10vw);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+
+    color: var(--color-text, #f6f0ff);
+    text-shadow: 0 2px 18px rgba(14, 6, 26, 0.75);
+  }
+
+  .ab-gente__cargo {
+    margin: 0.5rem 0 0;
+
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 12.2px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+
+    color: #f0e7ff;
+    text-shadow:
+      0 1px 3px rgba(14, 6, 26, 0.9),
+      0 2px 12px rgba(14, 6, 26, 0.75);
+  }
+
+  /* la biografía cae FUERA de la foto y recoge el velo donde lo
+     dejó la imagen, igual que la cita de la ficha de trabajos: sin
+     esto, el borde inferior del retrato es un corte horizontal */
+  .ab-gente__bio {
+    margin: 0;
+    padding: 1.05rem 6vw 0.9rem;
+
+    background: linear-gradient(
+      180deg,
+      rgba(26, 14, 43, 0.98),
+      rgba(26, 14, 43, 0)
+    );
+
+    /* 15,5px es el paso de cuerpo del sistema. Estuvo en 14,5 —un
+       valor fuera de la rampa— buscando que la biografía pesara
+       menos que el nombre; ese trabajo ya lo hacen el tamaño del
+       nombre (40px) y su posición sobre la foto. */
+    font-size: 15.5px;
+    line-height: 1.62;
+    text-wrap: pretty;
+
+    color: #e8e0fb;
+  }
+
+  .ab-gente__linkedin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    margin-left: 6vw;
+    padding: 0.5rem 0.95rem;
+
+    border: 1px solid var(--filo-claro, rgb(255 255 255 / 0.14));
+    border-radius: var(--radius-full, 999px);
+
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+
+    color: var(--color-secondary, #c9a8ff);
+
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---- LOS VALORES, EN BANDAS DEL MISMO MATERIAL ----
+     El criterio lo puso Carlos señalando lo que sí funciona: las
+     fichas de las personas. Su material es superficie a sangre +
+     velo + texto montado. Estas bandas son ese mismo tejido sin
+     fotografía: la atmósfera de nácar del sistema con el foco de
+     luz desplazándose banda a banda.
+
+     A sangre como los retratos —es lo que las hace parientes— y
+     separadas por 6px: juntas se leen como un grupo, y el hueco
+     estrecho es el filete de esta familia, no un borde. */
+  .ab-valores {
+    /* ---- AIRE ANTES DEL BLOQUE ----
+       Baja de golpe todo "Cómo trabajamos": rótulo, cinta y
+       lector. Iba en 38px y el bloque arrancaba pisándole los
+       talones al enlace de LinkedIn de Miguel, como si fuera parte
+       de su ficha en vez de un apartado nuevo.
+
+       ⚠️ El `clamp` es engañoso aquí y conviene saberlo: a 390px,
+       9vw son 35 — por debajo del mínimo— así que el valor que
+       manda SIEMPRE en un móvil es el primero. Los otros dos solo
+       entran en tabletas. Si hay que retocar el aire de la mano,
+       se toca el 3,4rem. */
+    margin-top: clamp(3.4rem, 9vw, 4.5rem);
+  }
+
+  /* Aquí iba una cuenta ("05") a la derecha. Fuera por encargo:
+     el número de valores no es un dato que el visitante necesite
+     —no está eligiendo entre cinco cosas, está leyendo cinco
+     frases— y en un rótulo de dos palabras pedía la mitad del
+     ancho para no decir nada.
+
+     Sin él, el rótulo es una línea suelta: se va el flex.
+
+     ---- Y BAJA LO QUE VIENE DEBAJO ----
+     0,9rem dejaba la cinta pegada al rótulo, como si fueran la
+     misma línea partida en dos. Sube a 1,7rem.
+
+     No a los 2,6 de `--hueco-rotulo`, que es el hueco con el que
+     ABREN las secciones del home: este es un rótulo de bloque
+     dentro de una sección que ya tiene el suyo arriba ("Sobre
+     nosotros"). Dándole el mismo aire competirían, y la sección
+     parecería dos secciones. Poco más de la mitad basta para
+     separarlo sin ascenderlo. */
+  /* ---- Y QUE SE NOTE ----
+     Iba a 11,5px y desaparecía. El problema no era el color —el
+     rosa perla se lee de sobra— sino el PESO: es la misma
+     situación que documenta la Regla del 2,6 del sistema, donde
+     un rótulo a 13,5px contra un titular grande se caía de la
+     jerarquía por tamaño, no por contraste.
+
+     Sube a 14px y recupera las dos cosas que le dan presencia al
+     rótulo de la casa: el halo oscuro detrás —que es lo que hace
+     que se despegue del fondo sin subirle el color— y el filete
+     corto delante, que lo señala como apertura de bloque.
+
+     ⚠️ 13 y no 14: el rótulo de sección NO mide 16 en la mano
+     —el componente Rotulo baja a 14px por debajo de su corte— así
+     que poner 14 aquí los igualaba y ascendía este bloque a
+     categoría de sección. Medido antes de decidirlo.
+
+     La presencia no la da el píxel de más: la dan el halo y el
+     filete. A 11,5 sin ninguno de los dos, el rótulo se perdía
+     sobre el circuito del fondo. */
+  .ab-valores__rotulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin: 0 0 2.1rem;
+
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+
+    color: var(--color-rotulo, #ff9be8);
+    text-shadow:
+      0 1px 2px rgba(14, 6, 26, 0.75),
+      0 2px 14px rgba(14, 6, 26, 0.6);
+  }
+
+  /* el filete: nace del lila y muere en transparente, igual que
+     los del rótulo de sección */
+  .ab-valores__rotulo::before {
+    content: "";
+
+    flex-shrink: 0;
+    width: 26px;
+    height: 1px;
+
+    background: linear-gradient(
+      90deg,
+      rgb(var(--rgb-secondary, 201 168 255) / 0),
+      rgb(var(--rgb-secondary, 201 168 255) / 0.7)
+    );
+  }
+
+  /* ---- LA CINTA ----
+     A sangre, como los retratos, y con los bordes fundidos por
+     máscara: los títulos no aparecen de golpe, emergen del borde.
+
+     El desfile va por transform sobre una pista del doble de
+     ancho (el lote duplicado): compositor puro, sin repintados.
+
+     ⚠️ overflow-x:auto ADEMÁS de la animación, y no es descuido:
+     con movimiento reducido la animación se apaga y la cinta
+     tiene que poder recorrerse con el dedo — sin el auto, los
+     títulos que quedan fuera serían inalcanzables. Mientras la
+     animación corre, el transform mueve la pista entera y el
+     scroll no estorba. */
+  /* la pieza: una superficie a sangre con la cinta arriba y la
+     frase debajo. Es la que lleva ahora la atmósfera y el velo —
+     antes los tenía el lector, y por eso la cinta se quedaba
+     flotando sobre el fondo de la sección sin material propio. */
+  .ab-valores__pieza {
+    position: relative;
+    overflow: hidden;
+
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .ab-valores__marco {
+    position: relative;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    -webkit-mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+    mask: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  }
+
+  .ab-valores__marco::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ab-valores__cinta {
+    display: flex;
+    width: max-content;
+
+    animation: abDesfile 22s linear infinite;
+  }
+
+  /* el primer contacto congela el desfile. No es un capricho: en
+     las pruebas de la variante, ni el robot conseguía pulsar un
+     blanco en movimiento — esperaba a que se quedara quieto, y
+     una marquesina no se queda. Un pulgar tampoco acierta mejor.
+     Parada, el toque elige; a los 5 s se reanuda (lo lleva el
+     JSX). */
+  .ab-valores__marco--quieta .ab-valores__cinta {
+    animation-play-state: paused;
+  }
+
+  @keyframes abDesfile {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* la capa ajustable: la cinta anima SU transform y esta desliza
+     el suyo por debajo — dos transforms en dos elementos que se
+     suman sin pelearse. La transición es la que convierte el
+     ajuste en deslizamiento. */
+  .ab-valores__pista {
+    display: flex;
+
+    transform: translateX(var(--ab-ajuste, 0px));
+    transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .ab-valores__lote {
+    display: flex;
+  }
+
+  .ab-valores__titular {
+    padding: 0.85rem 1.15rem;
+    border: 0;
+    border-right: 1px solid rgb(255 255 255 / 0.12);
+
+    background: none;
+    color: var(--color-text-light, #cdc1e2);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    transition:
+      color 0.3s ease,
+      opacity 0.45s ease,
+      transform 0.45s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .ab-valores__titular[aria-current] {
+    color: var(--color-rotulo, #ff9be8);
+  }
+
+  /* ---- LA ESCENA DE LA PARADA ----
+     Con la cinta parada, el coro baja de luz y el elegido —ya
+     clavado en el centro por la pista— se echa hacia delante.
+     Solo en la parada: en marcha todos van iguales, porque
+     atenuar texto que se mueve es hacerlo ilegible dos veces. */
+  .ab-valores__marco--quieta .ab-valores__titular {
+    opacity: 0.35;
+  }
+
+  .ab-valores__marco--quieta .ab-valores__titular[aria-current] {
+    opacity: 1;
+    /* el latido: se pasa de 1,18 y vuelve. Es el "toma" del relevo
+       — la cinta entrega el valor y la banda lo recoge. */
+    animation: abLatido 0.55s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+  }
+
+  @keyframes abLatido {
+    0% {
+      transform: scale(1);
+    }
+    55% {
+      transform: scale(1.26);
+    }
+    100% {
+      transform: scale(1.18);
+    }
+  }
+
+  /* ---- EL LECTOR ----
+     Una banda del material de los retratos —atmósfera, velo,
+     texto montado— con el valor elegido completo. Altura mínima
+     fija: la frase más larga ocupa dos líneas, y sin el suelo el
+     bloque saltaría de alto en cada elección. */
+  /* el lector ya no es una banda aparte: es la zona baja de la
+     pieza. El filete lo separa de la cinta sin partirla en dos
+     objetos. */
+  .ab-valores__lector {
+    position: relative;
+    overflow: hidden;
+
+    min-height: 78px;
+    padding: 0.9rem 6vw 1rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+
+  /* ============================================================
+     LA LUZ DESCUBRE EL TEXTO
+
+     El momento del bloque, y es UNO solo: al cambiar de valor, un
+     destello de nácar cruza la banda y el texto aparece detrás de
+     él, como si lo hubiera encendido al pasar.
+
+     Los tres tiempos están encadenados a propósito:
+       0,00s  arranca el destello por la izquierda
+       0,10s  el titular se descubre — el destello va justo por
+              delante de su borde
+       0,22s  la frase, un paso por detrás
+     Si salieran a la vez, el destello sería un adorno que pasa
+     por encima de un texto ya puesto. Yendo delante, es la causa.
+
+     El barrido va por `transform` (compositor) y el descubrimiento
+     por `clip-path`, que en un rectángulo no repinta la caja. */
+  .ab-valores__destello {
+    position: absolute;
+    top: -55%;
+    bottom: -55%;
+    left: 0;
+
+    width: 38%;
+
+    background: linear-gradient(
+      100deg,
+      rgb(var(--rgb-magenta, 232 121 249) / 0),
+      rgb(var(--rgb-magenta, 232 121 249) / 0.32) 34%,
+      rgb(255 255 255 / 0.5) 52%,
+      rgb(var(--rgb-accent-light, 240 144 212) / 0.32) 68%,
+      rgb(var(--rgb-accent-light, 240 144 212) / 0)
+    );
+
+    pointer-events: none;
+
+    animation: abDestello 0.95s cubic-bezier(0.35, 0, 0.2, 1) both;
+  }
+
+  @keyframes abDestello {
+    from {
+      transform: translateX(-110%) rotate(9deg);
+    }
+    to {
+      transform: translateX(290%) rotate(9deg);
+    }
+  }
+
+  .ab-valores__texto {
+    animation: abDescubre 0.75s cubic-bezier(0.22, 0.8, 0.36, 1) 0.12s both;
+  }
+
+  @keyframes abDescubre {
+    from {
+      clip-path: inset(0 100% 0 0);
+      opacity: 0.15;
+      transform: translateX(-6px);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ---- Y EN REPOSO TAMPOCO ESTÁ MUERTA ----
+     La atmósfera respira muy despacio: catorce segundos de ida y
+     vuelta, un 6% de escala. No se ve mirándola, se nota cuando
+     dejas de mirarla — que es lo que pide el "vivo siempre" del
+     sistema sin cobrar atención por ello. Es `transform`, o sea
+     gratis para el compositor. */
+  /* ...salvo en la mano: ahí ninguna capa de fondo se mueve en
+     bucle (mismo criterio y mismo corte de 900px que FondoNuevo y
+     que la atmósfera del hero). El respiro es de los que se notan
+     de reojo en una pantalla ancha; en móvil el fondo va pegado
+     al texto y deja de ser ambiente para ser movimiento. */
+  @media (min-width: 901px) {
+    .ab-valores__atmosfera {
+      animation: abRespira 14s ease-in-out infinite;
+    }
+  }
+
+  @keyframes abRespira {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.06);
+    }
+  }
+
+  .ab-valores__atmosfera {
+    position: absolute;
+    inset: 0;
+
+    background:
+      radial-gradient(
+        circle at calc(18% + var(--ab-i, 0) * 16%) 40%,
+        rgb(var(--rgb-accent-light, 240 144 212) / 0.38),
+        transparent 58%
+      ),
+      linear-gradient(
+        150deg,
+        var(--color-primary-dark, #6d3fd1),
+        var(--color-accent, #e070be)
+      );
+  }
+
+  /* el velo va en VERTICAL y no en horizontal: el texto ya no
+     está a la izquierda de la banda sino en su mitad inferior, y
+     cada pieza oscurece hacia donde tiene lo que hay que leer */
+  .ab-valores__velo {
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+      180deg,
+      rgba(26, 14, 43, 0.5) 0%,
+      rgba(26, 14, 43, 0.72) 44%,
+      rgba(26, 14, 43, 0.93) 100%
+    );
+  }
+
+  .ab-valores__texto {
+    margin: 0;
+
+    /* sube de 13,5 a 15,5 —el cuerpo de lectura del sistema—
+       porque ya no compite con un titular encima: es el único
+       texto de esta zona */
+    font-size: 15.5px;
+    line-height: 1.5;
+    text-wrap: pretty;
+
+    color: #f0e7ff;
+    text-shadow: 0 1px 6px rgba(14, 6, 26, 0.7);
+  }
+
+  /* ---- FOCO ----
+     El anillo por defecto del navegador no pertenece a ningún
+     sistema. */
+  .ab-gente__linkedin:focus-visible {
+    outline: 2px solid var(--color-primary, #8b5cf6);
+    outline-offset: 3px;
+  }
+}
+
+/* ---- A PARTIR DE 620 ----
+   En tableta el retrato a sangre se vuelve enorme y la biografía
+   se estira más allá del rango cómodo de lectura, así que la
+   maqueta se ciñe y se centra en vez de seguir creciendo. Mismos
+   34rem que la sarta de "Nuestros trabajos", para que las dos
+   secciones midan igual. */
+@media (min-width: 620px) and (max-width: 1079px) {
+  .ab-gente {
+    margin-inline: auto;
+    max-width: 34rem;
+  }
+
+  .ab-gente__media {
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius-md, 18px);
+  }
+
+  .ab-gente__texto {
+    padding-inline: 1.4rem;
+  }
+
+  .ab-gente__bio {
+    padding-inline: 0;
+  }
+
+  .ab-gente__linkedin {
+    margin-left: 0;
+  }
+
+  .ab-valores {
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  /* ---- Y AQUÍ VUELVE EL AIRE DE ABAJO ----
+     Por debajo de 620 la pieza va a sangre y su borde cierra la
+     sección, así que el relleno inferior es cero. A partir de
+     aquí se ciñe y se redondea: una tarjeta con esquinas pegada
+     al borde de la sección se lee como un recorte, no como un
+     cierre. Medido a 700px — la pieza dejaba de ser a sangre y el
+     cero se quedaba sin su razón de ser. */
+  .about {
+    padding-bottom: 50px;
+  }
+
+  .ab-valores__pieza {
+    margin-inline: 0;
+    border-radius: var(--radius-sm, 12px);
+  }
+
+  .ab-valores__lector {
+    padding-inline: 1.1rem;
+  }
+}
+
+/* ---- Y LA ENTRADA DE LOS RETRATOS ----
+   `.about-hero__text > :not(.about-team)` deja a TODOS los hijos
+   directos del bloque de texto naciendo invisibles, y luego solo
+   tres —rótulo, titular y párrafo— reciben su animación por
+   nombre. `.ab-gente` es un cuarto hijo: nacía escondido esperando
+   un keyframe que nadie le mandaba, y en pantalla se veía media
+   sección vacía con los dos retratos ocupando su sitio pero a
+   opacidad 0.
+
+   Se engancha a la cascada que ya existe en vez de forzarle la
+   opacidad: el retardo continúa la serie (.06 → .14 → .26 → .36),
+   así que los retratos entran después del párrafo, que es su
+   orden de lectura.
+
+   Con movimiento reducido no hace falta nada: la regla que los
+   esconde vive dentro de `no-preference`, así que allí nacen
+   visibles. */
+@media (max-width: 1079px) and (prefers-reduced-motion: no-preference) {
+  .about-hero.reveal--shown .ab-gente {
+    animation: about-copy-in 0.52s cubic-bezier(0.22, 0.8, 0.36, 1) 0.36s
+      forwards;
+  }
+}
+
+/* ============================================================
+   LA MANO · EL SUELO Y LOS REMATES
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- EL SUELO, A SU BANDA ----
+     Medida la luminosidad HSL en los márgenes —como define el
+     suelo la Regla del 29-32— esta sección daba 34,2%: fuera por
+     arriba. Sobre un fondo pasado de luz, todo lo que se pone
+     encima parece lavado, y ya se comprobó en "Nuestros trabajos"
+     que ese es el problema de verdad y no el elemento de turno.
+
+     Se baja con los diales del propio FondoNuevo y con sus tres
+     canales MOVIÉNDOSE JUNTOS: su comentario avisa de que tocar
+     uno solo hace virar el tono. Mismo factor 0,72 que allí, para
+     que las dos secciones se apoyen en el mismo suelo.
+
+     ⚠️ Variables locales sobre la instancia: el componente lo
+     comparten el hero y otras dos secciones. */
+  .about .about__fondo {
+    --fn-rgb-oscuro: 32 23 57;
+    --fn-rgb-violeta: 69 48 122;
+    --fn-rgb-rosa: 94 48 78;
+  }
+
+  /* ---- Y LAS DOS LUCES PROPIAS DE ESTA SECCIÓN ----
+     Con solo los canales del fondo bajaba de 34,2 a 32,3: mejor,
+     pero seguía en el filo, y unos 5 puntos por encima de
+     "Nuestros trabajos" medida en la misma fase. La diferencia es
+     que aquí hay DOS focos que allí no existen — el halo en SVG
+     que cubre la sección entera y el aura del bloque de texto.
+
+     Esto es exactamente el caso que describe la Regla del 29-32:
+     cuando una capa se sale de banda, se le baja la OPACIDAD, no
+     se le cambia el tono. Los dos siguen ahí, con su color; solo
+     pesan menos.
+
+     En escritorio se quedan como estaban: allí la medida es otra
+     porque la sección es la mitad de alta y el aura cae al lado
+     del texto, no debajo. */
+  .about .about__bg {
+    opacity: 0.08;
+  }
+
+  /* ⚠️ El aura NO se baja con `opacity` a secas: la enciende
+     `about-aura-in` con `forwards`, y el relleno de una animación
+     gana a una declaración normal. Se comprobó — la regla no hacía
+     nada. Se anula la animación y se pone el valor a mano. */
+  .about-hero.reveal--shown::before {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  /* ---- EL ENLACE A LINKEDIN ----
+     Iba en lila sobre el filo estándar y se hundía: es la única
+     acción de todo el apartado y se leía como una nota al pie.
+     Sube a la tinta principal, engorda el filo y se apoya en una
+     superficie de cristal — el mismo lenguaje que cualquier otra
+     cosa pulsable del sistema. */
+  .ab-gente__linkedin {
+    background: rgb(255 255 255 / 0.07);
+    border-color: rgb(255 255 255 / 0.24);
+    color: var(--color-text, #f6f0ff);
+
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .ab-gente__linkedin:active {
+    background: rgb(var(--rgb-secondary, 201 168 255) / 0.16);
+    border-color: var(--color-rotulo, #ff9be8);
+  }
+
+  /* ---- LA ENTRADA DEL RETRATO ----
+     La fotografía llega ampliada y se posa dentro de su marco: se
+     mueve la IMAGEN, no el bloque. Un bloque que se desliza hacia
+     arriba es la entrada que hace todo el mundo; una imagen que se
+     asienta se lee como que la pieza ya estaba y ha enfocado.
+
+     El retardo escalona a las dos personas por --ab-i. */
+  .ab-gente__media img {
+    transform: scale(1.05);
+    transition: transform 1s cubic-bezier(0.22, 0.8, 0.36, 1);
+    transition-delay: calc(var(--ab-i, 0) * 120ms);
+  }
+
+  .about-hero.reveal--shown .ab-gente__media img {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  /* la cinta se queda quieta y se recorre con el dedo (el
+     overflow-x:auto del marco existe para esto); el lector cambia
+     en seco */
+  .ab-valores__cinta {
+    animation: none;
+  }
+
+  .ab-valores__pista,
+  .ab-valores__titular {
+    transition: none;
+  }
+
+  /* el destello no se monta, el texto nace puesto y la atmósfera
+     no respira: queda la misma información, quieta */
+  .ab-valores__destello {
+    display: none;
+  }
+
+  .ab-valores__texto,
+  .ab-valores__atmosfera,
+  .ab-valores__marco--quieta .ab-valores__titular[aria-current] {
+    animation: none;
+  }
+
+  .ab-valores__marco--quieta .ab-valores__titular[aria-current] {
+    transform: scale(1.18);
+  }
+
+  .ab-valores__lector {
+    animation: none;
+  }
+
+  /* Los estados de pulsación se quedan: un toque sin respuesta se
+     siente roto, y responder no es "movimiento" en el sentido que
+     pide la preferencia. */
+  .ab-gente__media img {
+    transition: none;
+  }
+
+  .ab-gente__media img {
+    transform: none;
+  }
+}

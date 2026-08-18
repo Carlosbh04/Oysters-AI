@@ -83,7 +83,18 @@
     5vw -32vh 3px 1px rgb(var(--rgb-primary) / 0.28);
 }
 
-@media (prefers-reduced-motion: no-preference) {
+/* ---- EN LA MANO, EL POLVO NO CAE ----
+   El `min-width` es lo que lo apaga en móvil, y va en la propia
+   consulta en vez de en un bloque aparte que lo anule después:
+   así la animación no llega a declararse nunca por debajo de
+   901px, en lugar de declararse y pisarse.
+
+   Las motas siguen ahí —el patrón son sombras de un punto, o sea
+   que se ven igual quietas—; lo que se va es la caída. En una
+   pantalla de mano el polvo cruza el texto que estás leyendo, y
+   además cada ciclo repinta a pantalla completa. Es la misma
+   decisión que congela el fondo (ver FondoNuevo.css). */
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
   .light-dust::before {
     animation: dustFall 26s linear infinite;
   }

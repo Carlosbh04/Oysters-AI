@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import TextoArena from "../textoArena/TextoArena";
+import useMediaQuery from "../../hooks/useMediaQuery";
 import {
   BarChart3,
   BookOpen,
@@ -49,9 +50,29 @@ import "./InteligenciaIA.css";
    columna izquierda, 1 y 3 en la derecha. Si algún día son seis,
    hay que tocar la rejilla — el dibujo de los conectores no, que
    se mide solo. */
+/* ---- POR QUÉ CADA APARTADO SE CUENTA DOS VECES ----
+   `texto` es la versión de ESCRITORIO: un párrafo con las
+   herramientas en negrita dentro de la frase, tal cual estaba.
+
+   `resumen` + `herramientas` son la de MÓVIL, y no es una copia
+   por comodidad: ahí el párrafo largo era el problema. Medido en
+   un móvil de 844px, los cuatro apartados sumaban ~1.400px de
+   texto seguido, con los nombres de herramienta enterrados en
+   negrita a mitad de frase. Separándolos, la prosa se queda en
+   una línea y las herramientas se leen de un vistazo como
+   etiquetas — que es como se consultan de verdad.
+
+   No se ha intentado derivar una de la otra con CSS: cada frase
+   coloca las herramientas en un sitio distinto (unas al final,
+   otras a mitad), así que cualquier reconstrucción automática
+   saldría coja en alguna. */
 const APARTADOS = [
   {
     id: "aprendizaje",
+    numero: "01",
+    resumen:
+      "Analiza el comportamiento de las audiencias y genera insights y estrategia.",
+    herramientas: ["Brand24", "ChatGPT", "Perplexity", "Similarweb"],
     icono: BookOpen,
     titulo: ["Aprendizaje", "impulsado por IA"],
     lado: "izq",
@@ -65,6 +86,11 @@ const APARTADOS = [
   },
   {
     id: "contenido",
+    numero: "02",
+    resumen:
+      "Crea contenido audiovisual distintivo, original e innovador.",
+    herramientas: ["Adobe Firefly", "ElevenLabs", "Leonardo", "Midjourney",
+      "Flux", "Freepik", "Runway", "Seadance", "Google Veo 3", "Kling", "Suno"],
     icono: FileSignature,
     titulo: ["Contenido", "impulsado por IA"],
     lado: "der",
@@ -81,6 +107,11 @@ const APARTADOS = [
   },
   {
     id: "personalizacion",
+    numero: "03",
+    resumen:
+      "Adapta y escala la creatividad a cientos de piezas en muy poco tiempo.",
+    herramientas: ["Magnific", "accreative", "CapCut", "Filmora", "Peech",
+      "thebrief", "predis.ai"],
     icono: SlidersHorizontal,
     titulo: ["Personalización", "impulsada por IA"],
     lado: "izq",
@@ -95,6 +126,10 @@ const APARTADOS = [
   },
   {
     id: "orquestacion",
+    numero: "04",
+    resumen:
+      "Optimiza la distribución, supervisa el rendimiento y mejora cada campaña.",
+    herramientas: ["Metricool", "Google Analytics", "SE Ranking", "Polymer"],
     icono: BarChart3,
     titulo: ["Orquestación", "impulsada por IA"],
     lado: "der",
@@ -267,10 +302,23 @@ function useConectores(mapaRef, nucleoRef, tarjetaRefs, activo) {
    la que se reservó para la esfera. El componente no decide qué
    pone ahí: en el banco de pruebas va vacía y en la home recibe la
    pista de aterrizaje de la ostra que viaja desde el hero. */
-function InteligenciaIA({ sobreFondo = false, pista = null }) {
+/* ---- POR QUÉ EL TITULAR ELIGE SU NIVEL ----
+   Este bloque se monta en DOS sitios y el nivel correcto no es el
+   mismo en los dos:
+
+     · en /services es el titular de la página — su único <h1>;
+     · en la portada es UNA sección más, y ahí ya hay un <h1>
+       ("CRAFTING AI"). Con este también en h1 había dos, y el
+       resto de secciones del home (Últimos proyectos, Nosotros,
+       Casos de uso) son todas <h2>: esta era la excepción.
+
+   Por defecto <h1>, que es lo que necesita la página propia;
+   quien lo monte dentro de otra le pasa "h2". */
+function InteligenciaIA({ sobreFondo = false, pista = null, nivelTitulo: NivelTitulo = "h1" }) {
   const mapaRef = useRef(null);
   const nucleoRef = useRef(null);
   const tarjetaRefs = useRef([]);
+  const hiloRef = useRef(null);
 
   /* ---- LA LLEGADA DE LA LUZ ENCIENDE LA TARJETA ----
      Toca la clase del nodo directamente en vez de pasar por
@@ -323,14 +371,129 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
      texto, así que ni se dibujan. La misma medida está en el CSS
      y por eso va escrita en las dos partes con el mismo número
      —cambiar una sin la otra deja curvas huérfanas—. */
-  const [conCurvas, setConCurvas] = useState(false);
+  /* Se lee con useMediaQuery y no con un useState+useEffect
+     propio porque ese arrancaba SIEMPRE en false: en escritorio
+     el primer trazado salía con la maqueta de móvil y corregía
+     después. Daba igual mientras la diferencia era solo dibujar
+     unas curvas; ahora que el móvil monta otra composición —la
+     cadena— ese primer fotograma se vería. El hook inicializa
+     con matchMedia de forma síncrona, así que no hay salto. */
+  const conCurvas = useMediaQuery("(min-width: 1080px)");
+
+  /* Mismo interruptor, otra lectura: donde no caben las curvas es
+     donde Misión y Visión van plegadas. Se deriva del estado que ya
+     existe en vez de montar otro matchMedia — dos observadores del
+     mismo ancho acabarían discrepando el día que alguien cambie
+     uno solo. */
+  const esMovil = !conCurvas;
+
+  /* ============================================================
+     EL HILO DE LA CADENA (solo móvil)
+
+     El hilo no se dibuja con medidas escritas a mano por la misma
+     razón que las curvas del escritorio: la altura de cada paso
+     depende de cuántas líneas ocupen su resumen y sus etiquetas,
+     y eso reflowa con el ancho. Un `top` y un `height` fijos
+     cuadran en un móvil y se despegan en el siguiente.
+
+     Así que se miden los NODOS —los círculos numerados— y el hilo
+     se tiende del centro del 01 al centro del 04. Ni un píxel de
+     hilo por encima del primero ni por debajo del último: lleno
+     del todo significa exactamente "has llegado al final".
+
+     El relleno va en un scaleY sobre un pseudoelemento, que
+     resuelve el compositor. Con `height` habría repintado en cada
+     fotograma de scroll.
+
+     Y se lee UNA caja por fotograma: los desplazamientos de los
+     cuatro nodos se cachean al medir, y durante el scroll solo se
+     pregunta dónde está el mapa. */
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1080px)");
-    const leer = () => setConCurvas(mq.matches);
-    leer();
-    mq.addEventListener("change", leer);
-    return () => mq.removeEventListener("change", leer);
-  }, []);
+    if (!esMovil) return undefined;
+
+    const mapa = mapaRef.current;
+    const hilo = hiloRef.current;
+    const pasos = tarjetaRefs.current.filter(Boolean);
+    if (!mapa || !hilo || pasos.length < 2) return undefined;
+
+    const nodos = pasos.map((p) => p.querySelector(".iia__paso-numero"));
+    if (nodos.some((n) => !n)) return undefined;
+
+    /* desplazamiento del centro de cada nodo DENTRO del mapa */
+    let centros = [];
+    let largo = 1;
+
+    const medir = () => {
+      const base = mapa.getBoundingClientRect().top;
+      centros = nodos.map((n) => {
+        const c = n.getBoundingClientRect();
+        return c.top + c.height / 2 - base;
+      });
+      largo = Math.max(1, centros[centros.length - 1] - centros[0]);
+      hilo.style.top = `${centros[0]}px`;
+      hilo.style.setProperty("--iia-hilo-largo", `${largo}px`);
+    };
+
+    medir();
+
+    const limpiar = () => {
+      hilo.style.removeProperty("top");
+      hilo.style.removeProperty("--iia-hilo-largo");
+      hilo.style.removeProperty("--iia-hilo-avance");
+      pasos.forEach((p) => p.removeAttribute("data-visto"));
+    };
+
+    /* Con movimiento reducido el hilo no se llena a plazos: nace
+       lleno y los cuatro nodos encendidos. Sigue contando el
+       recorrido; lo que se retira es la animación, no la idea. */
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      hilo.style.setProperty("--iia-hilo-avance", "1");
+      pasos.forEach((p) => p.setAttribute("data-visto", ""));
+      return limpiar;
+    }
+
+    let pedido = false;
+    const pintar = () => {
+      pedido = false;
+      const base = mapa.getBoundingClientRect().top;
+
+      /* la línea de agua: el hilo se llena hasta donde el lector
+         está mirando, no hasta el borde inferior de la pantalla */
+      const marca = window.innerHeight * 0.72;
+
+      const avance = (marca - (base + centros[0])) / largo;
+      hilo.style.setProperty(
+        "--iia-hilo-avance",
+        String(Math.min(1, Math.max(0, avance)))
+      );
+
+      pasos.forEach((p, i) => {
+        if (base + centros[i] < marca) p.setAttribute("data-visto", "");
+        else p.removeAttribute("data-visto");
+      });
+    };
+
+    const alMover = () => {
+      if (pedido) return;
+      pedido = true;
+      requestAnimationFrame(pintar);
+    };
+
+    pintar();
+
+    window.addEventListener("scroll", alMover, { passive: true });
+    const ro = new ResizeObserver(() => {
+      medir();
+      pintar();
+    });
+    ro.observe(mapa);
+
+    return () => {
+      window.removeEventListener("scroll", alMover);
+      ro.disconnect();
+      limpiar();
+    };
+  }, [esMovil]);
 
   const trazado = useConectores(mapaRef, nucleoRef, tarjetaRefs, conCurvas);
 
@@ -367,14 +530,40 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
               spans con `display: block`, así que en estrecho el CSS
               puede deshacerlo y para un lector de pantalla sigue
               siendo una sola frase. */}
+          {/* ---- EL RÓTULO QUE ABRE EL BLOQUE ----
+              Mismo componente visual que el "¿Cómo lo hacemos?" del
+              segundo bloque —flechas, versalitas y guía en
+              degradado—, para que los dos apartados de la sección
+              se anuncien igual, centrado como él.
+
+              ⚠️ VA FUERA DE <TextoArena>, Y NO ES CAPRICHO: ese
+              componente hace `cloneElement` sobre UN hijo único
+              (le inyecta su ref y su clase). Metiéndolo dentro,
+              recibía dos y `children.props` pasaba a ser undefined
+              — la portada entera se quedaba en blanco. */}
+          <p className="iia__rotulo-centro">
+            <ChevronRight className="iia__rotulo-flecha" aria-hidden="true" />
+            Qué hacemos
+            <ChevronRight
+              className="iia__rotulo-flecha iia__rotulo-flecha--der"
+              aria-hidden="true"
+            />
+          </p>
+
           <TextoArena>
-            <h1 id="iia-titulo" className="iia__titulo">
+            <NivelTitulo id="iia-titulo" className="iia__titulo">
               <span className="iia__titulo-linea">
                 Combinamos{" "}
                 <span className="iia__titulo-acento">pensamiento humano</span>
               </span>
+              {/* Este espacio NO sobra. Las dos líneas son bloque en
+                  escritorio —y ahí un espacio entre bloques no pinta
+                  nada—, pero por debajo de 560px pasan a `inline`
+                  para que el titular fluya. Sin él, JSX se come el
+                  salto de línea del código y las dos piezas quedan
+                  pegadas: se leía "pensamiento humanoy creatividad". */}{" "}
               <span className="iia__titulo-linea">y creatividad con la IA</span>
-            </h1>
+            </NivelTitulo>
           </TextoArena>
 
           <TextoArena>
@@ -417,13 +606,63 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
             <Target strokeWidth={1.7} />
           </span>
           <div>
-            <h2>Nuestra Misión</h2>
-            <p>
-              Para aquellas marcas que puedan sentirse abrumadas o carezcan de
-              experiencia, OYSTERS AI aprovecha el poder de la inteligencia
-              artificial para ayudarlas a alcanzar sus objetivos de marketing y
-              comunicación.
-            </p>
+            {/* ---- PLEGABLE, PERO SOLO EN MÓVIL ----
+                <details> nativo: cero JS y accesible de serie
+                (teclado y lector de pantalla incluidos). El
+                atributo `open` se calcula una vez con el mismo
+                punto de corte que el resto del bloque, así que en
+                escritorio nace abierto; allí el CSS además le
+                quita el cursor y el triángulo, y no hay manera de
+                cerrarlo: se lee exactamente como antes.
+
+                ---- Y ABRE COMO LAS TARJETAS ----
+                Abría en seco, que es lo que hace <details> por su
+                cuenta, mientras los pasos del recorrido se
+                desplegaban con recorrido. Dos plegables con el
+                mismo aspecto y distinta manera de abrirse se leen
+                como dos componentes distintos, y no lo son.
+
+                Se reutiliza el manejador de las tarjetas tal cual
+                —misma duración y misma curva— pasándole su propio
+                grupo, para que este par y los cuatro pasos no se
+                cierren entre sí. Ver alPulsarPlegable.
+
+                ---- Y AHORA NACEN ABIERTAS TAMBIÉN EN LA MANO ----
+                Se plegaron para ahorrar altura, y el ahorro era
+                real: dos titulares en vez de dos párrafos. Pero
+                con la cadena debajo enseñando sus 26 herramientas
+                sin pedir un toque, este par era lo ÚNICO que
+                quedaba escondido en toda la sección — y encima
+                justo antes: el lector llegaba al método habiendo
+                leído dos rótulos y ningún contenido.
+
+                `open` a secas, sin condición: el marcado es el
+                mismo en los dos anchos y el <details> se queda
+                como envoltorio semántico. La manija sigue
+                existiendo en móvil por si se quiere cerrar. */}
+            <details className="iia__desplegable" open>
+              {/* ---- EL CIERRE, BLOQUEADO DE VERDAD ----
+                  El CSS le quita el puntero al summary, y con eso
+                  bastaba para el dedo y para el ratón. Pero no
+                  para el TECLADO: <summary> sigue siendo
+                  enfocable, e Intro con el foco encima dispara un
+                  click que lo pliega — y entonces se queda
+                  plegado, porque ya no hay flecha ni manija con la
+                  que volver a abrirlo.
+
+                  preventDefault cancela el toggle nativo venga de
+                  donde venga. Una línea, y cubre puntero, teclado
+                  y cualquier click disparado por código. */}
+              <summary onClick={(e) => e.preventDefault()}>
+                <h2>Nuestra Misión</h2>
+              </summary>
+              <p>
+                Para aquellas marcas que puedan sentirse abrumadas o carezcan de
+                experiencia, OYSTERS AI aprovecha el poder de la inteligencia
+                artificial para ayudarlas a alcanzar sus objetivos de marketing y
+                comunicación.
+              </p>
+            </details>
           </div>
         </div>
 
@@ -432,13 +671,29 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
             <Eye strokeWidth={1.7} />
           </span>
           <div>
-            <h2>Nuestra Visión</h2>
-            <p>
-              Simplificar el proceso publicitario, haciéndolo accesible para un
-              espectro más amplio de empresas, incluidas las PYMES, al disminuir
-              los costes en talento y facilitar la accesibilidad a aplicaciones
-              y soluciones de inteligencia artificial.
-            </p>
+            <details className="iia__desplegable" open>
+              {/* ---- EL CIERRE, BLOQUEADO DE VERDAD ----
+                  El CSS le quita el puntero al summary, y con eso
+                  bastaba para el dedo y para el ratón. Pero no
+                  para el TECLADO: <summary> sigue siendo
+                  enfocable, e Intro con el foco encima dispara un
+                  click que lo pliega — y entonces se queda
+                  plegado, porque ya no hay flecha ni manija con la
+                  que volver a abrirlo.
+
+                  preventDefault cancela el toggle nativo venga de
+                  donde venga. Una línea, y cubre puntero, teclado
+                  y cualquier click disparado por código. */}
+              <summary onClick={(e) => e.preventDefault()}>
+                <h2>Nuestra Visión</h2>
+              </summary>
+              <p>
+                Simplificar el proceso publicitario, haciéndolo accesible para un
+                espectro más amplio de empresas, incluidas las PYMES, al disminuir
+                los costes en talento y facilitar la accesibilidad a aplicaciones
+                y soluciones de inteligencia artificial.
+              </p>
+            </details>
           </div>
         </div>
       </section>
@@ -462,16 +717,32 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
         </TextoArena>
 
         <TextoArena>
+          {/* "ecosistema avanzado de herramientas de IA" iba aquí en <b>,
+              pintado en rosa. Se quita el realce: ocupaba línea y media de
+              un párrafo de cinco, así que en el móvil no se leía como un
+              énfasis dentro de la frase sino como un segundo titular
+              debajo del titular. Un destacado que abarca un tercio del
+              texto ya no destaca nada — solo parte el párrafo en dos.
+              La frase entera va ahora del mismo color que el resto. */}
           <p className="iia__metodo-entrada">
-            OYSTERS AI se apalanca en un{" "}
-            <b>ecosistema avanzado de herramientas de IA</b>, que cubre desde la
-            escucha digital y la generación de contenido innovador hasta la
-            distribución orgánica, la monitorización y el análisis en tiempo real
-            de los contenidos.
+            OYSTERS AI se apalanca en un ecosistema avanzado de herramientas de
+            IA, que cubre desde la escucha digital y la generación de contenido
+            innovador hasta la distribución orgánica, la monitorización y el
+            análisis en tiempo real de los contenidos.
           </p>
         </TextoArena>
 
         <div className="iia__mapa" ref={mapaRef}>
+          {/* ---- EL HILO DE LA CADENA ----
+              Va DENTRO del mapa porque se posiciona contra él, y
+              solo se monta en móvil: en escritorio quien cuenta el
+              recorrido son el anillo y las cuatro curvas, y una
+              línea vertical más ahí no significaría nada.
+              Sus medidas las pone el efecto del hilo (arriba). */}
+          {esMovil && (
+            <span className="iia__hilo" ref={hiloRef} aria-hidden="true" />
+          )}
+
           {/* Las curvas van DEBAJO de las tarjetas y del anillo
               (z-index 0 contra 1) para que ninguna línea cruce
               por encima de un texto. */}
@@ -511,6 +782,8 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
               <Tarjeta
                 key={a.id}
                 {...a}
+                esCadena={esMovil}
+                esFin={a === APARTADOS[APARTADOS.length - 1]}
                 refCb={(el) => {
                   tarjetaRefs.current[APARTADOS.indexOf(a)] = el;
                 }}
@@ -543,6 +816,8 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
               <Tarjeta
                 key={a.id}
                 {...a}
+                esCadena={esMovil}
+                esFin={a === APARTADOS[APARTADOS.length - 1]}
                 refCb={(el) => {
                   tarjetaRefs.current[APARTADOS.indexOf(a)] = el;
                 }}
@@ -569,20 +844,277 @@ function InteligenciaIA({ sobreFondo = false, pista = null }) {
    el reparto automático dejaba "por IA" solo en la segunda. Es
    un <span> con display:block y no un <br>: el salto es
    presentación, y en móvil el CSS puede deshacerlo. */
-function Tarjeta({ icono: Icono, titulo, texto, refCb }) {
+/* Pinta LAS DOS versiones —la de escritorio y la de móvil— y deja
+   que el CSS enseñe la que toca en cada ancho. Se hace así, y no
+   condicionando con JS, porque el punto de corte es el mismo 1079
+   que ya usan las curvas: mantenerlo en un solo sitio (el CSS)
+   evita que dos sistemas se desincronicen, que es el problema que
+   documenta el comentario del breakpoint.
+
+   El coste es unos nodos de más en el DOM; a cambio, no hay
+   ningún salto al cambiar de tamaño ni un re-render por resize. */
+/* ============================================================
+   EL ACORDEÓN DE HERRAMIENTAS (MÓVIL)
+
+   Abrir un paso cierra el que estuviera abierto, y las dos cosas
+   ocurren a la vez y con recorrido: uno se pliega mientras el
+   otro se despliega.
+
+   ---- POR QUÉ ESTO ES CÓDIGO Y NO CSS ----
+   La primera versión lo resolvía sin JS: `name` compartido en los
+   <details> para la exclusividad, y `::details-content` +
+   `interpolate-size` para animar la altura. Funciona, es elegante
+   y se queda en dos reglas... en Chrome 131+. En Safari y Firefox
+   la apertura salía instantánea, o sea que la mitad del encargo
+   —que la animación se note— no llegaba a la mitad de la gente.
+
+   Medir con la API de animaciones da el MISMO gesto en todos los
+   navegadores, que es lo que se pedía. El precio es tener que
+   hacer a mano lo que el elemento hacía solo, incluida la
+   exclusividad: `name` se retira a propósito, porque al abrir un
+   paso el navegador cerraría al instante a su compañero y se
+   llevaría por delante la animación de cierre a media reproducción.
+
+   El <details> se queda como elemento: sigue dando el plegado
+   accesible y el teclado (Intro y Espacio sobre la cabecera
+   disparan un click, así que caen en este mismo manejador).
+   ============================================================ */
+const ACORDEON_MS = 420;
+const ACORDEON_CURVA = "cubic-bezier(.22,.8,.36,1)";
+
+/* el mismo 1079 que usan el CSS y los conectores */
+const ACORDEON_MOVIL = "(max-width: 1079px)";
+
+const consulta = (q) =>
+  typeof window !== "undefined" && window.matchMedia(q).matches;
+
+/* Anima un paso midiendo sus DOS alturas reales —la de la fila
+   sola y la del conjunto con las etiquetas—, que es la única
+   forma de que valga igual para el paso de 4 herramientas y el de
+   11 sin escribir ninguna altura a mano. */
+function animarPaso(det, abrir) {
+  /* si venía animándose (alguien pulsa rápido), esa animación se
+     descarta antes de medir: si no, se mediría a media altura */
+  det.__anim?.cancel();
+  det.__anim = null;
+
+  /* La cabecera que queda a la vista al plegar. Se busca como
+     `summary` hijo directo y no por su clase: así la misma función
+     sirve para los pasos del recorrido y para Misión/Visión, que
+     no comparten clase pero sí la estructura que aquí importa
+     —un <details> con su cabecera y, debajo, lo que se despliega—. */
+  const fila = det.querySelector(":scope > summary");
+  if (!fila) return;
+
+  const desde = det.getBoundingClientRect().height;
+
+  /* abierto para poder medir el total. Al CERRAR ya lo estaba, y
+     tiene que seguir estándolo durante todo el recorrido: es lo
+     que mantiene las etiquetas a la vista mientras se pliegan. */
+  det.open = true;
+
+  const hasta = abrir
+    ? det.getBoundingClientRect().height
+    : fila.getBoundingClientRect().height;
+
+  det.style.overflow = "hidden";
+
+  const anim = det.animate(
+    [{ height: `${desde}px` }, { height: `${hasta}px` }],
+    { duration: ACORDEON_MS, easing: ACORDEON_CURVA, fill: "forwards" },
+  );
+  det.__anim = anim;
+
+  anim.onfinish = () => {
+    /* el orden importa: primero se pliega de verdad y DESPUÉS se
+       suelta el `fill`. Al revés, la altura volvería a `auto` —o
+       sea, a la de abierto— durante el fotograma que va hasta que
+       `open` pasa a false, y se vería un parpadeo. */
+    if (!abrir) det.open = false;
+    anim.cancel();
+    det.style.overflow = "";
+    det.__anim = null;
+  };
+}
+
+/* ============================================================
+   EL MISMO ACORDEÓN, DOS GRUPOS INDEPENDIENTES
+
+   Este manejador lo comparten los cuatro pasos del recorrido y el
+   par Misión/Visión. No es que se parezcan: es literalmente el
+   mismo código, para que si mañana se cambia la curva o la
+   duración cambien los dos a la vez.
+
+   ---- POR QUÉ EL GRUPO ES UN PARÁMETRO ----
+   Lo único que no pueden compartir es con quién compiten. La
+   exclusividad se hace a mano (ver arriba por qué se retiró
+   `name`), y con un selector fijo los seis plegables serían un
+   solo acordeón: abrir "Nuestra Visión" cerraría "Contenido
+   impulsado por IA", que está en otro bloque, más abajo y fuera de
+   pantalla. El usuario vería colapsar algo que no ha tocado y que
+   ni siquiera está mirando.
+
+   Así que cada bloque pasa el suyo y los dos acordeones se ignoran
+   entre sí. Dentro de cada uno sí hay exclusividad: abrir Misión
+   cierra Visión, igual que abrir un paso cierra a sus compañeros.
+
+   `raiz` sigue acotando a `.iia` y no al documento porque esta
+   sección se monta en dos sitios —la portada y "Cómo lo
+   hacemos"—, y sin acotar, abrir en una cerraría en la otra.
+   ============================================================ */
+function alPulsarPlegable(e, grupo) {
+  /* En escritorio no hay nada que animar: los pasos son
+     `display: contents` (sin caja que medir) con el cajón oculto, y
+     Misión/Visión nacen abiertos y con la cabecera sin ratón. Se
+     deja pasar el comportamiento nativo. */
+  if (!consulta(ACORDEON_MOVIL)) return;
+
+  e.preventDefault();
+
+  const det = e.currentTarget.parentElement;
+  const raiz = det.closest(".iia") ?? document;
+  const abrir = !det.open;
+
+  const hermanos = [...raiz.querySelectorAll(`${grupo}[open]`)].filter(
+    (otro) => otro !== det
+  );
+
+  /* con movimiento reducido no hay recorrido: se abre y se cierra
+     en seco, que es justo lo que pide la preferencia */
+  if (consulta("(prefers-reduced-motion: reduce)")) {
+    hermanos.forEach((otro) => (otro.open = false));
+    det.open = abrir;
+    return;
+  }
+
+  hermanos.forEach((otro) => animarPaso(otro, false));
+  animarPaso(det, abrir);
+}
+
+/* ============================================================
+   UN PASO DEL RECORRIDO
+
+   La misma tarjeta sirve para los dos anchos, y el reparto es
+   este:
+
+     · dentro de <summary> va TODO lo que se ve sin abrir —el
+       icono, el titular, el texto y la cuenta de herramientas—,
+       porque es lo único que el escritorio enseña;
+     · fuera, como contenido del <details>, van solo las
+       etiquetas, que en escritorio están ocultas.
+
+   Por eso NO hace falta forzar `open` en escritorio: allí el
+   contenido plegable no aporta nada, y el CSS le quita a la
+   cabecera el cursor y la flecha para que se lea como lo que era,
+   una tarjeta normal. En móvil, en cambio, la fila entera es el
+   interruptor —tocar en cualquier punto abre—, que es mucho mejor
+   diana que un enlace de texto.
+   ============================================================ */
+function Tarjeta({
+  icono: Icono,
+  numero,
+  titulo,
+  texto,
+  resumen,
+  herramientas,
+  esCadena,
+  esFin,
+  refCb,
+}) {
+  /* ---- QUIÉN ABRE Y QUIÉN CIERRA ----
+     Se toma el control del toggle para poder animar los dos pasos
+     implicados; el navegador, por su cuenta, abre y cierra en seco.
+     La mecánica está en alPulsarPlegable, que comparte con
+     Misión/Visión; aquí solo se dice contra quién compite este
+     plegable — los otros tres pasos, y nadie más. */
+  /* ---- EN LA CADENA NO HAY NADA QUE PLEGAR ----
+     El móvil enseña las herramientas puestas, así que el plegable
+     nace abierto y aquí se le corta el paso: preventDefault sobre
+     el click del <summary> cancela el toggle nativo, y como pulsar
+     Intro con el foco encima también dispara un click, cubre
+     ratón, dedo y teclado con una sola línea. Escritorio conserva
+     su acordeón intacto. */
+  const alPulsarFila = (e) => {
+    if (esCadena) {
+      e.preventDefault();
+      return;
+    }
+    alPulsarPlegable(e, "details.iia__paso");
+  };
+
   return (
-    <article className="iia__tarjeta" ref={refCb}>
-      <span className="iia__tarjeta-icono" aria-hidden="true">
-        <Icono strokeWidth={1.7} />
+    <article
+      className="iia__tarjeta"
+      ref={refCb}
+      /* `numero` ya no se PINTA —se retiró el distintivo—, pero
+         sigue siendo el que ordena: en móvil las tarjetas llegan
+         repartidas en dos columnas y este es el valor que las
+         recoloca (ver `order` en el CSS). */
+      style={{ "--paso": Number(numero) }}
+      /* marca el ÚLTIMO paso. Va como dato y no con
+         `:last-of-type` porque las tarjetas viven repartidas en
+         DOS columnas del DOM (el reparto de escritorio), y ese
+         selector marcaba como última a la de cada columna. */
+      data-fin={esFin || undefined}
+      /* y el PRIMERO, por el mismo motivo: en la cadena es quien
+         no lleva filete encima ni relleno superior. */
+      data-inicio={numero === "01" || undefined}
+    >
+      {/* SIN `name`: la exclusividad la lleva alPulsarFila (ver el
+          bloque del acordeón, arriba). Con `name`, el navegador
+          cerraría al compañero de golpe y se comería su animación
+          de cierre. */}
+      {/* El nodo del hilo. Va FUERA del <details> y no dentro del
+          summary porque se posiciona contra la tarjeta —se sale
+          por su izquierda, sobre el hilo—, y porque el número es
+          el mismo dato que ya ordenaba los pasos en móvil: hasta
+          ahora estaba en el DOM sin verse. En escritorio se
+          apaga. */}
+      <span className="iia__paso-numero" aria-hidden="true">
+        {numero}
       </span>
 
-      <div className="iia__tarjeta-cuerpo">
-        <h3>
-          <span>{titulo[0]}</span>
-          <span>{titulo[1]}</span>
-        </h3>
-        <p>{texto}</p>
-      </div>
+      <details className="iia__paso" open={esCadena || undefined}>
+        <summary className="iia__paso-fila" onClick={alPulsarFila}>
+          <span className="iia__tarjeta-icono" aria-hidden="true">
+            <Icono strokeWidth={1.7} />
+          </span>
+
+          <div className="iia__tarjeta-cuerpo">
+            <h3>
+              <span>{titulo[0]}</span>
+              <span>{titulo[1]}</span>
+            </h3>
+
+            {/* escritorio */}
+            <p className="iia__tarjeta-texto">{texto}</p>
+
+            {/* móvil */}
+            <p className="iia__tarjeta-resumen">{resumen}</p>
+
+            {/* La flecha va AQUÍ y no al borde de la tarjeta: lo
+                que se abre son las herramientas, así que el
+                indicador tiene que estar donde está la promesa.
+                Al borde derecho quedaba flotando a media altura,
+                sin decir qué desplegaba. */}
+            <p className="iia__tarjeta-cuenta">
+              {herramientas.length} herramientas
+              <ChevronRight className="iia__paso-flecha" aria-hidden="true" />
+            </p>
+          </div>
+        </summary>
+
+        {/* --t alimenta el escalonado de la entrada en CSS: las
+            etiquetas no aparecen de golpe, entran una detrás de
+            otra. Con motion reducido el CSS lo desactiva. */}
+        <ul className="iia__tarjeta-tags">
+          {herramientas.map((h, i) => (
+            <li key={h} style={{ "--t": i }}>
+              {h}
+            </li>
+          ))}
+        </ul>
+      </details>
     </article>
   );
 }
