@@ -7,6 +7,7 @@ import LightDust from "../lightDust/LightDust";
 import FondoNuevo from "../fondoNuevo/FondoNuevo";
 import trabajos from "../../data/trabajos";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import useTelonNacar from "../../hooks/useTelonNacar";
 import useEnPantalla from "../../hooks/useEnPantalla";
 import { useEffect, useRef, useState } from "react";
 
@@ -44,6 +45,35 @@ const MAX_PROYECTOS = 5;
    ⚠️ El árbol de ESCRITORIO no se ha tocado ni una línea. Si
    algo cambia ahí, es un error. */
 const CORTE_MANO = "(max-width: 1079px)";
+
+/* ============================================================
+   EL TELÓN DE NÁCAR — QUÉ SE DESCUBRE AQUÍ
+
+   Cinco piezas, elegidas por lo que son y no por dónde están:
+   el rótulo y el titular de la cabecera, el párrafo, la perla
+   mayor —la ficha del trabajo destacado— y la tira de turnos.
+
+   La perla mayor va aparte en `TELON_CON_FILO` porque es la única
+   pieza alta de verdad: 380px de foto. Ahí el filo de nácar
+   recorre de veras y se lee como un telón. En el rótulo, que mide
+   16px, sería un destello.
+
+   ⚠ NO se descubre `.lp-mano` entera. Es la caja que contiene la
+   perla y la tira, y recortarla de golpe destaparía las dos a la
+   vez: el trabajo destacado y su índice entrarían como un solo
+   bloque de 700px, que es justo lo contrario de lo que hace el
+   telón —descubrir pieza a pieza, al ritmo del scroll—.
+   ============================================================ */
+const TELON_PIEZAS = [
+  ".lp-cabeza .latest-projects__eyebrow",
+  ".lp-cabeza .latest-projects__title",
+  ".lp-cabeza .latest-projects__description",
+  ".lp-cabeza .latest-projects__all",
+  ".lp-mano__perla",
+  ".lp-mano__turnos",
+].join(", ");
+
+const TELON_CON_FILO = ".lp-mano__perla";
 
 /* ---- EL ESCENARIO ROTA ----
    El destacado no es fijo: los trabajos se van turnando en él.
@@ -295,6 +325,7 @@ function LatestProjects() {
      las cards desaparecerían por debajo. */
   const [gridRef, cardsIn] = useEnPantalla({ ratio: 0.25 });
 
+
   /* ---- entrada del cristal ----
      Observador propio y no el del grid: el cristal vive en la
      cabecera, muy por encima de las cards, y con el umbral del
@@ -320,6 +351,18 @@ function LatestProjects() {
 
   /* la maqueta de la mano (ver CORTE_MANO arriba) */
   const esMano = useMediaQuery(CORTE_MANO);
+
+  /* El telón de nácar, la misma entrada que "Cómo lo hacemos".
+     La mecánica está en el hook —ahí se explica por qué se mide
+     con un listener y no con IntersectionObserver—; aquí sólo se
+     dice QUÉ se descubre. Solo en la mano: escritorio conserva su
+     entrada de siempre. */
+  useTelonNacar(sectionRef, {
+    piezas: TELON_PIEZAS,
+    conFilo: TELON_CON_FILO,
+    activo: esMano,
+  });
+
 
   /* cuál está en el escenario ahora mismo */
   const [actual, setActual] = useState(0);

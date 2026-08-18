@@ -81,3 +81,84 @@
 
   pointer-events: none;
 }
+
+/* ---- LA BASE ----
+   Color plano, fija a la ventana y por debajo de todo. Hace dos
+   trabajos: tapar el fogonazo mientras el shader compila (antes lo
+   hacía la caja de la nube) y, en la mano, ser el papel sobre el
+   que se lee el cuerpo del proyecto. Ver Fondo() en el JSX. */
+.work-detail__base {
+  position: fixed;
+  inset: 0;
+
+  z-index: 0;
+
+  background-color: var(--wd-fondo-base);
+
+  pointer-events: none;
+}
+
+/* ============================================================
+   EN LA MANO, LA NUBE SOLO OCUPA LA MITAD DE ARRIBA
+
+   Medido sobre la página real: el contraste no fallaba —de 15,6:1
+   a 5,8:1, los dos pasan AA— pero la luz del fondo SALTABA ×67 a
+   lo largo del scroll. Cada párrafo caía sobre una mancha distinta
+   de la nube y se leía con un peso distinto. Eso es lo que hacía
+   que no se apreciara bien, y no el brillo.
+
+   Así que la nube se queda en la MITAD SUPERIOR de la pantalla y
+   se funde a plano hacia abajo. El contenido pasa por delante (la
+   sección va en z1 y esto en z0), de modo que lo que se lee cae
+   siempre sobre la parte serena mientras arriba sigue habiendo
+   fondo. Ni desaparece ni tapa: se retira a media pantalla.
+
+   ---- Y SIGUE SIENDO FIJA ----
+   Aquí hubo un error mío que conviene no repetir: se probó a
+   anclarla al DOCUMENTO para que se marchara con el scroll, y el
+   resultado es que a partir de la primera pantalla no quedaba
+   fondo ninguno — media ficha sobre negro liso. La maqueta que se
+   aprobó la tiene fija a la VENTANA, ocupando siempre la mitad de
+   arriba. Es lo que se hace aquí.
+
+   ---- LAS PROPORCIONES SALEN DE LA MAQUETA ----
+   Allí la nube medía 330 de un teléfono de 660 —la mitad— y el
+   fundido, 150: un 45% de la propia nube. Se conservan en vh y en
+   porcentaje para que no dependan de un alto de pantalla concreto.
+
+   De regalo, el lienzo baja de 100vh a 50vh: el shader pinta la
+   mitad de píxeles por fotograma en el sitio donde más se nota.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- Y EL PAPEL NO ES TAN NEGRO ----
+     Aquí se heredó el #07040d que ya tenía la página, y ese color
+     estaba pensado para vivir DEBAJO de la nube —donde no se ve—,
+     no para ser el papel sobre el que se lee media ficha. Solo
+     tapaba el fogonazo de carga. De papel se leía como un agujero
+     negro debajo de una web que es puro morado.
+
+     Este es el de la maqueta: sigue siendo oscuro y estable, pero
+     conserva el morado de la casa. */
+  :root {
+    --wd-fondo-base: #0d0818;
+  }
+
+  .work-detail__fondo {
+    inset: 0 0 auto 0;
+
+    height: 50vh;
+  }
+
+  /* el fundido a plano: sin él, el corte de la nube sería una
+     línea recta cruzando la pantalla */
+  .work-detail__fondo::after {
+    content: "";
+
+    position: absolute;
+    inset: auto 0 0 0;
+
+    height: 45%;
+
+    background: linear-gradient(0deg, var(--wd-fondo-base), transparent);
+  }
+}

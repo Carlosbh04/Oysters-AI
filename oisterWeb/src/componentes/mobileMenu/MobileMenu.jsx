@@ -1,12 +1,20 @@
 import "./MobileMenu.css";
-import useIrASeccion from "../../hooks/useIrASeccion";
+import useViajeConPersiana from "../../hooks/useViajeConPersiana";
 import { NavLink } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import MobileAccordion from "../mobileAccordion/MobileAccordion.jsx";
 import { dropdowns } from "../../data/dropdown.js";
 
 function MobileMenu({ isOpen, onClose }) {
-  const irASeccion = useIrASeccion();
+  /* ---- TODO EL MENÚ SALE CON LA PERSIANA DELANTE ----
+     Los dos tipos de destino usan la misma transición y se
+     diferencian solo en lo que hacen con la pantalla tapada:
+     `aRuta` cambia de página, `aSeccion` se coloca en un bloque de
+     la portada. Ver useViajeConPersiana.js.
+
+     (El menú de ESCRITORIO sigue con el scroll animado de
+     useIrASeccion: allí el recorrido se ve y merece la pena.) */
+  const { aRuta, aSeccion } = useViajeConPersiana();
 
   const [openAccordion, setOpenAccordion] = useState(null);
   const navRef = useRef(null);
@@ -64,7 +72,11 @@ function MobileMenu({ isOpen, onClose }) {
 
       <aside className={`mobile-menu ${isOpen ? "active" : ""}`}>
         <div className="mobile-menu__header">
-          <NavLink to="/" className="mobile-menu__logo" onClick={closeMenu}>
+          <NavLink
+            to="/"
+            className="mobile-menu__logo"
+            onClick={aRuta("/", closeMenu)}
+          >
             Oysters AI
           </NavLink>
         </div>
@@ -72,9 +84,9 @@ function MobileMenu({ isOpen, onClose }) {
         <nav className="mobile-menu__nav" ref={navRef}>
           <NavLink
             className="mobile-menu__link"
+            style={{ "--i": 0 }}
             to="/#nosotros"
-            onClick={closeMenu}
-            onClickCapture={irASeccion("nosotros")}
+            onClick={aSeccion("nosotros", closeMenu)}
           >
             Nosotros
             <span className="mobile-menu__arrow">→</span>
@@ -98,9 +110,9 @@ function MobileMenu({ isOpen, onClose }) {
               lo hacemos": ver el porqué en DesktopMenu.jsx.) */}
           <NavLink
             className="mobile-menu__link"
+            style={{ "--i": 1 }}
             to="/#que-hacemos"
-            onClick={closeMenu}
-            onClickCapture={irASeccion("que-hacemos")}
+            onClick={aSeccion("que-hacemos", closeMenu)}
           >
             Cómo lo hacemos
             <span className="mobile-menu__arrow">→</span>
@@ -111,20 +123,29 @@ function MobileMenu({ isOpen, onClose }) {
               /use-cases: acababa en "no encontrado") */}
           <NavLink
             className="mobile-menu__link"
+            style={{ "--i": 2 }}
             to="/#casos-de-uso"
-            onClick={closeMenu}
-            onClickCapture={irASeccion("casos-de-uso")}
+            onClick={aSeccion("casos-de-uso", closeMenu)}
           >
             Casos de uso
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
-          <NavLink className="mobile-menu__link" to="/works" onClick={closeMenu}>
+          <NavLink
+            className="mobile-menu__link"
+            style={{ "--i": 3 }}
+            to="/works"
+            onClick={aRuta("/works", closeMenu)}
+          >
             Trabajos
             <span className="mobile-menu__arrow">→</span>
           </NavLink>
 
+          {/* --i alimenta el escalonado del enfoque (ver
+              MobileMenu.css): un número por hijo del nav, en el
+              orden en que se leen. */}
           <MobileAccordion
+            style={{ "--i": 4 }}
             id="resources"
             title={dropdowns.resources.title}
             items={dropdowns.resources.items}
@@ -140,7 +161,11 @@ function MobileMenu({ isOpen, onClose }) {
             ES
           </button>
 
-          <NavLink to="/contact" className="mobile-menu__cta" onClick={closeMenu}>
+          <NavLink
+            to="/contact"
+            className="mobile-menu__cta"
+            onClick={aRuta("/contact", closeMenu)}
+          >
             Hablemos
           </NavLink>
         </div>

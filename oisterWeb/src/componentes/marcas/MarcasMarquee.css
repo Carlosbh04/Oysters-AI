@@ -117,46 +117,98 @@
 .marcas__vuelta {
   display: flex;
   align-items: center;
-  /* El hueco sube de 3.5rem a 6rem, y no es cosmético: con 3
-     marcas, cuanto más ancha es la cinta más repeticiones caben
-     a la vista y más se nota que son pocas. Más aire = menos
-     elementos en pantalla a la vez. Cuando entren más clientes
-     se puede volver a apretar. */
-  gap: clamp(2.75rem, 5vw, 6rem);
+  /* ---- EL HUECO, Y POR QUÉ SON DOS NÚMEROS ATADOS ----
+     Con las placas el aire baja de 6rem a 14px: cada marca ya
+     tiene su propia caja, y el hueco grande que separaba palabras
+     sueltas aquí dejaría las placas flotando sin relación.
+
+     ⚠ `gap` y `padding` NO son independientes. El padding es lo
+     que separa la ÚLTIMA placa de una copia de la PRIMERA de la
+     siguiente, así que entre copias hay padding×2. Para que el
+     empalme del bucle sea invisible tiene que dar exactamente lo
+     mismo que el gap: 7 + 7 = 14.
+
+     Estaban descuadrados de antes —44px de gap contra 32 entre
+     copias a 390px— y por eso cada vuelta tenía un pequeño
+     tirón: no era la animación, era que el hueco cambiaba. */
+  gap: 14px;
 
   margin: 0;
-  /* el padding hace de separación ENTRE las dos copias: sin él,
-     la última marca de una y la primera de la otra se pegarían y
-     el empalme se notaría */
-  padding: 0 clamp(1rem, 2vw, 1.75rem);
+  padding: 0 7px;
 
   list-style: none;
 }
 
+/* ---- CADA MARCA, EN SU PLACA ----
+   Eran nombres sueltos flotando sobre la banda. Puestos en una
+   placa de cristal con su filo y su reflejo superior, la cinta
+   deja de leerse como una lista de palabras y pasa a leerse como
+   un muro de clientes en movimiento — que es justo lo que quiere
+   decir, y que no puede decir con logotipos porque no los hay.
+
+   El reflejo de arriba (`inset 0 1px 0`) es el que convierte el
+   rectángulo en una lámina: sin él la placa es una caja plana. */
 .marcas__item {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 10px;
 
-  font-size: clamp(0.85rem, 0.78rem + 0.3vw, 1rem);
+  padding: 11px 18px;
+
+  border: 1px solid rgb(var(--rgb-secondary, 201 168 255) / 0.26);
+
+  /* --radius-sm, no 14px a ojo: la escala del sistema tiene 12 y
+     18, y para una placa de 41px de alto el de 18 la redondea
+     demasiado — se acerca a la píldora y deja de leerse como una
+     lámina. El de 12 es el que corresponde. */
+  border-radius: var(--radius-sm, 12px);
+
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.09),
+    rgba(255, 255, 255, 0.03)
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 16px rgba(10, 4, 22, 0.35);
+
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
 
   color: var(--color-text, #f6f0ff);
 
-  /* en reposo van apagadas: la cinta es una prueba de confianza,
-     no debe competir con las cards de arriba */
-  opacity: 0.62;
+  /* ⚠ SIN OPACIDAD DE REPOSO AQUÍ, Y ES UNA CORRECCIÓN.
+     Iban al 62% y volvían a 1 con `:hover`. En un móvil no hay
+     hover, así que ese hover nunca llegaba: las marcas se veían
+     apagadas SIEMPRE, y son la prueba de confianza de la página
+     —los nombres de los clientes reales—. Justo lo que no
+     conviene atenuar de forma permanente.
 
+     El apagado se conserva donde tiene sentido, dentro de
+     `@media (hover: hover)`: allí hay un gesto que lo revierte.
+     En táctil se leen a plena tinta. */
   transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .marcas__item {
+    opacity: 0.62;
+  }
 }
 
 .marcas__item svg {
   flex-shrink: 0;
   color: var(--color-secondary, #c9a8ff);
 }
+
+/* Aquí estaba la perla separadora, que puse cuando las marcas
+   eran texto suelto: servía para que la repetición se leyera como
+   cadencia. Con las placas sobra —cada marca ya tiene su canto— y
+   además caía DENTRO de la caja, que no es donde iba. */
 
 @media (prefers-reduced-motion: no-preference) {
   /* De 0 a -50%: la pista lleva dos copias, así que al llegar a
@@ -177,6 +229,13 @@
   /* se detiene al pasar por encima: si alguien se para a mirar
      una marca, lo normal es que pueda leerla */
   .marcas:hover .marcas__pista {
+    animation-play-state: paused;
+  }
+
+  /* y se detiene FUERA DE PANTALLA. El atributo lo pone el
+     observador del componente; `paused` congela sin reiniciar, así
+     que al volver a entrar sigue por donde iba. */
+  .marcas[data-quieta] .marcas__pista {
     animation-play-state: paused;
   }
 
@@ -203,9 +262,31 @@
   }
 }
 
+/* ---- SI CIERRA LA PÁGINA, NO SEPARA DE NADA ----
+   La cinta lleva 56px de margen inferior, puestos para separarla
+   de la banda de contacto que venía debajo. Al retirarse esa
+   banda, la cinta pasó a ser lo último de la página y ese margen
+   quedó sosteniendo aire: junto con los 60px de relleno de la
+   lista y los 42 de la sección, dejaban 158px de fondo vacío
+   antes del pie.
+
+   `:last-child` y no un valor fijo: así el margen vuelve solo el
+   día que se ponga algo debajo. La regla dice lo que se quiere
+   decir —"si soy la última, no separo"— en vez de codificar el
+   estado de hoy. */
+@media (max-width: 1079px) {
+  .marcas:last-child {
+    margin-bottom: 0;
+  }
+}
+
 @media (max-width: 640px) {
   .marcas__titulo {
-    font-size: 0.66rem;
+    /* 11,5px es el rol `data` de DESIGN.md. Estaba en 0.66rem
+       —10,56px—, fuera de la rampa y por debajo de cualquier otro
+       rótulo del sitio: en un móvil, el texto que dice de QUÉ va
+       la cinta era el más pequeño de la página. */
+    font-size: 11.5px;
     letter-spacing: 0.13em;
   }
 }

@@ -892,3 +892,359 @@
 
   color: var(--wd-magenta);
 }
+
+/* ============================================================
+   EL CASO DE ESTUDIO — la ficha en la mano
+
+   El cuerpo de la ficha eran NUEVE tarjetas casi idénticas
+   apiladas —descripción, entregables, siguiente proyecto,
+   objetivo, resultado, proyectos, herramientas y el cierre—, con
+   el mismo filo, el mismo fondo y el mismo radio. 2.652px de
+   cajas iguales. Se leía como un formulario relleno, no como el
+   relato de un trabajo; es el mismo problema que tenían los
+   cuatro pasos del método antes de la cadena.
+
+   Aquí se quitan TODAS las cajas. Lo que separa un apartado del
+   siguiente es un filete y su aire, no un borde. La tipografía
+   hace el trabajo que hacían los contenedores.
+
+   ⚠ Solo por debajo de 1080. En escritorio las tarjetas van en
+   dos columnas y ahí la caja SÍ trabaja: delimita qué pertenece a
+   cada columna. Quitarlas allí dejaría dos ríos de texto sin
+   frontera.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ============================================================
+     LA TINTA SUBE, LA NUBE SE QUEDA
+
+     El cuerpo va a `rgba(230,220,255,0.7)`. Ese 70% se eligió en
+     escritorio, donde el texto vive sobre fondo quieto y a dos
+     columnas: ahí un gris claro descansa la lectura.
+
+     En la mano el mismo texto cae sobre la nube, que se mueve y
+     cambia de luz — y a 0,7 no se lee mal, se lee APAGADO: medido
+     por línea, las peores bajan a 5,7:1 cuando las de la zona
+     plena llegan a 17,6.
+
+     Se sube la tinta en vez de velar más la nube. Es lo que se
+     pidió: conservar el efecto del fondo y que el texto se note.
+     0,88 mantiene la jerarquía —sigue por debajo de --wd-texto,
+     que es blanco puro para lo que manda— y deja de parecer
+     desvaído.
+     ============================================================ */
+  /* Va en `.wd` y no en `:root`: los tokens del detalle se
+     declaran ahí (ver arriba), así que un override en la raíz lo
+     pisaba el propio artículo y no surtía efecto — comprobado, el
+     texto seguía saliendo a 0,7. */
+  .wd {
+    --wd-texto-suave: rgba(238, 231, 255, 0.88);
+  }
+
+  /* ---- LA BARRA DE FICHA: UNA TIRA, NO UN BLOQUE ----
+     Se solapaba, y no por falta de una regla sino por una que no
+     podía funcionar: el bloque de 768px hacía `grid-auto-flow:
+     row` sobre `.wd-meta`, que es `display: flex`. En un flex esa
+     propiedad no existe, así que las cuatro celdas seguían en
+     fila sin envolver y a 390px "Infraestructura y Energía
+     Sostenible" montaba encima de "ACCIONA" y de "2025".
+
+     Se resuelve como en la maqueta: una TIRA de una línea bajo la
+     portada —cliente · año · industria · web— en versalitas de
+     dato, separados por puntos de nácar. Ocupa 44px en vez de un
+     bloque de cuatro celdas, y no puede solaparse porque no
+     envuelve: lo que no cabe se arrastra.
+
+     Las etiquetas —"Cliente", "Año"— se van con el bloque, y es
+     deliberado: los valores se identifican solos (una marca, un
+     año, un sector, un dominio) y repetir su nombre en una tira de
+     una línea la duplicaba de largo para no añadir nada. */
+  /* ---- Y AHORA LA TIRA SE MUEVE SOLA ----
+     Era un scroll horizontal: había que arrastrarla para llegar al
+     año o a la web, y nada avisaba de que hubiera más a la
+     derecha. En cinta continua se leen solas.
+
+     `overflow: hidden` y no `auto`: ya no hay nada que arrastrar,
+     y dejar el scroll activo permitía empujar la cinta y romper el
+     empalme de las dos copias. */
+  .wd-meta {
+    display: block;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+  }
+
+  /* la pista lleva las dos copias y es la que viaja; ver el porqué
+     del -50% en WorkMetaBar.jsx */
+  .wd-meta__pista {
+    display: flex;
+    width: max-content;
+
+    animation: wd-meta-desliza 26s linear infinite;
+  }
+
+  @keyframes wd-meta-desliza {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* fuera de pantalla se congela donde iba (lo pone el observador
+     de WorkMetaBar.jsx) */
+  .wd-meta[data-quieta] .wd-meta__pista {
+    animation-play-state: paused;
+  }
+
+  .wd-meta__vuelta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    /* el hueco que separa una vuelta de la siguiente: sin él, la
+       última celda de una copia se pega a la primera de la otra */
+    padding-right: 10px;
+  }
+
+  .wd-meta__celda {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+
+    border: 0;
+    padding: 0;
+  }
+
+  /* el punto separador. Va en el ::before de la celda y no como
+     borde entre celdas para que sobreviva al arrastre: un borde
+     lateral se pega al canto de la caja y con scroll horizontal
+     se ve cortado a mitad. */
+  /* el punto también delante de la PRIMERA celda de cada vuelta:
+     en una cinta continua no hay principio, y sin él se veía una
+     costura cada vez que empalmaban las dos copias */
+  .wd-meta__celda + .wd-meta__celda::before,
+  .wd-meta__vuelta .wd-meta__celda:first-child::before {
+    content: "";
+
+    width: 3px;
+    height: 3px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+    background: var(--color-magenta, #e879f9);
+  }
+
+  .wd-meta__icono,
+  .wd-meta__rotulo {
+    display: none;
+  }
+
+  .wd-meta__texto {
+    display: block;
+  }
+
+  .wd-meta__valor {
+    font-family: var(--wd-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-soft, #cdc1e2);
+  }
+
+  .wd-meta__valor a {
+    color: inherit;
+  }
+
+  /* ---- FUERA LAS CAJAS ----
+     El relleno lateral se va con ellas: el texto pasa a alinear
+     con el titular y con la foto, que es lo que hace que se lea
+     como una página y no como una pila de fichas. */
+  .wd-tarjeta {
+    padding: 26px 0 0;
+
+    border: 0;
+    border-top: 1px solid var(--wd-borde);
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* la tira va justo bajo la galería y cierra con un filete
+     inferior, no superior: separa de lo que viene, no de lo que
+     acaba de terminar — la imagen ya corta por sí sola. */
+  .wd-meta.wd-tarjeta {
+    padding: 14px 0;
+    border-top: 0;
+    border-bottom: 1px solid var(--wd-borde);
+  }
+
+  /* ---- LA GALERÍA, A SANGRE ----
+     Llevaba 26px de relleno lateral para que las flechas no se
+     recortaran contra el borde. En la mano esas flechas sobran
+     —se pasa con el dedo— y ese relleno dejaba la foto más
+     estrecha que el texto que tiene debajo, que es lo que hacía
+     que la página no se leyera como la maqueta: allí la imagen va
+     de borde a borde y es lo primero que pesa. */
+  .wd-carrusel {
+    padding-inline: 0;
+    margin-inline: calc(50% - 50vw);
+  }
+
+  /* ⚠ AQUÍ SE PROBÓ A QUITAR LAS FLECHAS, y no se puede.
+     La maqueta enseñaba una foto suelta y la tentación era
+     esconderlas para que la imagen quedara limpia de borde a
+     borde. Pero este carrusel NO tiene arrastre táctil: no lleva
+     scroll-snap, ni overflow, ni manejadores de puntero — las
+     flechas son el único modo de avanzar. Ocultarlas dejaba
+     ACCIONA con una pieza visible de cuatro.
+
+     Si algún día se quieren fuera, primero hay que darle al
+     carrusel el gesto del dedo. */
+
+  /* ---- LOS RÓTULOS, EN LA VOZ DEL SITIO ----
+     Llevaban un icono cada uno —diana, chispas, portapapeles— y
+     con las cajas fuera esos siete iconos distintos eran siete
+     formas compitiendo en una columna de texto. Se cambian por el
+     filete corto que abre todas las secciones del sitio: una sola
+     marca, repetida, que agrupa en vez de dispersar. */
+  .wd-rotulo svg,
+  .wd-rotulo__punto {
+    display: none;
+  }
+
+  .wd-rotulo {
+    gap: 10px;
+    margin-bottom: 11px;
+
+    /* 11,5px es el rol `data` de DESIGN.md, que es exactamente lo
+       que esto es: una versalita corta de dato. Puse 10,5 a ojo
+       buscando discreción y quedaba fuera de la rampa —igual que
+       los 11px que había antes, así que el escalón llevaba tiempo
+       torcido. Al medirlo, el paso documentado servía. */
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+  }
+
+  .wd-rotulo::before {
+    content: "";
+
+    flex-shrink: 0;
+    width: 20px;
+    height: 1px;
+
+    background: linear-gradient(
+      90deg,
+      var(--color-magenta, #e879f9),
+      transparent
+    );
+  }
+
+  /* ---- LA CABECERA, A LA IZQUIERDA ----
+     Iba centrada, que es lo que pide un hero de escritorio con
+     sitio a los lados. En una columna de 358px el centrado hace
+     que cada línea arranque en una x distinta —el fechado en una,
+     el titular en otra, el subtítulo en otra— y con el cuerpo ya
+     alineado a la izquierda la página se leía en zigzag.
+
+     A la izquierda, fechado, titular, subtítulo, foto y texto
+     comparten margen: una sola vertical de arriba abajo. */
+  .wd-hero {
+    text-align: left;
+  }
+
+  /* ---- Y LA CATEGORÍA DEJA DE SER PÍLDORA ----
+     Una pastilla con filo y fondo era coherente cuando debajo
+     venían nueve tarjetas iguales. Sin ellas es el único contorno
+     de la página, y un contorno solo se lee como un botón. Pasa a
+     fechado: versalitas con el filete corto que abre todas las
+     secciones del sitio. */
+  .wd-hero__categoria {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 0;
+    margin-bottom: 14px;
+
+    border: 0;
+    background: none;
+
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+  }
+
+  .wd-hero__categoria::before {
+    content: "";
+
+    flex-shrink: 0;
+    width: 20px;
+    height: 1px;
+
+    background: linear-gradient(
+      90deg,
+      var(--color-magenta, #e879f9),
+      transparent
+    );
+  }
+
+  /* ---- LAS ETIQUETAS SE QUEDAN, PERO BAJAN DE VOZ ----
+     La maqueta no las dibujaba y la tentación era quitarlas; son
+     contenido del proyecto, así que se conservan. Lo que cambia
+     es el rango: a la izquierda, más pequeñas y en tinta de
+     apoyo, para que no compitan con el subtítulo que tienen
+     encima. */
+  .wd-hero__etiquetas {
+    justify-content: flex-start;
+    gap: 6px 12px;
+    margin-top: 16px;
+    font-size: 11.5px;
+  }
+
+  /* ---- LAS HERRAMIENTAS, CORRIDAS ----
+     Eran pastillas. Con las cajas fuera, seis pastillas seguidas
+     volvían a meter seis contornos en una página que acababa de
+     quedarse sin ninguno. Corridas y separadas por puntos ocupan
+     la mitad y se leen como lo que son: una lista de nombres. */
+  .wd-chips {
+    display: block;
+    font-family: var(--wd-mono);
+    font-size: 11.5px;
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    color: var(--color-text-soft, #cdc1e2);
+  }
+
+  .wd-chips li {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .wd-chips li + li::before {
+    content: " · ";
+    color: var(--color-secondary, #c9a8ff);
+  }
+}
+
+/* quien pide menos movimiento no ve la cinta correr: se queda
+   quieta y con el arrastre disponible, que es como estaba antes */
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  .wd-meta {
+    overflow-x: auto;
+  }
+
+  .wd-meta__pista {
+    animation: none;
+  }
+
+  /* sin animación, la segunda copia solo sería contenido repetido */
+  .wd-meta__vuelta[aria-hidden="true"] {
+    display: none;
+  }
+}

@@ -30,7 +30,7 @@ import { ArrowLeft } from "lucide-react";
    y el umbral baja a 3:1. O sea que la regla no es "el degradado
    queda mal", es "el degradado solo en texto grande".
    ============================================================ */
-function WorkHero({ titulo, tituloDestacado, subtitulo, categoria, etiquetas = [] }) {
+function WorkHero({ titulo, tituloDestacado, subtitulo, categoria, anio, etiquetas = [] }) {
   const partes = partirTitulo(titulo, tituloDestacado);
 
   return (
@@ -40,7 +40,23 @@ function WorkHero({ titulo, tituloDestacado, subtitulo, categoria, etiquetas = [
         Todos los trabajos
       </Link>
 
-      {categoria && <p className="wd-hero__categoria">{categoria}</p>}
+      {/* ---- CATEGORÍA Y AÑO, JUNTOS ----
+          En la mano esto deja de ser una píldora y pasa a ser el
+          fechado de una pieza de revista: "MARKETING CON IA ·
+          2025", en versalitas y con su filete delante. El año se
+          repite en la barra de ficha de más abajo y está bien que
+          así sea — el fechado orienta de un vistazo y la ficha es
+          la consulta. Es la convención editorial de siempre: la
+          fecha va en la entradilla y en el colofón.
+
+          El separador va aquí y no en el CSS porque depende de
+          que EXISTAN los dos datos: con `::after` habría que
+          apagarlo a mano en los proyectos sin año, y son varios. */}
+      {(categoria || anio) && (
+        <p className="wd-hero__categoria">
+          {[categoria, anio].filter(Boolean).join(" · ")}
+        </p>
+      )}
 
       <h1 className="wd-hero__titulo">
         {partes.antes}

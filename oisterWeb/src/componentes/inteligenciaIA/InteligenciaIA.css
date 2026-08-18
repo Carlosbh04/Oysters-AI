@@ -1196,9 +1196,28 @@
     font-size: clamp(16px, 5.1vw - 1.65px, 21px);
   }
 
+  /* ---- EL TITULAR, IGUAL QUE EL DE "CASOS DE USO" ----
+     Aquí había una fórmula —min(26px, 5.9vw - 2px)— calculada
+     para que la frase entrara en DOS líneas, y a 390px daba 21px.
+     Era correcta en sí misma y equivocada en conjunto: al lado de
+     los 32px de "Casos de uso" y los 34 de "Trabajos", esta
+     sección abría con un titular de dos tercios del tamaño y se
+     leía como un subapartado de la anterior.
+
+     Ahora usa la MISMA expresión que la referencia. Cuesta una
+     línea más, y se acepta: la jerarquía entre secciones pesa más
+     que el número de renglones dentro de una. */
   .iia__titulo {
-    font-size: min(26px, calc(5.9vw - 2px));
-    line-height: 1.2;
+    /* La expresión es la DOCUMENTADA en DESIGN.md (rol headline),
+       no la de `.uc__titulo`. Las dos dan lo mismo aquí —ambas
+       arrancan en 2rem y en la mano siempre topan por abajo, o
+       sea 32px— pero la de Casos de uso cierra en 3.1rem, un
+       escalón que la rampa no recoge. Copiarla habría propagado a
+       tres sitios la única desviación que había en uno. */
+    font-size: clamp(2rem, 1.25rem + 2.35vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
 
     /* ---- AIRE ENTRE EL RÓTULO Y EL TITULAR ----
        Los 16px que dejaba el rótulo valían cuando el titular era
@@ -1733,6 +1752,23 @@
    ============================================================ */
 
 @media (max-width: 1079px) {
+  /* ---- EL VÍDEO CONSERVA SUS ESQUINAS AL DESCUBRIRSE ----
+     El telón recorta con `inset()`, que es un rectángulo y
+     sustituye al redondeo del borde. Declarando aquí su radio, el
+     corte lo lleva también y el marco no termina la animación con
+     las esquinas cuadradas. Ver la hoja compartida. */
+  .iia__marco {
+    --telon-radio: var(--iia-radio, 18px);
+  }
+
+  /* El telón de nácar de esta sección vive ahora en la hoja
+     compartida (styles/globales.css) y lo enciende useTelonNacar.
+     Estaba escrito aquí cuando era el único sitio que lo usaba;
+     al llegar el segundo —"Últimos proyectos"— se sacó, que es el
+     momento de hacerlo y no cuando ya hay tres copias.
+     Lo único propio de esta sección son los selectores de qué se
+     descubre, y esos viven en el JSX. */
+
   /* ---- EL ANILLO SE VA ----
      Sin las curvas que lo conectan no es el centro de nada: eran
      173px de imagen más su espacio para un adorno que ya no
@@ -1760,8 +1796,23 @@
     text-align: left;
   }
 
+  /* ---- EL RÓTULO, IGUAL QUE EL DE LAS DEMÁS SECCIONES ----
+     Esta sección no usa el componente <Rotulo> del sitio: tiene
+     el suyo, heredado de la maquetación de referencia, y por eso
+     iba a 13px/600 con 0,08em mientras "Trabajos", "Nosotros" y
+     "Casos de uso" van a 14/700 con 0,16em. Dos implementaciones
+     de la misma cosa, y sólo se notaba al ver las aperturas
+     seguidas: ésta se leía como un subapartado de la anterior.
+
+     Se igualan los valores al componente compartido. No se
+     sustituye el elemento porque este lleva sus flechas y su
+     guía; lo que se unifica es la VOZ. */
   .iia__rotulo-centro {
     justify-content: flex-start;
+
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
   }
 
   /* la guía de la derecha y los dos galones sobran: sin centrado
@@ -2350,6 +2401,40 @@
     box-shadow: var(--iia-sombra);
   }
 
+  /* ⚠ Y LA SUPERFICIE OSCURA, CALIFICADA.
+     `--iia-tarjeta` es el BLANCO de la maquetación original; el
+     valor para fondo oscuro lo pinta `.iia--sobre-fondo
+     .iia__proposito-mitad` —dos clases—, así que al subir el
+     fondo de las mitades al contenedor éste se quedó en blanco.
+     No se veía porque las dos mitades, que conservaban su
+     gradiente oscuro, lo tapaban entero: un panel blanco
+     escondido detrás de dos oscuros.
+
+     Lo destapó el telón. En cuanto las mitades se recortan para
+     descubrirse, el hueco enseña el blanco de debajo — un
+     fogonazo a pantalla completa en mitad de la sección. */
+  .iia--sobre-fondo .iia__proposito {
+    border-color: rgba(255, 255, 255, 0.14);
+
+    background: linear-gradient(
+      160deg,
+      rgba(16, 8, 32, 0.78),
+      rgba(16, 8, 32, 0.66)
+    );
+
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+
+    box-shadow:
+      0 20px 50px rgba(10, 4, 24, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* y las mitades pasan a ser transparentes DE VERDAD: iban con
+     una clase y perdían contra la regla de dos de arriba, así que
+     seguían repintando el gradiente oscuro cada una por su
+     cuenta. La pieza es una superficie, no tres. */
+  .iia--sobre-fondo .iia__proposito-mitad,
   .iia__proposito-mitad {
     /* ⚠ ARRIBA, NO CENTRADO. Iba centrado porque el bloque nacía
        PLEGADO: una línea de titular junto a un medallón de 48px,
@@ -2366,8 +2451,12 @@
 
     background: none;
     box-shadow: none;
+
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
+  .iia--sobre-fondo .iia__proposito-mitad + .iia__proposito-mitad,
   .iia__proposito-mitad + .iia__proposito-mitad {
     border-top: 1px solid var(--iia-filo);
   }
@@ -2443,126 +2532,165 @@
 }
 
 /* ============================================================
-   LAS SALIDAS — cada apartado se va por su cuenta
+   EL VÍDEO EN LA MANO — "PANTALLA COMPLETA AL VUELO"
 
-   La sección tiene tres bloques y cada uno abandona la pantalla
-   en un momento distinto: el enunciado ("Combinamos pensamiento
-   humano…"), la banda de propósito y el método con su anillo. En
-   vez de una salida única para todo, cada bloque lleva la SUYA.
+   En escritorio el vídeo se abre con la cortina de píxeles y todo
+   lo de arriba sigue igual. Aquí abajo se cambia SOLO lo de la
+   mano, donde ese recorrido no encajaba: más de un segundo de
+   coreografía en una pantalla estrecha se lee como una espera.
 
-   Eso es lo que hace `view()`: cada elemento genera su propia
-   línea de tiempo contra su propia posición, así que no hay que
-   escribir ningún retardo — el escalonado sale solo del orden en
-   que cada bloque cruza el borde de la ventana. Un `@keyframes`
-   compartido y tres elementos, no tres animaciones distintas.
+   En reposo el marco es el CARTEL, no el reproductor: póster, play
+   y un sello que dice a dónde lleva. La barra de mandos se retira
+   —gastaba alto en controlar algo que aún no se está viendo— y
+   reaparece dentro, cuando el vídeo ya ocupa la pantalla.
 
-   Y va atado al SCROLL, no a un reloj: si paras a media salida se
-   queda a medias, y si subes se deshace.
-
-   ---- EL `@supports` NO ES OPCIONAL ----
-   Firefox no implementa líneas de tiempo por scroll, y no las
-   ignora entero: descarta el `animation-timeline` pero EJECUTA la
-   animación en el reloj normal. Sin este guard, los tres bloques
-   se desvanecerían solos al cargar y se quedarían invisibles.
-   Donde no hay soporte, no hay salida y la sección se va con el
-   scroll como siempre: se pierde el adorno, nunca el contenido.
-
-   ---- SIN `scale`, Y ES A PROPÓSITO ----
-   Las curvas que unen las tarjetas con el anillo se MIDEN en
-   píxeles reales (ver useConectores). Un `translateY` desplaza por
-   igual al mapa y al núcleo, así que la geometría relativa no
-   cambia; un `scale` sí la distorsionaría y los conectores
-   apuntarían a donde las tarjetas ya no están.
-
-   ---- FUERA DE MÓVIL ----
-   Mismo corte de 900px que el resto: en la mano se acaba de
-   congelar el fondo por encargo, y meter movimiento de salida ahí
-   lo contradiría.
+   Al tocarlo salta a pantalla completa con un rebote, y se cierra
+   con la X o arrastrando hacia abajo (el gesto lo lleva el JS; ver
+   VideoMarco.jsx).
    ============================================================ */
-/* ---- ENTRADA *Y* SALIDA, NO SOLO SALIDA ----
-   La primera versión solo tenía salida, y el efecto no se veía: la
-   salida ocurre cuando el bloque cruza el borde de ARRIBA, que es
-   justo donde no estás mirando mientras bajas. Estos tres bloques
-   además no tenían ninguna entrada —la sección simplemente
-   aparecía—, así que al bajar no pasaba nada.
+@media (max-width: 1079px) {
+  /* ---- REPOSO: SIN BARRA ---- */
+  .iia__marco:not(.iia__marco--grande) .iia__mandos {
+    display: none;
+  }
 
-   Ahora cada bloque lleva las dos, cada una con su propio tramo de
-   la misma línea de tiempo: entra desde abajo (donde SÍ miras) y
-   se retira por arriba.
+  .iia__sello {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
 
-   ---- EL RELLENO DE CADA UNA NO ES EL MISMO, Y ES CLAVE ----
-   Las dos animan `opacity`, así que la que va DESPUÉS en la lista
-   gana donde ambas apliquen. La salida va con `forwards` y no con
-   `both` a propósito: con `both` se aplicaría también ANTES de su
-   tramo, sujetando la opacidad a 1 y pisando a la entrada — el
-   bloque aparecería de golpe. Con `forwards` no existe hasta que
-   le toca.
+    padding: 5px 10px;
 
-   La entrada sí lleva `both`: necesita sujetar su estado de
-   partida (invisible) antes de entrar en cuadro. */
-/* ---- SÍ EN MÓVIL, Y NO ES UNA CONTRADICCIÓN ----
-   Estas reglas nacieron con `min-width: 901px` porque veníamos de
-   congelar el fondo en la mano. Era un error de bulto: lo que se
-   congeló ahí es el FONDO —un degradado girando solo, sin que
-   nadie lo pida—, y esto es lo contrario: contenido que responde
-   al dedo del que scrollea. Una cosa es movimiento gratis y la
-   otra es respuesta. En móvil es donde MÁS se nota, porque se
-   scrollea más y se ve una pieza cada vez.
+    border-radius: 999px;
 
-   ---- LA ENTRADA VA PIEZA A PIEZA, LA SALIDA POR BLOQUES ----
-   Y no se pueden mezclar: si el contenedor y sus hijos se atenúan
-   a la vez, las opacidades se MULTIPLICAN (0,5 × 0,5 = 0,25) y
-   sale un doble fundido sucio.
+    background: rgba(10, 6, 20, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 
-   Así que entran los elementos de dentro —el texto, el vídeo, las
-   dos mitades del propósito, el titular del método y las cuatro
-   tarjetas— y salen los tres bloques que los envuelven. Cada
-   elemento genera su propia línea de tiempo contra su propia
-   posición, así que el escalonado sale solo: no hay ni un retardo
-   escrito, y las cuatro tarjetas entran una detrás de otra porque
-   cruzan el borde una detrás de otra. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    /* ENTRADA — las piezas, no los contenedores */
-    .iia__intro-texto,
-    .iia__marco,
-    .iia__proposito-mitad,
-    .iia__metodo-titulo,
-    .iia__metodo-entrada,
-    .iia__tarjeta {
-      animation: iiaEntrada linear both;
-      animation-timeline: view();
+    color: rgba(255, 255, 255, 0.92);
 
-      /* se completa al 40% de asomar: la pieza queda legible en
-         cuanto entra, no a medio gas hasta el centro de la
-         pantalla — que en móvil, con piezas altas, sería la mitad
-         del scroll con el texto a medias */
-      animation-range: entry 0% entry 40%;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ---- EL SALTO ----
+     El rebote entra desde un punto más grande, no más pequeño: la
+     pieza se acerca en vez de crecer desde un botón, que es lo que
+     hace que se lea como que la pantalla se la come a ella y no al
+     revés. */
+  .iia__marco--grande {
+    animation: iiaSalta 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    /* al soltar un arrastre corto, la vuelta a su sitio */
+    transition:
+      transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.32s ease;
+
+    /* el gesto es vertical y no debe llevarse el scroll de la
+       página con él */
+    touch-action: none;
+  }
+
+  @keyframes iiaSalta {
+    from {
+      opacity: 0;
+      transform: scale(1.08);
     }
-
-    /* SALIDA — los bloques que envuelven */
-    .iia__intro,
-    .iia__proposito,
-    .iia__metodo {
-      animation: iiaSalida linear forwards;
-      animation-timeline: view();
-      animation-range: exit 0% exit 78%;
+    to {
+      opacity: 1;
+      transform: none;
     }
+  }
+
+  /* ---- LO QUE LLENA EL NEGRO DE ARRIBA ---- */
+  .iia__cabecera {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+
+    padding: 0 20px;
+
+    text-align: center;
+  }
+
+  .iia__tirador {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 38px;
+    height: 4px;
+
+    border-radius: 4px;
+
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .iia__cabecera-rotulo {
+    margin-bottom: 5px;
+
+    color: var(--color-rotulo, #ff9be8);
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .iia__cabecera-titulo {
+    color: #fff;
+
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  /* ---- LOS MANDOS, ABAJO Y DENTRO ---- */
+  .iia__marco--grande .iia__mandos {
+    position: absolute;
+    inset: auto 0 0 0;
+
+    width: 100%;
+    padding: 16px 18px calc(20px + env(safe-area-inset-bottom));
+
+    background: linear-gradient(0deg, rgba(5, 7, 13, 0.95), transparent);
+  }
+
+  /* la pantalla completa del navegador no pinta nada aquí: el marco
+     YA ocupa la pantalla, y el botón llevaba a una segunda pantalla
+     completa dentro de la primera */
+  .iia__marco--grande .iia__mandos > button:last-child {
+    display: none;
   }
 }
 
-@keyframes iiaEntrada {
-  from {
-    opacity: 0;
-    transform: translateY(38px);
-  }
-}
+/* ============================================================
+   EL TELÓN LE ROBABA LA POSICIÓN AL VÍDEO EN GRANDE
 
-/* solo `to`: el estado de partida es el que tenga el elemento, así
-   que la salida no pelea con lo que dejó puesto la entrada */
-@keyframes iiaSalida {
-  to {
-    opacity: 0;
-    transform: translateY(-32px);
-  }
+   `.iia__marco` está en TELON_CON_FILO (ver el .jsx), así que el
+   hook le cuelga `data-telon-filo`, y la hoja compartida hace:
+
+       [data-telon] [data-telon-filo] { position: relative }
+
+   Dos clases contra la una de `.iia__marco--grande`: gana el
+   telón. El resultado era que el vídeo se declaraba a pantalla
+   completa y se quedaba en su hueco de 358×201 — medido en la
+   mano, donde el telón sigue puesto cuando se abre el vídeo. En
+   escritorio no se veía porque para entonces ya había terminado.
+
+   Se repite la clase para empatar en peso y ganar por orden. Va
+   fuera de cualquier media query a propósito: en escritorio hoy
+   no cambia nada —ya salía fixed— pero si mañana el telón dura un
+   poco más, no vuelve a pasar.
+   ============================================================ */
+.iia__marco--grande.iia__marco--grande {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
 }

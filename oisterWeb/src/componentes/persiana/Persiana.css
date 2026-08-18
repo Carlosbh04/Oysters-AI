@@ -1,0 +1,69 @@
+/* ============================================================
+   PERSIANA INVERSA — ver el porqué de cada gesto en Persiana.jsx
+   ============================================================ */
+
+.persiana {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+
+  /* por encima del menú (1000) y de su velo (999): la persiana
+     tapa TODO, incluido el propio panel del que se ha salido */
+  z-index: 2000;
+
+  /* nunca se come un toque. El viaje ya está protegido contra el
+     doble toque en el hook, así que la persiana no necesita
+     bloquear nada — y si algo fallara, más vale una pantalla que
+     responde que una que se queda muda medio segundo. */
+  pointer-events: none;
+}
+
+.persiana i {
+  flex: 1;
+
+  /* los dos tonos de la cadena de secciones: la transición usa la
+     misma paleta que la web en vez de un color propio */
+  background: linear-gradient(180deg, var(--sec-deep), var(--color-dark));
+
+  /* SUBEN: crecen desde abajo */
+  transform: scaleY(0);
+  transform-origin: bottom;
+
+  transition: transform 0.42s cubic-bezier(0.76, 0, 0.24, 1);
+  transition-delay: calc(var(--c, 0) * 0.05s);
+}
+
+/* ---- LAS COLUMNAS SE SOLAPAN 1PX ----
+   Con `flex: 1` sobre un ancho impar, los repartos caen en
+   fracciones de píxel y entre columna y columna asoma una línea
+   de la página de debajo. Un píxel de solape lo cierra sin que se
+   note: el margen negativo devuelve ese espacio al reparto, así
+   que las cinco siguen cubriendo el ancho exacto. */
+.persiana i:not(:last-child) {
+  margin-inline-end: -1px;
+}
+
+.persiana[data-fase="cubrir"] i {
+  transform: scaleY(1);
+}
+
+/* SE RETIRAN: encogen hacia arriba —origen opuesto— y en orden
+   invertido, que es de donde sale la sensación de seguir adelante
+   en vez de deshacer. La resta contra COLUMNAS-1 es la inversión:
+   la columna 4 arranca sin espera y la 0 es la última en irse. */
+.persiana[data-fase="revelar"] i {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition-delay: calc((4 - var(--c, 0)) * 0.05s);
+}
+
+/* ---- QUIEN PIDE MENOS MOVIMIENTO NO VE PERSIANA ----
+   El hook ni siquiera arranca la secuencia en ese caso (navega
+   directo), pero la regla se queda como red: si alguna vez se
+   disparase, las columnas no se moverían. */
+@media (prefers-reduced-motion: reduce) {
+  .persiana i {
+    transition: none;
+  }
+}

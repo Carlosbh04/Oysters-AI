@@ -145,6 +145,43 @@ const APARTADOS = [
 ];
 
 /* ============================================================
+   EL TELÓN DE NÁCAR — QUÉ SE DESCUBRE Y QUÉ NO
+
+   Las piezas se eligen a mano y no con un "todos los hijos"
+   porque la sección tiene tres maquetaciones distintas dentro
+   (columna de texto, pieza partida y la cadena) y en cada una lo
+   que se lee como UNA pieza es otra cosa.
+
+   Ojo con la última: se descubre `.iia__paso` —el plegable— y no
+   la tarjeta entera. El nodo de la perla es hermano suyo, así que
+   se queda fuera del recorte y conserva su propio encendido. Sale
+   una entrada de dos tiempos: primero se descubre el contenido y
+   después prende la perla, porque su línea de agua está más
+   arriba (0,72 contra 0,88).
+   ============================================================ */
+const TELON_PIEZAS = [
+  ".iia__intro-texto > *",
+  ".iia__marco",
+  ".iia__proposito-mitad",
+  ".iia__metodo > .iia__rotulo-centro",
+  ".iia__metodo-titulo",
+  ".iia__metodo-entrada",
+  ".iia__tarjeta .iia__paso",
+].join(", ");
+
+/* El filo de nácar que viaja en el corte sólo se pone en las
+   piezas ALTAS. En un rótulo de 16px el barrido dura lo mismo
+   pero no recorre nada: se ve un destello, que es ruido y no
+   gesto. */
+const TELON_CON_FILO = [
+  ".iia__titulo",
+  ".iia__metodo-titulo",
+  ".iia__marco",
+  ".iia__proposito-mitad",
+  ".iia__paso",
+].join(", ");
+
+/* ============================================================
    LOS CONECTORES SE MIDEN, NO SE ESCRIBEN
 
    Las cuatro curvas que van de cada tarjeta al anillo central
@@ -319,6 +356,7 @@ function InteligenciaIA({ sobreFondo = false, pista = null, nivelTitulo: NivelTi
   const nucleoRef = useRef(null);
   const tarjetaRefs = useRef([]);
   const hiloRef = useRef(null);
+  const raizRef = useRef(null);
 
   /* ---- LA LLEGADA DE LA LUZ ENCIENDE LA TARJETA ----
      Toca la clase del nodo directamente en vez de pasar por
@@ -495,10 +533,118 @@ function InteligenciaIA({ sobreFondo = false, pista = null, nivelTitulo: NivelTi
     };
   }, [esMovil]);
 
+  /* ============================================================
+     EL TELÓN DE NÁCAR (solo móvil)
+
+     ---- POR QUÉ NO SE USA <Reveal> ----
+     El componente del sitio envuelve a sus hijos en un div, y
+     aquí eso no vale: dentro de `.iia__mapa` las tarjetas son
+     hijas directas de un flex —las columnas van en
+     `display: contents`— y su orden lo pone `order`. Un div de
+     más entre medias rompe las tres cosas a la vez.
+
+     ---- Y POR QUÉ UN LISTENER Y NO UN INTERSECTIONOBSERVER ----
+     Esta es la razón de fondo, y conviene que no se pierda:
+     `clip-path` y IntersectionObserver NO se llevan. La
+     intersección se calcula DESPUÉS de aplicar el recorte, así
+     que una pieza recortada a altura cero no interseca nunca —
+     no se enciende, luego no se desrecorta. El estado oculto
+     impide su propio disparo, y parece que la animación está
+     rota cuando en realidad no llega a empezar.
+
+     `getBoundingClientRect()` no tiene ese problema: devuelve la
+     caja de MAQUETACIÓN, y `clip-path` sólo afecta al pintado.
+     Por eso aquí se mide con un listener de scroll, igual que el
+     hilo de la cadena, y se puede recortar la propia pieza que se
+     mide sin envolver nada.
+
+     ---- EL FALLO SEGURO ES "VISIBLE" ----
+     Todo el CSS del telón cuelga de `data-telon`, que lo pone
+     ESTE efecto. Si el JS no corre —o si hay movimiento
+     reducido—, el atributo no llega, no hay recorte y el
+     contenido se ve puesto. Nunca al revés. */
+  useEffect(() => {
+    if (!esMovil) return undefined;
+
+    const raiz = raizRef.current;
+    if (!raiz) return undefined;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+
+    const piezas = Array.from(raiz.querySelectorAll(TELON_PIEZAS));
+    if (!piezas.length) return undefined;
+
+    for (const pieza of piezas) {
+      pieza.setAttribute("data-telon-pieza", "");
+      if (pieza.matches(TELON_CON_FILO)) pieza.setAttribute("data-telon-filo", "");
+    }
+    raiz.setAttribute("data-telon", "");
+
+    /* Los desplazamientos se cachean respecto a la raíz y durante
+       el scroll sólo se pregunta dónde está ella: UNA caja por
+       fotograma en vez de una por pieza. Con once piezas, la
+       diferencia son once lecturas forzadas de maquetación por
+       fotograma o una. */
+    let topes = [];
+    const medir = () => {
+      const base = raiz.getBoundingClientRect().top;
+      topes = piezas.map((p) => p.getBoundingClientRect().top - base);
+    };
+
+    let pedido = false;
+    const pintar = () => {
+      pedido = false;
+      const base = raiz.getBoundingClientRect().top;
+
+      /* 0,88 y no 0,72 como el hilo: el telón se descubre nada
+         más asomar la pieza, y la perla se enciende después,
+         cuando ya has llegado a ella. Son dos tiempos a
+         propósito, no dos umbrales sin coordinar. */
+      const marca = window.innerHeight * 0.88;
+
+      for (let i = 0; i < piezas.length; i++) {
+        if (base + topes[i] < marca) piezas[i].setAttribute("data-ver", "");
+        else piezas[i].removeAttribute("data-ver");
+      }
+    };
+
+    const alMover = () => {
+      if (pedido) return;
+      pedido = true;
+      requestAnimationFrame(pintar);
+    };
+
+    medir();
+    pintar();
+
+    window.addEventListener("scroll", alMover, { passive: true });
+    const ro = new ResizeObserver(() => {
+      medir();
+      pintar();
+    });
+    ro.observe(raiz);
+
+    return () => {
+      window.removeEventListener("scroll", alMover);
+      ro.disconnect();
+      raiz.removeAttribute("data-telon");
+      for (const pieza of piezas) {
+        pieza.removeAttribute("data-telon-pieza");
+        pieza.removeAttribute("data-telon-filo");
+        pieza.removeAttribute("data-ver");
+      }
+    };
+  }, [esMovil]);
+
   const trazado = useConectores(mapaRef, nucleoRef, tarjetaRefs, conCurvas);
 
   return (
-    <div className={`iia ${sobreFondo ? "iia--sobre-fondo" : ""}`}>
+    <div
+      ref={raizRef}
+      className={`iia ${sobreFondo ? "iia--sobre-fondo" : ""}`}
+    >
       {/* ================= BLOQUE 1 — COMBINAMOS ================= */}
       <section className="iia__intro" aria-labelledby="iia-titulo">
         {/* la columna reservada. Si nadie manda nada, queda vacía —

@@ -71,3 +71,212 @@ body{
 }
 
 
+
+/* ============================================================
+   LA LLEGADA DESDE EL MENÚ SE COMPONE PIEZA A PIEZA
+
+   Al pulsar un destino en el menú, useIrASeccion recorre la página
+   y al terminar pone la clase `llega` en la sección de destino
+   (ver marcarLlegada). Esta hoja traduce esa clase en la cascada.
+
+   ---- SOLO CASOS DE USO, Y NO ES UN OLVIDO ----
+   El menú tiene tres destinos, pero los otros dos YA se componen
+   solos al llegar:
+
+     · #nosotros — About.css hace ya esta misma cascada con
+       `about-copy-in`: rótulo, titular y texto escalonados.
+     · #que-hacemos — el telón de InteligenciaIA descubre sus
+       piezas una a una (ver TELON_PIEZAS en su .jsx).
+
+   Añadir esto encima no sumaba una animación: PISABA la suya.
+   Comprobado — el rótulo del bloque 3, que pertenece al telón,
+   saltaba a opacidad 1 y caía de golpe a 0 al retirarse la clase.
+   Casos de uso es la única sección que llegaba sin componerse, y
+   por eso es la única que se toca aquí.
+
+   ⚠️ Antes de añadir un destino nuevo a esta lista: mirar si esa
+   sección ya tiene su propia entrada. Si la tiene, no se toca.
+
+   ---- NO ES UNA ANIMACIÓN DE SCROLL ----
+   No se dispara paseando por la página: solo cuando alguien PIDE
+   ir ahí desde el menú. La clase se retira sola (CASCADA_MAX), de
+   modo que una segunda visita vuelve a componerse. Y a quien pide
+   menos movimiento no se le marca nunca — el hook ni pone la clase.
+   ============================================================ */
+
+@keyframes llegaPieza {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* El paso entre piezas son 90ms: lo que separa una cascada que se
+   LEE de algo que parece un fallo de carga. Los retardos van a mano y no con `:nth-child` porque las
+   piezas cuelgan de padres distintos —el rótulo está posicionado
+   fuera del flujo— y no comparten un orden que el selector pueda
+   contar. */
+.llega .uc__rotulo,
+.llega .uc__titulo,
+.llega .uc__entradilla,
+.llega .uc__mano,
+.llega .uc__tarjetas {
+  animation: llegaPieza 0.52s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+}
+
+.llega .uc__rotulo {
+  animation-delay: 0.06s;
+}
+
+.llega .uc__titulo {
+  animation-delay: 0.15s;
+}
+
+.llega .uc__entradilla {
+  animation-delay: 0.24s;
+}
+
+/* lo que más pesa entra al final: el conmutador en móvil, la
+   parrilla de tarjetas en pantalla ancha */
+.llega .uc__mano,
+.llega .uc__tarjetas {
+  animation-delay: 0.33s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .llega .uc__rotulo,
+  .llega .uc__titulo,
+  .llega .uc__entradilla,
+  .llega .uc__mano,
+  .llega .uc__tarjetas {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   EL TELÓN DE NÁCAR — hoja compartida
+
+   La entrada al hacer scroll del sitio. Quien la enciende es
+   useTelonNacar (ver el hook: ahí está el porqué de medir con un
+   listener y no con IntersectionObserver, que con `clip-path` no
+   funciona).
+
+   Todo cuelga de `data-telon`, que pone el hook. Sin JS o con
+   movimiento reducido no hay atributo, no hay recorte y el
+   contenido se ve puesto: el estado de fallo nunca puede ser
+   "invisible".
+
+   Va aquí y no en la hoja de cada sección porque ya lo usan dos
+   —"Cómo lo hacemos" y "Últimos proyectos"— y la tercera copia es
+   la que siempre se desincroniza.
+   ============================================================ */
+[data-telon] [data-telon-pieza] {
+  /* ---- LAS ESQUINAS ----
+     `inset()` recorta un RECTÁNGULO, y el recorte SUSTITUYE al
+     redondeo del borde en vez de sumarse: una tarjeta con radio
+     terminaría la animación con las esquinas cuadradas. Con
+     `round` el corte lleva el radio de la pieza.
+
+     El valor lo declara CADA sección en su hoja —
+     `.la-pieza { --telon-radio: 22px }`— y por defecto es 0, que
+     es lo que necesita el texto. No lo lee el JS del radio
+     calculado, que fue el primer intento: el radio es un dato de
+     estilo, no de comportamiento, y ponerlo en línea desde el hook
+     obliga a leer estilo calculado en el montaje para algo que el
+     CSS ya sabe.
+
+     ⚠ El valor por defecto va en el FALLBACK del `var()`, no en
+     una declaración `--telon-radio: 0px` aquí. Escrito como
+     declaración, este selector tiene DOS atributos y le gana por
+     especificidad a cualquier `.la-pieza { --telon-radio: … }` de
+     una sección: el radio propio no llegaba nunca y el vídeo
+     seguía terminando con las esquinas cuadradas. El fallback no
+     compite en la cascada — sólo actúa si nadie ha declarado la
+     variable. */
+
+  /* el corte, cerrado por abajo */
+  clip-path: inset(0 0 100% 0 round var(--telon-radio, 0px));
+
+  /* 10px de acompañamiento, no de viaje: lo que cuenta es el
+     corte. Sin nada de desplazamiento la pieza se lee como una
+     persiana; con más, vuelve a ser un "sube y aparece"
+     cualquiera y el telón deja de notarse. */
+  transform: translateY(10px);
+
+  /* la opacidad cierra CASI de inmediato y con un pelín de
+     retardo: la pieza tiene que estar opaca mientras se descubre,
+     o el corte se ve a través y pierde el filo. No es un fundido,
+     es un interruptor. */
+  opacity: 0;
+
+  transition:
+    clip-path 0.75s cubic-bezier(0.22, 0.8, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 0.8, 0.36, 1),
+    opacity 0.1s linear 0.05s;
+}
+
+[data-telon] [data-telon-pieza][data-ver] {
+  clip-path: inset(0 0 0 0 round var(--telon-radio, 0px));
+  transform: none;
+  opacity: 1;
+}
+
+/* ---- EL FILO QUE VIAJA EN EL CORTE ----
+   Va pegado al borde inferior de la pieza y sube con el recorte —
+   el recorte lo arrastra, no hace falta animarle la posición. Se
+   enciende al arrancar y se apaga antes de llegar arriba, para
+   que no quede un subrayado colgando.
+
+   Sólo lo llevan las piezas ALTAS (lo decide el hook con su
+   selector `conFilo`): en un rótulo de 16px el barrido dura lo
+   mismo pero no recorre nada, y se ve un destello — ruido, no
+   gesto. */
+[data-telon] [data-telon-filo] {
+  position: relative;
+}
+
+[data-telon] [data-telon-filo]::after {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--perla, #f5a1ec),
+    transparent
+  );
+  box-shadow: 0 0 10px rgb(var(--rgb-magenta, 232 121 249) / 0.6);
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-telon] [data-telon-filo][data-ver]::after {
+  animation: telonFilo 0.75s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+@keyframes telonFilo {
+  0% {
+    opacity: 0;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

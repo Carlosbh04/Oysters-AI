@@ -8,6 +8,7 @@ import LightDust from "../../componentes/lightDust/LightDust";
 import TextoArena from "../../componentes/textoArena/TextoArena";
 import HowWeWork from "../../componentes/howWeWork/HowWeWork";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import { metaDe } from "../../hooks/useIrASeccion";
 import useEnPantalla from "../../hooks/useEnPantalla";
 import LatestProjects from "../../componentes/latestProjects/LatestProjects";
 import About from "../../componentes/about/About";
@@ -87,13 +88,31 @@ function HomePage({ introDone = true, introSaliendo = false }) {
   /* sin useCallback: va a dos <button> nativos, que no se
      benefician de identidad estable — envolverlo solo sugería
      una optimización que no existía */
+  /* ---- Y DESCUENTA LA CABECERA, COMO EL MENÚ ----
+     Esto era `next.scrollIntoView()`, que alinea la sección con el
+     borde de la ventana sin saber que hay una cabecera flotando
+     encima: el bloque aterrizaba con su rótulo —"¿Qué hacemos?"—
+     tapado por la píldora del menú, y se caía directamente en el
+     titular. El mismo destino pulsado desde el menú sí quedaba
+     bien, y esa diferencia entre dos caminos al mismo sitio es lo
+     que se corrige.
+
+     La cuenta se toma prestada de useIrASeccion (`metaDe`) en vez
+     de reescribirla aquí. Y no es una cuenta cualquiera: en la mano
+     ancla al RÓTULO de la sección y lo deja 22px por debajo de la
+     píldora, midiéndola de verdad. Copiar ese número aquí sería
+     dejarlo viejo en cuanto cambie, y solo en uno de los dos
+     sitios. */
   const scrollToNext = () => {
     const next = heroRef.current?.nextElementSibling;
     if (!next) return;
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    next.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    window.scrollTo({
+      top: metaDe(next),
+      behavior: reduce ? "auto" : "smooth",
+    });
   };
 
   /* el scroll-cue solo tiene sentido con la página virgen: al

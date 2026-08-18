@@ -8,6 +8,7 @@ import HeaderTagline from "./HeaderTagline.jsx";
 /* el mismo archivo que usa el pie: un solo logotipo para todo el
    sitio (ver el comentario del <img> más abajo) */
 import logo from "../../assets/logo/oysters-ai.webp";
+import SeccionEnCurso from "./SeccionEnCurso";
 
 /* Hook mínimo: ¿estamos en desktop (>1100px)?
    Decide qué menú renderiza la hamburguesa:
@@ -87,9 +88,20 @@ function Header({ introDone = true, hideNav = false }) {
 
         {/* Texto central — centrado absoluto respecto a la píldora,
             independiente del ancho del logo y de la hamburguesa */}
-        {/* el rótulo se teclea al cambiar de ruta; el diseño
-            del span es el mismo, solo cambia quién lo pinta */}
-        <HeaderTagline introDone={introDone} />
+        {/* ---- QUIÉN OCUPA EL CENTRO, SEGÚN EL ANCHO ----
+            En escritorio, el rótulo tecleado de siempre. En la
+            mano, la sección en curso: ahí el tecleado estaba
+            OCULTO por debajo de 420px, así que el centro de la
+            píldora —273px en un móvil de 390— no llevaba nada.
+
+            Son excluyentes a propósito. Los dos van centrados en
+            absoluto sobre la misma píldora: pintados a la vez se
+            solaparían letra sobre letra. */}
+        {isDesktop ? (
+          <HeaderTagline introDone={introDone} />
+        ) : (
+          <SeccionEnCurso />
+        )}
 
         {/* Hamburguesa: SIEMPRE visible (también en desktop). */}
         <HamburgerButton

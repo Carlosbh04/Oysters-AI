@@ -2,7 +2,10 @@
   position: fixed;
   inset: 0;
 
-  background: rgba(0, 0, 0, 0.45);
+  /* ciruela y no negro puro: con el cajón ya oscuro, un velo
+     negro apagaba la página de detrás hasta el gris y el conjunto
+     perdía el morado. Este mantiene el tono de la marca. */
+  background: rgba(16, 8, 28, 0.58);
   backdrop-filter: blur(8px);
 
   opacity: 0;
@@ -34,7 +37,7 @@
      menos lo que ya centra la altura → ajusta a ojo) */
   padding-top: 28px;
 
-  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+  border-bottom: 1px solid var(--mm-filo);
 
   flex-shrink: 0;
 }
@@ -52,19 +55,44 @@
   display: flex;
   flex-direction: column;
 
+  /* ============================================================
+     LA PALETA DEL CAJÓN — "perla y violeta"
+
+     Era la ÚNICA superficie clara del sitio: blanco con un rosa
+     lavado, mientras todo lo demás vive en la banda oscura del
+     29-32% que fija DESIGN.md. Abrirlo de noche era un fogonazo,
+     y de día se leía como si perteneciera a otra web.
+
+     Y no es sólo comodidad: el menú es lo último que se ve antes
+     de ir a Contacto, que es lo que la web persigue. Un salto de
+     material justo ahí rompe la continuidad del recorrido.
+
+     Se conserva la COMPOSICIÓN del degradado anterior —dos focos,
+     uno arriba a la derecha y otro abajo a la izquierda— y sólo
+     cambian los tonos: violeta de marca arriba, rosa abajo, sobre
+     la rampa morada del sitio. Es la misma pieza en la otra voz.
+
+     Los cuatro tokens de abajo los heredan el acordeón y todo lo
+     que viva dentro del cajón, así que la paleta se cambia en un
+     sitio. Medido sobre el píxel: enlaces a 11,9:1. */
+  --mm-tinta: var(--color-text, #f6f0ff);
+  --mm-tinta-2: var(--color-secondary, #c9a8ff);
+  --mm-filo: rgb(var(--rgb-secondary, 201 168 255) / 0.18);
+  --mm-chip: rgb(var(--rgb-secondary, 201 168 255) / 0.1);
+
   background:
     radial-gradient(
-      circle at top right,
-      rgba(247, 184, 235, 0.65) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at bottom left,
-      rgba(239, 195, 248, 0.55) 0%,
+      circle at 78% 8%,
+      rgba(169, 106, 247, 0.38) 0%,
       transparent 50%
     ),
-    linear-gradient(180deg, #fdf2fb 0%, #f8ecff 55%, #ffffff 100%);
-  border-left: 1px solid rgba(0, 0, 0, 0.05);
+    radial-gradient(
+      circle at 10% 92%,
+      rgba(224, 112, 190, 0.26) 0%,
+      transparent 55%
+    ),
+    linear-gradient(180deg, #2a1b3f 0%, #241740 50%, #1b1030 100%);
+  border-left: 1px solid var(--mm-filo);
 
   transform: translateX(100%);
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
@@ -123,10 +151,10 @@
   justify-content: space-between;
   padding: 18px 0;
   text-decoration: none;
-  color: var(--color-dark);
+  color: var(--mm-tinta);
   font-size: 1.15rem;
   font-weight: 600;
-  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+  border-bottom: 1px solid var(--mm-filo);
   transition:
     padding 0.35s ease,
     color 0.35s ease;
@@ -135,16 +163,20 @@
   flex-shrink: 0;
 }
 
+/* ---- ESTADO DE PARTIDA: DESENFOCADO Y GRANDE ----
+   Ver el bloque "ENFOQUE DE CÁMARA" más abajo, junto al
+   escalonado, para el porqué de cada número. */
 .mobile-menu__nav > * {
   opacity: 0;
-  transform: translateX(24px);
+  filter: blur(9px);
+  transform: scale(1.14);
   animation: none;
 }
 
 .mobile-menu__nav a:hover {
   padding-left: 12px;
 
-  color: var(--color-primary-dark, var(--color-dark));
+  color: var(--mm-tinta-2);
 }
 .mobile-menu__cta {
   margin-top: 24px;
@@ -165,7 +197,7 @@
 
     padding:32px;
 
-    border-top:1px solid rgba(21,22,28,.08);
+    border-top:1px solid var(--mm-filo);
 
     /* zona fija abajo — "Hablemos" siempre visible */
     flex-shrink:0;
@@ -177,7 +209,7 @@
 .mobile-menu__logo {
   text-decoration: none;
 
-  color: var(--color-dark);
+  color: var(--mm-tinta);
 
   font-size: 1.8rem;
   font-weight: 800;
@@ -185,6 +217,7 @@
 }
 
 .mobile-menu__arrow {
+  color: var(--mm-tinta-2);
   font-size: 1rem;
   opacity: 0;
   transform: translateX(-10px);
@@ -198,28 +231,33 @@
   transform: translateX(0);
 }
 
-.mobile-menu.active .mobile-menu__nav > :nth-child(1){
-    animation: menuItemReveal .45s ease forwards .15s;
-}
+/* ============================================================
+   ENFOQUE DE CÁMARA — la entrada del menú
 
-.mobile-menu.active .mobile-menu__nav > :nth-child(2){
-    animation: menuItemReveal .45s ease forwards .22s;
-}
+   Los enlaces ya no llegan deslizándose de lado: entran
+   DESENFOCADOS y un 14% más grandes, y resuelven a nítidos y a su
+   tamaño. Es el gesto de una lente encontrando el foco, y aporta
+   algo que un desplazamiento no puede: el desenfoque es la única
+   señal óptica REAL de distancia, así que el menú se lee como algo
+   que se acerca, no como algo que se mueve.
 
-.mobile-menu.active .mobile-menu__nav > :nth-child(3){
-    animation: menuItemReveal .45s ease forwards .29s;
-}
+   ---- POR QUÉ UN SOLO SELECTOR Y NO SEIS ----
+   Antes había seis reglas `:nth-child(n)` con su retardo escrito a
+   mano, y añadir una entrada al menú obligaba a venir aquí a
+   escribir la séptima — o la fila entraba sin animación, sin que
+   nada avisara. Ahora el retardo se calcula del índice, así que el
+   escalonado sale solo por muchas entradas que haya.
 
-.mobile-menu.active .mobile-menu__nav > :nth-child(4){
-    animation: menuItemReveal .45s ease forwards .36s;
-}
-
-.mobile-menu.active .mobile-menu__nav > :nth-child(5){
-    animation: menuItemReveal .45s ease forwards .43s;
-}
-
-.mobile-menu.active .mobile-menu__nav > :nth-child(6){
-    animation: menuItemReveal .45s ease forwards .50s;
+   ---- EL COSTE, Y POR QUÉ AQUÍ SÍ SE PAGA ----
+   `filter: blur()` se recalcula en cada fotograma y es de lo más
+   caro que se le puede pedir al compositor. Se paga porque son
+   pocos elementos, dura medio segundo y ocurre UNA vez al abrir —
+   nunca en bucle ni atado al scroll. Con el menú ya abierto no
+   queda ningún desenfoque vivo.
+   ============================================================ */
+.mobile-menu.active .mobile-menu__nav > * {
+  animation: menuItemReveal 0.52s cubic-bezier(0.22, 0.8, 0.36, 1)
+    forwards calc(0.1s + var(--i, 0) * 0.07s);
 }
 
 .mobile-menu__language{
@@ -232,11 +270,11 @@
 
     border-radius:999px;
 
-    background:rgba(255,255,255,.45);
+    background:var(--mm-chip);
 
     backdrop-filter:blur(10px);
 
-    color:var(--color-dark);
+    color:var(--mm-tinta);
 
     font-weight:600;
 
@@ -249,7 +287,7 @@
 
     transform:translateY(-2px);
 
-    background:rgba(255,255,255,.75);
+    background:rgb(var(--rgb-secondary, 201 168 255) / .2);
 
 }
 
@@ -267,14 +305,20 @@
 
     text-decoration:none;
 
-    color:var(--color-dark);
+    /* tinta OSCURA sobre el rosa: el botón conserva su degradado
+       —es el único punto claro del cajón y así sigue siendo el
+       destino— y por eso su texto no acompaña al resto. */
+    color:#23143d;
 
     font-weight:700;
 
     background:var(--gradient-primary);
 
+    /* la sombra rosada bajaba a .35 sobre blanco; sobre el cajón
+       oscuro se comía el canto del botón. Ahora es sombra de
+       verdad, no halo. */
     box-shadow:
-        0 12px 35px rgba(247,184,235,.35);
+        0 12px 35px rgba(16,8,28,.45);
 
     transition:.35s ease;
 }
@@ -285,7 +329,7 @@
     transform:translateY(-3px);
 
     box-shadow:
-        0 20px 45px rgba(247,184,235,.45);
+        0 20px 45px rgba(16,8,28,.55);
 
 }
 
@@ -293,12 +337,14 @@
 
     from{
         opacity:0;
-        transform:translateX(24px);
+        filter:blur(9px);
+        transform:scale(1.14);
     }
 
     to{
         opacity:1;
-        transform:translateX(0);
+        filter:blur(0);
+        transform:scale(1);
     }
 
 }

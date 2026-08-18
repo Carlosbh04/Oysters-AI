@@ -53,3 +53,49 @@ export function nombreDeRuta(pathname) {
      a mayúsculas, que es como se escriben el resto de rótulos */
   return primero.replace(/-/g, " ").toUpperCase();
 }
+
+/* ============================================================
+   Y LOS NOMBRES DE LA MANO
+
+   Son OTROS, y no por descuido. Arriba está el vocabulario del
+   rótulo tecleado de escritorio, que es el que había y va en
+   inglés —"WORKS", "GEN AI TRAINING"—. En el móvil, el centro de
+   la píldora dice en qué apartado estás, y ahí tiene que decir lo
+   mismo que el menú por el que has llegado: si el menú dice
+   "Trabajos", la cabecera no puede decir "WORKS".
+
+   Van en ESTE archivo, junto a los otros, y no en el componente:
+   el primer intento fue una segunda lista dentro de
+   SeccionEnCurso, y dos listas del mismo dato acaban
+   desincronizadas en cuanto alguien añade una ruta en una sola.
+   Aquí se ven las dos de un vistazo.
+
+   El texto de la portada NO se repite: es POR_DEFECTO, el mismo
+   eslogan de arriba. Sale del mismo sitio en los dos anchos.
+   ============================================================ */
+const NOMBRES_MANO = {
+  "/works": "Trabajos",
+  "/contact": "Contacto",
+  "/blog": "Blog",
+  "/resources": "Formación IA",
+  "/services": "Cómo lo hacemos",
+};
+
+export function nombreDeRutaEnMano(pathname) {
+  if (!pathname) return POR_DEFECTO;
+
+  const limpia = pathname.replace(/\/+$/, "") || "/";
+  if (limpia === "/") return POR_DEFECTO;
+
+  if (NOMBRES_MANO[limpia]) return NOMBRES_MANO[limpia];
+
+  /* subrutas: /works/alsea hereda de /works */
+  const primero = pathname.split("/").filter(Boolean)[0];
+  if (primero && NOMBRES_MANO[`/${primero}`]) return NOMBRES_MANO[`/${primero}`];
+
+  /* lo que no esté aquí cae al vocabulario de escritorio, que sí
+     deduce del segmento: una ruta nueva dirá algo desde el primer
+     día, aunque sea en la otra voz. Mejor eso que el silencio —
+     que es como se coló el fallo que hubo que corregir. */
+  return nombreDeRuta(pathname);
+}

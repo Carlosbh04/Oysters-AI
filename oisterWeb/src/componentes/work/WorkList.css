@@ -597,8 +597,17 @@
 }
 
 @media (max-width: 800px) {
+  /* El relleno inferior baja de 60 a 24. Los 60 separaban la
+     lista de la banda de contacto que iba dentro; retirada esa
+     banda, la cinta de marcas cierra la página y lo único que
+     viene después es el pie, que trae su propio respiro.
+
+     Medido antes de tocar: entre la cinta y el pie quedaban 158px
+     de fondo vacío —56 de margen de la cinta, 60 de aquí y 42 de
+     la sección—, y en una pantalla de 844 eso es un quinto de
+     viewport sin nada. */
   .work-list {
-    padding: 20px 20px 60px;
+    padding: 20px 20px 24px;
   }
 
   .work-list-head {
@@ -639,4 +648,192 @@
   /* la rejilla ya trae 3rem de margen inferior: esto solo separa
      los controles de la última fila sin duplicar ese hueco */
   margin-top: -1rem;
+}
+
+/* ============================================================
+   EN LA MANO, LOS TRABAJOS VAN A SANGRE
+
+   La tarjeta —marco, imagen recuadrada, categoría, fecha,
+   título, descripción, tres etiquetas y un "Ver trabajo"— mide
+   425px, y con seis por página son 2.550px de repetir la misma
+   cáscara. En una pantalla estrecha eso hace que los proyectos
+   se parezcan entre sí: lo que cambia (la imagen) es lo que
+   menos sitio tiene.
+
+   Aquí abajo la tarjeta se convierte en PORTADA: la imagen ocupa
+   el ancho entero, sin marco ni esquinas, y encima van solo el
+   cliente, la categoría y la fecha. La descripción y el enlace se
+   retiran — bajo una imagen que ya llena la pantalla, un "Ver
+   trabajo" es decirle a alguien que mire lo que está mirando.
+
+   ---- SE HACE CON CSS, LA CARD NO SE TOCA ----
+   WorkCard sigue pintando lo mismo en los dos sitios. Lo que
+   cambia es la maquetación, así que cambiarla aquí evita meter un
+   `if (esMóvil)` en un componente que además usa el home.
+
+   ---- POR QUÉ 800px Y NO EL CORTE DE SIEMPRE ----
+   Es el ancho al que la rejilla YA pasa a una sola columna (ver
+   arriba). A sangre solo tiene sentido en columna única: con dos
+   columnas no hay borde que tocar, y a 900px una portada al ancho
+   completo sería una franja desmesurada.
+   ============================================================ */
+@media (max-width: 800px) {
+  /* ---- LA TIRA ----
+     Los trabajos se tocan: sin hueco entre ellos la tira se lee
+     como una sola pieza. El margen negativo los saca del relleno
+     de la sección hasta el borde de la pantalla; .page-section es
+     de ancho completo, así que su `overflow-x: clip` no recorta. */
+  .work-list-grid {
+    gap: 0;
+
+    margin-inline: calc(50% - 50vw);
+    margin-bottom: 0;
+  }
+
+  .work-reveal {
+    /* el wrapper no debe recortar la portada ni añadir nada */
+    border-radius: 0;
+  }
+
+  .work-card {
+    position: relative;
+
+    height: 224px;
+
+    border: 0;
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+  }
+
+  /* ---- LA PRIMERA ES LA CABEZA DE LA PÁGINA ----
+     Más alta que las demás. Marca dónde empieza cada página sin
+     escribirlo —y con seis portadas idénticas seguidas hace
+     falta— y de paso rompe la fila de bloques iguales, que si no
+     se funden en una sola cinta. */
+  .work-list-grid > .work-reveal:first-child .work-card {
+    height: 300px;
+  }
+
+  .work-card__media {
+    position: absolute;
+    inset: 0;
+
+    margin: 0;
+
+    aspect-ratio: auto;
+
+    border-radius: 0;
+  }
+
+  .work-card__media img,
+  .work-card__media video {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+  }
+
+  /* el cliente ya es el titular de la portada: repetirlo en una
+     píldora sobre la imagen era decir dos veces lo mismo */
+  .work-card__cliente {
+    display: none;
+  }
+
+  .work-card__body {
+    position: absolute;
+    inset: auto 0 0 0;
+
+    /* el relleno de arriba es alto a propósito: es la altura del
+       velo, y los nombres caen sobre cielos y fondos claros donde
+       un degradado corto no llega a taparlos */
+    padding: 4rem 1.15rem 0.95rem;
+
+    background: linear-gradient(
+      0deg,
+      rgba(15, 9, 28, 0.96) 18%,
+      rgba(15, 9, 28, 0.7) 55%,
+      transparent
+    );
+  }
+
+  /* ---- Y SE INVIERTE EL ORDEN ----
+     En la tarjeta la categoría va ENCIMA del título. En la portada
+     manda el nombre del cliente y lo demás es pie, así que se le
+     da la vuelta con `order` en vez de tocar el JSX. */
+  .work-card__title {
+    order: 1;
+
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .work-list-grid > .work-reveal:first-child .work-card__title {
+    font-size: 1.9rem;
+  }
+
+  .work-card__meta {
+    order: 2;
+
+    margin-top: 0.4rem;
+  }
+
+  /* la fecha pierde su recuadro: sobre una foto, una píldora con
+     fondo es una caja más compitiendo con el nombre. En texto
+     desnudo dice lo mismo y no se ve hasta que se busca. */
+  .work-card__fecha {
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: none;
+  }
+
+  .work-card__text,
+  .work-card__foot {
+    display: none;
+  }
+
+  /* ---- LA BANDA QUE CIERRA LA TIRA ----
+     A sangre también, y con fondo propio: al dejar de ser imagen
+     se lee como que la tira terminó. Ver el porqué del contador en
+     WorkList.jsx. */
+  .work-list-banda {
+    margin-inline: calc(50% - 50vw);
+    margin-top: 0;
+
+    padding: 1.6rem 1.25rem 0.6rem;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    background: var(--sec-deep, #442f65);
+  }
+
+  .work-list-cuenta {
+    margin-bottom: 0.9rem;
+
+    color: var(--color-text-muted, rgba(226, 214, 255, 0.62));
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .work-list .paginacion {
+    margin-top: 0;
+  }
+}
+
+/* el contador es solo de la mano: en escritorio la rejilla ya
+   deja ver de un vistazo cuánto hay */
+@media (min-width: 801px) {
+  .work-list-cuenta {
+    display: none;
+  }
 }

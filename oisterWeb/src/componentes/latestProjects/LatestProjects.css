@@ -2492,12 +2492,25 @@
 
   /* ---- EL TITULAR ----
      A la izquierda, en dos líneas, de una sola tinta. */
+  /* ---- EL TITULAR, IGUAL QUE EL DE "CASOS DE USO" ----
+     Iba a min(2.15rem, 8.8vw) —34,3px a 390— con -0,035em. La
+     referencia son 32px con -0,02em. La diferencia era pequeña
+     pero se notaba al pasar de una sección a la siguiente: un
+     titular más grande y más apretado. Misma expresión que las
+     otras dos aperturas. */
   .lp-cabeza .latest-projects__title {
     max-width: none;
 
-    font-size: min(2.15rem, 8.8vw);
-    line-height: 1.1;
-    letter-spacing: -0.035em;
+    /* La expresión es la DOCUMENTADA en DESIGN.md (rol headline),
+       no la de `.uc__titulo`. Las dos dan lo mismo aquí —ambas
+       arrancan en 2rem y en la mano siempre topan por abajo, o
+       sea 32px— pero la de Casos de uso cierra en 3.1rem, un
+       escalón que la rampa no recoge. Copiarla habría propagado a
+       tres sitios la única desviación que había en uno. */
+    font-size: clamp(2rem, 1.25rem + 2.35vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
     text-wrap: balance;
   }
 

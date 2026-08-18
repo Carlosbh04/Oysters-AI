@@ -1,10 +1,10 @@
-import { useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import WorkCard from "./WorkCard";
 import MarcasMarquee from "../marcas/MarcasMarquee";
 import FiltroCategorias from "./FiltroCategorias";
 import Paginacion from "../paginacion/Paginacion";
+import { metaDe } from "../../hooks/useIrASeccion";
 import {
     PARAM_CATEGORIA,
     TODAS,
@@ -104,25 +104,56 @@ function WorkList({ trabajos }) {
            una rejilla nueva. Se sube al principio de la rejilla,
            descontando el header fijo para que la primera fila no
            quede debajo de él. */
-        const caja = rejillaRef.current?.getBoundingClientRect();
-        if (!caja) return;
+        /* el desplazamiento NO va aquí: ver el efecto de abajo */
+    };
 
-        const header =
-            parseInt(
-                getComputedStyle(document.documentElement).getPropertyValue(
-                    "--header-height"
-                )
-            ) || 96;
+    /* ============================================================
+       SUBIR AL PRINCIPIO DE LA TIRA, DESPUÉS DE PINTARLA
+
+       Al cambiar de página estás abajo, junto a los controles, y
+       sin esto te quedas mirando el final de una lista nueva.
+
+       ---- POR QUÉ EN UN EFECTO Y NO EN EL PROPIO CLIC ----
+       Ahí estaba antes, y aterrizaba mal: pedía 298px y acababa en
+       332 o en 353, distinto en cada intento. La causa es el
+       ANCLAJE DE SCROLL del navegador, que recoloca la página
+       cuando cambia de tamaño algo que está por encima — y la
+       rejilla se remonta entera (lleva `key`) justo después del
+       clic, mientras el desplazamiento suave va por la mitad. Se
+       peleaban los dos.
+
+       En un efecto el desplazamiento sale cuando el DOM nuevo ya
+       está puesto y medido: no hay nada que se mueva detrás, y cae
+       donde se pide.
+
+       ---- Y LA CUENTA ES LA COMPARTIDA ----
+       `metaDe` es la misma que usan el menú y "Descubre cómo": en
+       la mano esquiva la píldora de verdad y deja 22px de aire.
+       Aquí se descontaba `--header-height` a mano, así que paginar
+       aterrizaba distinto que los otros dos caminos, siendo el
+       mismo gesto. Ver useIrASeccion.js.
+       ============================================================ */
+    const primeraVez = useRef(true);
+
+    useEffect(() => {
+        /* al entrar directamente en /works?pagina=2 no se desplaza
+           nada: nadie ha pedido moverse, solo ha abierto un enlace */
+        if (primeraVez.current) {
+            primeraVez.current = false;
+            return;
+        }
+
+        if (!rejillaRef.current) return;
 
         const reduce = window.matchMedia(
             "(prefers-reduced-motion: reduce)"
         ).matches;
 
         window.scrollTo({
-            top: caja.top + window.scrollY - header - 24,
+            top: metaDe(rejillaRef.current),
             behavior: reduce ? "auto" : "smooth",
         });
-    };
+    }, [actual, categoria]);
 
     return (
         <section className="work-list">
@@ -216,45 +247,62 @@ function WorkList({ trabajos }) {
             </div>
 
 
-            {/* Paginación compartida con el blog (ver el porqué
-                en paginacion/Paginacion.jsx). Con una sola página
-                se oculta sola. */}
-            <Paginacion
-                actual={actual}
-                total={totalPaginas}
-                onIrA={irA}
-                ariaLabel="Paginación de trabajos"
-            />
+            {/* ---- LA BANDA DE CIERRE ----
+                En la mano los trabajos van a sangre, pegados unos a
+                otros: sin marco ni hueco, nada dice dónde termina la
+                página y una paginación suelta debajo se lee como un
+                bloque más de la tira. Esta banda le pone fondo y una
+                línea arriba, y con eso la tira se cierra.
 
-
-            {/* Cinta de marcas: va DEBAJO de la rejilla y encima
-                del CTA — cierra la prueba (esto hemos hecho, para
-                estos) justo antes de pedir el contacto */}
-            <MarcasMarquee />
-
-            {/* Banda CTA */}
-            <div className="work-list-cta">
-
-                <span className="work-list-cta-icon" aria-hidden="true">
-                    <Sparkles size={24} strokeWidth={2} />
-                </span>
-
-                <div className="work-list-cta-text">
-
-                    <h2>¿Tienes un proyecto en mente?</h2>
-
-                    <p>
-                        Hablemos de cómo la IA puede llevar tu negocio
-                        al siguiente nivel.
+                El contador no es un adorno: a pleno ancho se pierde
+                la noción de cuánto hay —la rejilla la daba con solo
+                mirarla— y sin él no se intuye si el catálogo son
+                seis trabajos o sesenta. Solo se ve en la mano; en
+                escritorio la rejilla sigue contando sola. */}
+            <div className="work-list-banda">
+                {visibles.length > 0 && (
+                    <p className="work-list-cuenta">
+                        Del {(actual - 1) * POR_PAGINA + 1} al{" "}
+                        {(actual - 1) * POR_PAGINA + visibles.length} de{" "}
+                        {filtrados.length}{" "}
+                        {filtrados.length === 1 ? "trabajo" : "trabajos"}
                     </p>
+                )}
 
-                </div>
-
-                <Link to="/contact" className="work-list-cta-button">
-                    Hablemos <span aria-hidden="true">→</span>
-                </Link>
-
+                {/* Paginación compartida con el blog (ver el porqué
+                    en paginacion/Paginacion.jsx). Con una sola página
+                    se oculta sola. */}
+                <Paginacion
+                    actual={actual}
+                    total={totalPaginas}
+                    onIrA={irA}
+                    ariaLabel="Paginación de trabajos"
+                />
             </div>
+
+
+            {/* ---- LA CINTA CIERRA LA PÁGINA ----
+                Va debajo de la rejilla y es lo último: los trabajos
+                demuestran QUÉ se ha hecho y la cinta PARA QUIÉN. La
+                petición de contacto la recoge el pie, justo debajo.
+
+                ---- AQUÍ HABÍA UNA BANDA DE CONTACTO, Y SE RETIRÓ ----
+                "¿Tienes un proyecto en mente? → Hablemos", 283px de
+                tarjeta. Medido en un móvil de 390: su botón caía en
+                y=1679 y el "Contactar" del pie en y=2154 — la MISMA
+                petición dos veces en 475px, con las mismas palabras,
+                en una página de 2.662. Eso no insiste, duda.
+
+                El pie lo hace mejor y desde antes: es el final real
+                del documento y sale en todas las rutas, así que la
+                banda sólo añadía altura y repetición. La secuencia
+                que sí importaba —prueba, clientes, petición— se
+                conserva entera: lo único que cambia es quién pone
+                la última parte.
+
+                Si alguna vez se quiere recuperar, el CSS sigue en
+                WorkList.css bajo `.work-list-cta`. */}
+            <MarcasMarquee />
 
         </section>
     );

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import "./MarcasMarquee.css";
 import { getMarcas } from "../../data/marcas";
 
@@ -25,6 +26,39 @@ const MINIMO_POR_VUELTA = 8;
 
 function MarcasMarquee() {
   const marcas = getMarcas();
+  const cintaRef = useRef(null);
+
+  /* ---- LA CINTA SE PARA CUANDO NADIE LA VE ----
+     Iba a 38s en bucle infinito desde que carga la página, la
+     mires o no: una animación de transform corriendo a 60fps en
+     el fondo del documento durante toda la visita. En un móvil
+     eso es batería a cambio de nada, y es exactamente por lo que
+     se retiró el efecto de arena.
+
+     El observador la enciende al asomar y la apaga al salir. No
+     desmonta nada ni reinicia el bucle —`animation-play-state`
+     congela y reanuda donde iba—, así que al volver a entrar la
+     cinta sigue por donde estaba y no da un salto.
+
+     El efecto va SIEMPRE, antes del `return null` de más abajo,
+     porque un hook no puede quedar detrás de una salida
+     anticipada: React exige el mismo número de hooks en cada
+     render. Por eso el guard vive dentro. */
+  useEffect(() => {
+    const cinta = cintaRef.current;
+    if (!cinta) return undefined;
+
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        cinta.toggleAttribute("data-quieta", !entrada.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observador.observe(cinta);
+    return () => observador.disconnect();
+  }, []);
+
   if (marcas.length === 0) return null;
 
   /* una vuelta completa, ya rellenada */
@@ -48,7 +82,7 @@ function MarcasMarquee() {
   );
 
   return (
-    <section className="marcas" aria-labelledby="marcas-titulo">
+    <section className="marcas" ref={cintaRef} aria-labelledby="marcas-titulo">
       <h2 id="marcas-titulo" className="marcas__titulo">
         Marcas para las que hemos desarrollado proyectos de IA
       </h2>

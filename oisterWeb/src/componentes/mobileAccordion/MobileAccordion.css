@@ -1,7 +1,9 @@
 /* ===== Base ===== */
 
 .mobile-accordion {
-  border-bottom: 1px solid rgba(21, 22, 28, 0.08);
+  /* los tokens los pone .mobile-menu y bajan por herencia: la
+     paleta del cajón se cambia en un sitio, no en dos hojas. */
+  border-bottom: 1px solid var(--mm-filo, rgba(21, 22, 28, 0.08));
 }
 
 /* ===== Header ===== */
@@ -22,7 +24,7 @@
 
   font: inherit;
 
-  color: var(--color-dark);
+  color: var(--mm-tinta, var(--color-dark));
   font-size: 1.08rem;
   font-weight: 600;
 
@@ -32,7 +34,7 @@
 }
 
 .mobile-accordion__header:hover {
-  color: #c97bdd;
+  color: var(--mm-tinta-2, #c97bdd);
 }
 
 /* ===== Contenido ===== */
@@ -65,7 +67,7 @@
   justify-content: center;
 
   font-size: 0.9rem;
-  color: #c97bdd;
+  color: var(--mm-tinta-2, #c97bdd);
 
   transition:
     transform 0.35s ease,
@@ -74,7 +76,7 @@
 
 .mobile-accordion__icon.active {
   transform: rotate(180deg);
-  color: #b96bd5;
+  color: var(--mm-tinta-2, #b96bd5);
 }
 
 .mobile-accordion__icon img {
@@ -98,7 +100,7 @@
 
   padding: 10px 0;
 
-  color: rgba(21, 22, 28, 0.72);
+  color: rgb(var(--rgb-secondary, 201 168 255) / 0.82);
 
   text-decoration: none;
 
@@ -110,7 +112,7 @@
 }
 
 .mobile-accordion__link:hover {
-  color: #c97bdd;
+  color: var(--mm-tinta-2, #c97bdd);
   transform: translateX(2px);
 }
 

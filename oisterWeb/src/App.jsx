@@ -9,6 +9,10 @@ import IntroAnimation from "./componentes/introAnimation/IntroAnimation";
 import PageSection from "./componentes/layout/PageSection";
 import ScrollToTop from "./componentes/scrollToTop/ScrollToTop";
 import VolverArriba from "./componentes/volverArriba/VolverArriba";
+import Persiana from "./componentes/persiana/Persiana";
+import { registrarPrecarga } from "./utils/precargaRuta";
+import { hayViaje } from "./componentes/persiana/persianaEstado";
+import useMediaQuery from "./hooks/useMediaQuery";
 import DefaultSkeleton from "./componentes/skeleton/DefaultSkeleton";
 import WorkDetailSkeleton from "./componentes/skeleton/work-detail/WorkDetailSkeleton";
 import WorksSkeleton from "./componentes/skeleton/work-list/WorksSkeleton";
@@ -260,6 +264,12 @@ const INITIAL_REVEAL_HOLD = 300;
 /* pulso normal al navegar entre rutas ya montadas */
 const NAV_PULSE = 1100;
 
+/* El mismo corte que usan About, VolverArriba y LatestProjects
+   para decidir "esto es una mano". Se repite escrito, como en
+   ellos, en vez de sacarlo a un módulo: el proyecto lo declara así
+   en cada consumidor. */
+const CORTE_MANO = "(max-width: 1079px)";
+
 /* ---- LA INTRO SE REPRODUCE SIEMPRE, Y ES A PROPÓSITO ----
    En cada carga y en cada recarga. Medido contra el build de
    producción, eso son 5.314ms en la portada, 5.847 en /works y
@@ -363,8 +373,35 @@ function App() {
      desde el primer render — la intro es fixed + z-index
      alto, así que esto es invisible hasta que ella se levanta.
      Home nunca usa skeleton (lo cubre su propio intro). */
+  /* ============================================================
+     EN MÓVIL NO HAY ESQUELETO
+
+     El esqueleto se pensó para que la espera de un chunk no fuera
+     una pantalla en blanco. En una mano ya no hace falta y estorba
+     por dos motivos:
+
+       · Las navegaciones del menú van tapadas por la persiana, que
+         hace de cargador. El esqueleto quedaba DETRÁS de la
+         cortina: nadie lo veía y encima alargaba el viaje.
+       · Fuera del menú aparecía y desaparecía en un parpadeo, que
+         se lee como que la página falla, no como que carga.
+
+     Se apaga en los tres sitios donde asomaba: el estado inicial
+     (aquí), el encendido de cada navegación (más abajo) y el
+     fallback de Suspense.
+
+     ⚠️ El precio: si alguien abre una ruta que no es la portada
+     DIRECTAMENTE desde el navegador en el móvil, y su chunk aún no
+     está en caché, ve la cabecera y el hueco vacío mientras baja.
+     Antes veía el esqueleto. Es el único caso en que quitarlo
+     resta, y es también el más raro.
+     ============================================================ */
+  const esMano = useMediaQuery(CORTE_MANO);
+
   const [skeletonVisible, setSkeletonVisible] = useState(
-    () => window.location.pathname !== "/"
+    () =>
+      !window.matchMedia(CORTE_MANO).matches &&
+      window.location.pathname !== "/"
   );
 
   /* ruta en la que cargó la app: distingue el reveal inicial
@@ -387,9 +424,19 @@ function App() {
 
   if (prevPathname !== location.pathname) {
     setPrevPathname(location.pathname);
-    setSkeletonVisible(location.pathname !== "/");
+    setSkeletonVisible(!esMano && location.pathname !== "/");
     setRouteReady(false);
   }
+
+  /* ---- EL MISMO PRECARGADOR, PRESTADO A LA PERSIANA ----
+     Mientras las columnas suben la pantalla ya no se ve, y son
+     seiscientos y pico milisegundos que valen para ir trayendo la
+     página de destino. Se deja aquí en vez de importarse desde el
+     hook porque ese import cerraría un círculo; ver
+     utils/precargaRuta.js. */
+  useEffect(() => {
+    registrarPrecarga(getRouteChunk);
+  }, []);
 
   /* precarga el chunk de la ruta actual mientras el skeleton
      está activo; el reveal espera a routeReady para que nunca
@@ -422,13 +469,24 @@ function App() {
     if (!routeReady) return;
 
     const isInitialReveal = location.pathname === initialPathname.current;
+
+    /* Con la persiana tapando no hay pulso que valga: se apaga el
+       esqueleto en cuanto la ruta está lista, porque la cortina ya
+       está haciendo de cargador y esperar aquí solo alarga la
+       transición con la pantalla quieta. */
+    const espera = esMano || hayViaje()
+      ? 0
+      : isInitialReveal
+        ? INITIAL_REVEAL_HOLD
+        : NAV_PULSE;
+
     const t = setTimeout(() => {
       setSkeletonVisible(false);
       initialPathname.current = null;
-    }, isInitialReveal ? INITIAL_REVEAL_HOLD : NAV_PULSE);
+    }, espera);
 
     return () => clearTimeout(t);
-  }, [showIntro, location.pathname, routeReady]);
+  }, [showIntro, location.pathname, routeReady, esMano]);
 
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
@@ -450,7 +508,11 @@ function App() {
         {skeletonVisible ? (
           getSkeletonFor(location.pathname)
         ) : (
-          <Suspense key={location.pathname} fallback={getSkeletonFor(location.pathname)}>
+          <Suspense
+            key={location.pathname}
+            /* en la mano, ni aquí: ver el bloque de esMano arriba */
+            fallback={esMano ? null : getSkeletonFor(location.pathname)}
+          >
             <div className="page-anim">
               <Routes>
                 <Route path="/" element={<HomePage introDone={!showIntro} introSaliendo={introSaliendo} />} />
@@ -501,6 +563,15 @@ function App() {
           reposiciona el scroll al cambiar de ruta y no pinta nada.
           Este es el botón que se ve. */}
       <VolverArriba />
+
+      {/* ---- LA TRANSICIÓN ENTRE PÁGINAS ----
+          Va en la raíz porque tiene que TAPAR todo lo demás,
+          incluido el menú del que se acaba de salir, y porque el
+          viaje continúa después de que el menú se desmonte.
+
+          No pinta nada mientras no hay navegación en curso: las
+          cinco columnas están a scaleY(0). Ver Persiana.jsx. */}
+      <Persiana />
 
       {showIntro && (
         <IntroAnimation

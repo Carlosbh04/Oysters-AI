@@ -100,22 +100,7 @@
 
   position: relative;
 
-  /* ---- `clip` Y NO `hidden`, Y NO ES COSMÉTICO ----
-     Recorta exactamente igual —el resplandor y las ondas siguen
-     sin salirse—, pero con una diferencia que aquí lo cambia
-     todo: `hidden` convierte al elemento en CONTENEDOR DE SCROLL
-     y `clip` no.
-
-     Con `hidden`, la línea de tiempo `view()` de la salida se
-     resolvía contra el propio hero en vez de contra la página. Y
-     como el hero no scrollea nunca, su contenido está siempre
-     "contenido": la fase de salida no llegaba a ocurrir y la
-     animación se quedaba clavada en el 0% (medido: el timeline
-     avanzaba al 46% mientras el progreso seguía en 0).
-
-     Es la misma corrección, y por parentesco el mismo motivo, que
-     ya llevan "Últimos proyectos", "Nosotros" y el pie. */
-  overflow: clip;
+  overflow: hidden;
 }
 
 /* ══════════════ NAVBAR: MODIFICAR AQUÍ (2/3) ══════════════
@@ -1518,66 +1503,6 @@
 @keyframes heroFade {
   to {
     opacity: 1;
-  }
-}
-
-/* ============================================================
-   LA SALIDA DEL HERO — la lleva el scroll, no un reloj
-
-   Al abandonar la pantalla, la columna de texto se atenúa y sube
-   un punto. La progresión va atada al SCROLL (`animation-timeline:
-   view()`), así que responde al dedo: si paras a media salida, se
-   queda a medias; si vuelves atrás, se deshace. Un reloj no puede
-   hacer eso — se dispararía y correría solo.
-
-   ---- EL `@supports` NO ES OPCIONAL: SIN ÉL SE ROMPE FIREFOX ----
-   Firefox todavía no implementa las líneas de tiempo por scroll
-   (medido: Chrome y Safari sí, Firefox no). Y no las ignora
-   entero: descarta el `animation-timeline` pero EJECUTA la
-   animación en la línea de tiempo normal. O sea que sin este
-   guard, en Firefox el hero se desvanecería solo al cargar la
-   página y se quedaría invisible para siempre.
-
-   Con el guard, lo que pasa donde no hay soporte es que no hay
-   efecto de salida y el hero se va con el scroll como hasta hoy.
-   Degradación sana: se pierde el adorno, nunca el contenido.
-
-   ---- POR QUÉ `.hero__left` Y NO EL CONTENEDOR ----
-   El titular, la entradilla y el CTA ya tienen animación de
-   ENTRADA con `forwards`. Animar la salida sobre esos mismos
-   elementos sería pelearse por las mismas propiedades, así que la
-   salida va en el bloque que los envuelve.
-
-   Y NO se toca `.hero__right`: la ostra lleva su propio transform
-   atado a --h-scroll-p (useHeroScrollDock) para viajar hasta
-   "Qué hacemos". Animarla aquí le pisaría el viaje.
-
-   ---- TAMBIÉN EN MÓVIL ----
-   Nació con `min-width: 901px` por confundirlo con la congelación
-   del fondo, y son cosas distintas: allí se paró un degradado que
-   giraba SOLO, y esto responde al dedo de quien scrollea. En la
-   mano es donde más se nota, porque se scrollea más.
-   ============================================================ */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .hero__left {
-      animation: heroSalida linear both;
-      animation-timeline: view();
-
-      /* arranca en cuanto el hero empieza a irse y termina al 72%
-         del recorrido: así queda apagado ANTES de desaparecer del
-         todo, en vez de cortarse a medio fundido contra el borde */
-      animation-range: exit 0% exit 72%;
-    }
-  }
-}
-
-/* solo `to`: el estado de partida es el que tenga el elemento, así
-   que la salida no pelea con lo que dejó puesto la entrada */
-@keyframes heroSalida {
-  to {
-    opacity: 0;
-    transform: translateY(-40px) scale(0.97);
   }
 }
 

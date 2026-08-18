@@ -510,6 +510,96 @@
    la píldora volvería a "caer" cada vez. */
 
 @media (max-width: 1100px) {
+  /* ============================================================
+     LA PÍLDORA SE QUEDA
+
+     Iba en `absolute`, así que al bajar se marchaba con la página
+     y el menú dejaba de estar accesible. En una portada de más de
+     11.000px eso significa que, salvo en el primer scroll, no hay
+     manera de navegar — y el menú es donde está el contacto, que
+     es lo que la web persigue.
+
+     `fixed` no cambia la maqueta: `absolute` ya estaba fuera de
+     flujo, así que no había hueco reservado que liberar. Lo único
+     que cambia es que deja de irse.
+
+     Y es lo que hace posible el rótulo de sección: un indicador
+     de dónde estás no sirve de nada en una barra que no está.
+
+     ⚠ NO PONER transform, filter NI backdrop-filter en `.header`.
+     Cualquiera de los tres lo convierte en bloque contenedor de
+     sus descendientes `fixed`, y el drawer del menú —que es hijo
+     suyo— dejaría de referirse a la ventana. Por eso la animación
+     de entrada vive en `.header__container` y no aquí. */
+  .header {
+    position: fixed;
+  }
+
+  /* ---- EL CENTRO DE LA PÍLDORA, CON LA SECCIÓN EN CURSO ----
+     Hereda el centrado absoluto del rótulo tecleado (ver
+     .header__tagline): así no depende del ancho del logo ni de la
+     hamburguesa, y da igual cuánto ocupe el nombre.
+
+     La tinta es oscura porque el fondo es el rosa de la píldora;
+     en blanco sobre ese degradado daría 1,9:1. El realce claro de
+     debajo es el mismo recurso que el filo interior de la
+     píldora: separa la letra del relleno sin ensuciarla. */
+  .header__seccion {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+
+    max-width: 58%;
+
+    margin: 0;
+    transform: translate(-50%, -50%);
+
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono",
+      Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+
+    color: #3b1140;
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.32);
+
+    /* si algún día un rótulo se alarga, se corta con puntos: nunca
+       empuja al logo ni a la hamburguesa */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* nunca bloquea un toque: debajo está la píldora */
+    pointer-events: none;
+  }
+
+  .header__seccion-texto {
+    display: block;
+  }
+
+  /* el relevo entre secciones: la saliente no se ve irse porque
+     el nodo se sustituye (ver el `key` en SeccionEnCurso), así
+     que sólo hay entrada. Corta y sin desplazamiento lateral —a
+     esta escala, mover el texto se lee como un tirón. */
+  @media (prefers-reduced-motion: no-preference) {
+    .header__seccion-texto {
+      animation: seccionEntra 0.42s cubic-bezier(0.22, 0.8, 0.36, 1);
+    }
+  }
+
+  @keyframes seccionEntra {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  .header.is-open .header__seccion {
+    opacity: 0;
+  }
+
   .header.is-open .header__container {
     position: relative;
     z-index: 1200;
@@ -525,6 +615,19 @@
     pointer-events: none;
   }
 
+  /* ---- Y SU FILO TAMBIÉN ----
+     El borde de la píldora no es un `border`: es un ::before con
+     degradado y máscara (la única forma de que un filo degradado
+     siga una esquina redondeada sin cortarse). Por eso
+     `border-color: transparent` de arriba no lo apagaba, y quedaba
+     un contorno redondeado flotando sobre el menú abierto.
+
+     Con el cajón claro apenas se notaba; con la paleta oscura se
+     lee como una píldora fantasma encima del panel. */
+  .header.is-open .header__container::before {
+    opacity: 0;
+  }
+
   .header.is-open .header__logo,
   .header.is-open .header__tagline {
     opacity: 0 !important;
@@ -534,6 +637,16 @@
   /* la X sí recibe taps */
   .header.is-open .hamburger {
     pointer-events: auto;
+  }
+
+  /* ---- Y SE VE SOBRE EL CAJÓN ----
+     Las barras son #15161C, casi negras, porque el cajón era
+     blanco. Con la paleta oscura la X desaparecía sobre su propio
+     fondo: quedaba un menú abierto sin manera visible de
+     cerrarlo. Va aquí, colgada de `is-open` y dentro del corte de
+     móvil, para no tocar el botón en reposo ni el de escritorio. */
+  .header.is-open .hamburger span {
+    background: var(--color-text, #f6f0ff);
   }
 }
 

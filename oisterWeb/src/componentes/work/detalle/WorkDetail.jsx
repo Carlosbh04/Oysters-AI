@@ -174,6 +174,7 @@ function WorkDetail({
       tituloDestacado={tituloDestacado}
       subtitulo={subtitulo}
       categoria={categoria}
+      anio={anio}
       etiquetas={etiquetas}
     />,
 

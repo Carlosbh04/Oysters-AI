@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize, Pause, Play, Volume2, VolumeX, X } from "lucide-react";
 import CortinaPixeles from "./CortinaPixeles";
+import useMediaQuery from "../../hooks/useMediaQuery";
 
 /* ============================================================
    EL VÍDEO DEL BLOQUE, CON SUS PROPIOS MANDOS
@@ -27,6 +28,15 @@ import CortinaPixeles from "./CortinaPixeles";
    otra más larga, el marcador se entera solo.
    ============================================================ */
 
+/* El mismo corte que el resto del proyecto para decidir "esto es
+   una mano" (About, VolverArriba, LatestProjects). */
+const CORTE_MANO = "(max-width: 1079px)";
+
+/* Cuánto hay que arrastrar hacia abajo para que se cierre. Por
+   debajo de esto se entiende que ha sido un roce y la pieza vuelve
+   a su sitio. */
+const ARRASTRE_CIERRA = 90;
+
 const FUENTE = "/videos/como-lo-hacemos/oysters.mp4";
 const POSTER = "/img/como-lo-hacemos/oysters-poster.jpg";
 
@@ -43,6 +53,25 @@ const reloj = (s) => {
 function VideoMarco() {
   const videoRef = useRef(null);
   const cajaRef = useRef(null);
+
+  /* ============================================================
+     EN LA MANO, EL VÍDEO SE ABRE DE OTRA MANERA
+
+     En escritorio esto se abre con la cortina de píxeles: se cierra,
+     el vídeo crece detrás y se vuelve a abrir. En una mano ese
+     recorrido no encaja —dura más de un segundo y en una pantalla
+     estrecha se lee como una espera, no como un gesto— así que ahí
+     el vídeo SALTA a ocupar la pantalla con un rebote y se cierra
+     arrastrando hacia abajo, que es lo que cualquiera tiene
+     aprendido de la galería de fotos del teléfono.
+
+     Cambia además el estado de reposo: en la mano el marco es solo
+     el cartel —póster, play y un sello que dice a dónde lleva— sin
+     la barra de mandos debajo, que ahí solo servía para gastar alto
+     en controles de algo que aún no se está viendo. Los mandos
+     aparecen dentro, cuando el vídeo ya ocupa la pantalla.
+     ============================================================ */
+  const esMano = useMediaQuery(CORTE_MANO);
 
   /* ---- LA SECUENCIA DE ENTRADA ----
      Al pulsar play no se reproduce ahí mismo:
@@ -183,6 +212,23 @@ function VideoMarco() {
       v.pause();
     }
 
+    /* ---- LA MANO NO PASA POR LA CORTINA ----
+       Salta directa: el marco pasa a ocupar la pantalla y el CSS le
+       pone el rebote. El play va aquí mismo y no un segundo después,
+       así que sigue pegado al gesto — que es justo lo que el
+       navegador exige para dejar que suene. */
+    if (esMano) {
+      setGrande(true);
+      setArrancado(true);
+      v?.play().catch(() => {
+        if (!v) return;
+        v.muted = true;
+        setMudo(true);
+        v.play().catch(() => {});
+      });
+      return;
+    }
+
     conCortina(
       /* a oscuras: el salto de tamaño */
       () => {
@@ -202,9 +248,16 @@ function VideoMarco() {
         });
       }
     );
-  }, [conCortina]);
+  }, [conCortina, esMano]);
 
   const cerrarGrande = useCallback(() => {
+    if (esMano) {
+      videoRef.current?.pause();
+      setGrande(false);
+      setArrancado(false);
+      return;
+    }
+
     conCortina(() => {
       videoRef.current?.pause();
       setGrande(false);
@@ -214,7 +267,7 @@ function VideoMarco() {
          visible, y el único play a mano era el de la barra. */
       setArrancado(false);
     });
-  }, [conCortina]);
+  }, [conCortina, esMano]);
 
   /* ---- DARLE AL PLAY ES SIEMPRE VERLO EN GRANDE ----
      Salvo que ya lo esté. Aquí estaba el fallo: al cerrar con la X,
@@ -269,6 +322,36 @@ function VideoMarco() {
     };
   }, [grande, cerrarGrande]);
 
+  /* ---- ARRASTRAR HACIA ABAJO PARA CERRAR ----
+     El vídeo sigue al dedo y se encoge y se apaga a la vez, así que
+     durante el gesto ya se ve a dónde lleva: soltarlo cierra. Si no
+     se baja lo suficiente vuelve a su sitio, que es la mitad que
+     suele olvidarse y la que hace que probar el gesto no dé miedo.
+
+     Los mandos quedan fuera: arrastrar la barra de avance es
+     buscar en la película, no cerrarla. */
+  const [arrastre, setArrastre] = useState(0);
+  const origenY = useRef(null);
+
+  const alPulsar = (e) => {
+    if (!grande || !esMano) return;
+    if (e.target.closest(".iia__mandos")) return;
+    origenY.current = e.clientY;
+  };
+
+  const alMover = (e) => {
+    if (origenY.current === null) return;
+    setArrastre(Math.max(0, e.clientY - origenY.current));
+  };
+
+  const alSoltar = () => {
+    if (origenY.current === null) return;
+    const recorrido = arrastre;
+    origenY.current = null;
+    setArrastre(0);
+    if (recorrido > ARRASTRE_CIERRA) cerrarGrande();
+  };
+
   const silenciar = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -302,6 +385,21 @@ function VideoMarco() {
     <div
       className={`iia__marco ${grande ? "iia__marco--grande" : ""}`}
       ref={cajaRef}
+      onPointerDown={alPulsar}
+      onPointerMove={alMover}
+      onPointerUp={alSoltar}
+      onPointerCancel={alSoltar}
+      /* durante el arrastre manda el dedo, no la transición: sin
+         desactivarla el vídeo iría siempre un poco por detrás */
+      style={
+        arrastre
+          ? {
+              transform: `translateY(${arrastre}px) scale(${1 - arrastre / 1400})`,
+              opacity: Math.max(0, 1 - arrastre / 380),
+              transition: "none",
+            }
+          : undefined
+      }
     >
       <div className="iia__marco-lienzo">
         <video
@@ -330,7 +428,25 @@ function VideoMarco() {
             <Play strokeWidth={0} fill="currentColor" aria-hidden="true" />
           </button>
         )}
+
+        {/* solo se ve en la mano y en reposo: dice a dónde lleva el
+            play, que sin barra de mandos debajo no se daba por
+            supuesto (ver el bloque de esMano arriba) */}
+        {!grande && esMano && (
+          <span className="iia__sello">Ver a pantalla completa</span>
+        )}
       </div>
+
+      {/* el vídeo es 16:9 y una pantalla de mano es alta: arriba
+          sobra negro. En vez de dejarlo muerto, lleva el rótulo de
+          la pieza — y el tirador dice que esto se arrastra. */}
+      {grande && esMano && (
+        <div className="iia__cabecera" aria-hidden="true">
+          <span className="iia__tirador" />
+          <p className="iia__cabecera-rotulo">¿Cómo lo hacemos?</p>
+          <p className="iia__cabecera-titulo">Oysters AI · la pieza</p>
+        </div>
+      )}
 
       <div className="iia__mandos">
         <button
