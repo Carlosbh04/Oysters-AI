@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
+import useViajeConPersiana from "../../hooks/useViajeConPersiana";
 import "./BlogCard.css";
 
 function BlogCard({ id, titulo, categoria, fecha, foto, entrada }) {
+  /* la misma cortina que el resto del sitio */
+  const { aRuta } = useViajeConPersiana();
+
   const textoCompleto =
     entrada?.texto || entrada?.subtitulo || "Lee esta entrada del blog";
   const textoResumen = textoCompleto.length > 160
@@ -9,7 +13,11 @@ function BlogCard({ id, titulo, categoria, fecha, foto, entrada }) {
     : textoCompleto;
 
   return (
-    <Link to={`/blog/${id}`} className="blog-card">
+    <Link
+            to={`/blog/${id}`}
+            className="blog-card"
+            onClick={aRuta(`/blog/${id}`)}
+        >
       {/* alt vacío: la imagen es ambiental y el titular ya nombra
           la entrada — un lector de pantalla no necesita oírla.
           onError: si el archivo falta (public/img/blog aún no

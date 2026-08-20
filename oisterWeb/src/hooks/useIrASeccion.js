@@ -261,32 +261,33 @@ let animacion = null;
    disparar un scroll a la sección equivocada */
 let busqueda = null;
 
-function desplazar(id) {
-  const destino = document.getElementById(id);
-  if (!destino) return false;
+/* ============================================================
+   EL RECORRIDO, SIN DESTINO FIJO
 
+   Esto vivía dentro de `desplazar` y solo sabía ir a secciones.
+   Se saca porque el botón de "volver arriba" necesita EXACTAMENTE
+   lo mismo —recorrido regulado, curva propia, abandono al primer
+   gesto— y estaba usando `scrollTo({behavior:"smooth"})`, que es
+   justo lo que este archivo explica arriba que no vale.
+
+   `meta` es una FUNCIÓN y no un número: se re-mide en cada
+   fotograma porque el documento cambia de alto mientras se viaja
+   (entran imágenes diferidas, se revelan secciones). Con un número
+   tomado al salir, se llega desfasado — y volviendo arriba eso se
+   traduce en quedarse a medio camino.
+   ============================================================ */
+function recorrer(meta, alLlegar = null) {
   if (animacion) cancelAnimationFrame(animacion);
 
   /* quien pide menos movimiento salta directo: el recorrido largo
      y animado es justo lo que le molesta */
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    window.scrollTo({ top: metaDe(destino), behavior: "auto" });
-    return true;
+    window.scrollTo({ top: meta(), behavior: "auto" });
+    alLlegar?.();
+    return;
   }
 
   const salida = window.scrollY;
-
-  /* el margen de la cabecera es constante durante el trayecto:
-     se lee UNA vez (getComputedStyle por frame era la única
-     lectura evitable del bucle; el rect del destino sí tiene que
-     re-medirse — la meta se mueve, ver el comentario de abajo) */
-  /* La meta se re-mide en cada fotograma y NO se cachea: mientras
-     el recorrido avanza, las entradas por scroll de las secciones
-     que se cruzan van cambiando el alto del documento, así que un
-     número tomado al salir llegaría desfasado. Lo que sí es
-     constante es la píldora, que va fija. */
-  const meta = () => metaDe(destino);
-
   const total = duracionPara(meta() - salida);
   const inicio = performance.now();
 
@@ -302,29 +303,54 @@ function desplazar(id) {
   const eventos = ["wheel", "touchstart", "keydown", "pointerdown"];
   const quitarEscuchas = () =>
     eventos.forEach((e) => window.removeEventListener(e, soltar));
-  eventos.forEach((e) => window.addEventListener(e, soltar, { passive: true, once: true }));
+  eventos.forEach((e) =>
+    window.addEventListener(e, soltar, { passive: true, once: true })
+  );
 
   const paso = (ahora) => {
     const t = Math.min(1, (ahora - inicio) / total);
-
-    /* La meta se recalcula EN CADA FOTOGRAMA. Durante el trayecto
-       entran imágenes diferidas y se revelan secciones, y
-       cualquiera de esas cosas mueve el destino: con la meta fija
-       se aterriza descuadrado. Recalculándola, el recorrido
-       persigue la sección hasta el final. */
-    const y = salida + (meta() - salida) * suavizado(t);
-    window.scrollTo(0, y);
+    window.scrollTo(0, salida + (meta() - salida) * suavizado(t));
 
     if (t < 1) {
       animacion = requestAnimationFrame(paso);
     } else {
       animacion = null;
       quitarEscuchas();
-      marcarLlegada(destino);
+      alLlegar?.();
     }
   };
 
   animacion = requestAnimationFrame(paso);
+}
+
+/* ---- VOLVER ARRIBA DEL TODO ----
+   El botón de la perla usaba `scrollTo({behavior:"smooth"})` y se
+   quedaba a medio camino: es el desplazamiento del navegador, que
+   ni se regula ni se puede rematar, y en un móvil real lo corta
+   cualquier cosa —el dedo aún apoyado, la inercia del scroll, o el
+   alto del documento cambiando mientras sube porque las secciones
+   que se cruzan van soltando sus imágenes—.
+
+   Con el recorrido propio se acaba SIEMPRE en 0: la meta se
+   re-mide cada fotograma y el último la clava. Y si alguien toca
+   la pantalla por el camino, se abandona como en cualquier otro
+   viaje del sitio. */
+export function subirArriba() {
+  recorrer(() => 0);
+}
+
+function desplazar(id) {
+  const destino = document.getElementById(id);
+  if (!destino) return false;
+
+  /* la meta va como función: se re-mide cada fotograma porque las
+     secciones que se cruzan cambian el alto del documento mientras
+     se viaja (ver recorrer, arriba) */
+  recorrer(
+    () => metaDe(destino),
+    () => marcarLlegada(destino)
+  );
+
   return true;
 }
 

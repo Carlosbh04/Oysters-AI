@@ -8,12 +8,14 @@
       {
         "subtitulo": "Entender la IA sin necesidad de ser experto",
         "texto": "La inteligencia artificial forma parte cada vez más de nuestra vida cotidiana. Desde los buscadores hasta las herramientas creativas, la IA está transformando la manera en la que trabajamos, consumimos información y nos relacionamos con la tecnología.",
-        "foto": "/img/blog/ia/ia-01.png"
+        "foto": "/img/blog/ia/ia-01.png",
+        "pie": "La IA integrada en herramientas de uso cotidiano"
       },
       {
         "subtitulo": "Una tecnología al alcance de cualquiera",
         "texto": "Las nuevas herramientas de inteligencia artificial han conseguido que tecnologías que antes estaban reservadas a especialistas puedan ser utilizadas por cualquier persona para crear, investigar, automatizar tareas y resolver problemas.",
-        "foto": "/img/blog/ia/ia-02.png"
+        "foto": "/img/blog/ia/ia-02.png",
+        "pie": "Herramientas antes reservadas a especialistas"
       }
     ]
   },
@@ -26,12 +28,14 @@
       {
         "subtitulo": "Una nueva forma de crear contenido",
         "texto": "La IA generativa permite crear textos, imágenes, vídeos, música y otros formatos a partir de instrucciones humanas. Su evolución está cambiando los procesos creativos y la forma en la que las marcas desarrollan contenido.",
-        "foto": "/img/blog/ia-generativa/generativa-01.png"
+        "foto": "/img/blog/ia-generativa/generativa-01.png",
+        "pie": "Texto, imagen, vídeo y sonido a partir de instrucciones"
       },
       {
         "subtitulo": "La creatividad entra en una nueva etapa",
         "texto": "La inteligencia artificial no elimina la creatividad humana, sino que permite explorar muchas más posibilidades en menos tiempo. Las personas pasan a dirigir, seleccionar y perfeccionar las propuestas generadas.",
-        "foto": "/img/blog/ia-generativa/generativa-02.png"
+        "foto": "/img/blog/ia-generativa/generativa-02.png",
+        "pie": "El equipo dirige; la máquina propone"
       }
     ]
   },
@@ -44,12 +48,14 @@
       {
         "subtitulo": "Más posibilidades para los equipos creativos",
         "texto": "Las herramientas de inteligencia artificial permiten generar conceptos, referencias visuales y diferentes versiones de una misma idea, facilitando las primeras fases de los procesos creativos.",
-        "foto": "/img/blog/creatividad/creatividad-01.png"
+        "foto": "/img/blog/creatividad/creatividad-01.png",
+        "pie": "Conceptos y referencias visuales en las primeras fases"
       },
       {
         "subtitulo": "Del concepto a la campaña",
         "texto": "La combinación entre estrategia, creatividad e inteligencia artificial permite desarrollar campañas de forma más rápida y experimentar con diferentes caminos antes de tomar una decisión definitiva.",
-        "foto": "/img/blog/creatividad/creatividad-02.png"
+        "foto": "/img/blog/creatividad/creatividad-02.png",
+        "pie": "Del primer boceto a la campaña terminada"
       }
     ]
   },
@@ -62,12 +68,14 @@
       {
         "subtitulo": "La inteligencia artificial como parte de la estrategia",
         "texto": "Las marcas comienzan a incorporar la inteligencia artificial no solamente como una herramienta de producción, sino también como una pieza estratégica capaz de transformar la forma de pensar y desarrollar proyectos.",
-        "foto": "/img/blog/marcas/marcas-01.png"
+        "foto": "/img/blog/marcas/marcas-01.png",
+        "pie": "La IA como pieza de estrategia, no solo de producción"
       },
       {
         "subtitulo": "Una nueva relación entre personas y tecnología",
         "texto": "El verdadero potencial aparece cuando el conocimiento humano se combina con las capacidades de la inteligencia artificial. La tecnología aporta velocidad y posibilidades, mientras las personas aportan criterio y dirección.",
-        "foto": "/img/blog/marcas/marcas-02.png"
+        "foto": "/img/blog/marcas/marcas-02.png",
+        "pie": "Criterio humano y capacidad de cálculo"
       }
     ]
   },
@@ -80,12 +88,14 @@
       {
         "subtitulo": "Convertir un producto cotidiano en una historia",
         "texto": "Una empanada puede convertirse en el punto de partida de una narrativa de marca. La creatividad permite transformar un producto sencillo en una experiencia capaz de conectar con las personas.",
-        "foto": "/img/blog/empanada/historia.png"
+        "foto": "/img/blog/empanada/historia.png",
+        "pie": "Un producto sencillo convertido en relato de marca"
       },
       {
         "subtitulo": "La importancia de contar historias",
         "texto": "Las marcas necesitan construir relatos capaces de generar emociones y diferenciarse. Incluso los productos más cotidianos pueden encontrar una personalidad propia cuando existe una buena historia detrás.",
-        "foto": "/img/blog/empanada/creatividad.png"
+        "foto": "/img/blog/empanada/creatividad.png",
+        "pie": "Lo cotidiano encuentra personalidad propia"
       }
     ]
   },
@@ -98,12 +108,14 @@
       {
         "subtitulo": "La publicidad de juguetes entra en nuevos universos",
         "texto": "La inteligencia artificial generativa permite imaginar campañas navideñas en las que los juguetes pueden convertirse en protagonistas de mundos visuales y narrativos mucho más amplios.",
-        "foto": "/img/blog/navidad/universos.png"
+        "foto": "/img/blog/navidad/universos.png",
+        "pie": "Universos visuales para campaña navideña"
       },
       {
         "subtitulo": "Del concepto a la pieza visual",
         "texto": "Las herramientas generativas permiten explorar rápidamente escenarios, personajes y composiciones, facilitando la creación de universos visuales adaptados a las necesidades de una campaña.",
-        "foto": "/img/blog/navidad/juguetes.png"
+        "foto": "/img/blog/navidad/juguetes.png",
+        "pie": "Escenarios y personajes explorados con IA generativa"
       }
     ]
   },
@@ -116,12 +128,14 @@
       {
         "subtitulo": "Un nuevo modelo de agencia",
         "texto": "Oysters AI apuesta por un modelo de agencia basado en la inteligencia artificial, combinando estrategia, creatividad y tecnología para desarrollar nuevas formas de trabajar en comunicación y publicidad.",
-        "foto": "/img/blog/oysters-ai/agency.png"
+        "foto": "/img/blog/oysters-ai/agency.png",
+        "pie": "Un modelo de agencia construido sobre IA"
       },
       {
         "subtitulo": "La metodología AI-First",
         "texto": "El enfoque AI-First sitúa la inteligencia artificial en el centro del proceso creativo y productivo, utilizándola como una herramienta para ampliar las capacidades de los equipos y mejorar la velocidad de ejecución.",
-        "foto": "/img/blog/oysters-ai/ai-first.png"
+        "foto": "/img/blog/oysters-ai/ai-first.png",
+        "pie": "La metodología AI-First en el proceso creativo"
       }
     ]
   },
@@ -134,12 +148,14 @@
       {
         "subtitulo": "Una factoría de contenidos para un sector especializado",
         "texto": "Kymatio y Oysters AI desarrollan un sistema de producción de contenidos orientado a la formación en ciberseguridad, buscando generar piezas de forma escalable y adaptada a diferentes necesidades.",
-        "foto": "/img/blog/kymatio/factoria.png"
+        "foto": "/img/blog/kymatio/factoria.png",
+        "pie": "Producción de contenidos formativos a escala"
       },
       {
         "subtitulo": "IA para acelerar la producción",
         "texto": "La inteligencia artificial permite agilizar diferentes fases del proceso creativo y de producción, facilitando la generación de materiales formativos y su adaptación a diferentes formatos.",
-        "foto": "/img/blog/kymatio/contenidos.png"
+        "foto": "/img/blog/kymatio/contenidos.png",
+        "pie": "La IA acelera las fases de producción"
       }
     ]
   },
@@ -152,12 +168,14 @@
       {
         "subtitulo": "Una nueva experiencia audiovisual para VTech",
         "texto": "VTech lleva a televisión su propuesta Granja Escuela: Mi Primera Excursión, combinando entretenimiento, educación y creatividad para crear una experiencia dirigida al público infantil.",
-        "foto": "/img/blog/vtech/granja-escuela.png"
+        "foto": "/img/blog/vtech/granja-escuela.png",
+        "pie": "Granja Escuela: Mi Primera Excursión, para televisión"
       },
       {
         "subtitulo": "La inteligencia artificial como herramienta creativa",
         "texto": "El proyecto muestra cómo las herramientas de inteligencia artificial pueden integrarse en procesos de producción audiovisual para acelerar la creación de contenidos y ampliar las posibilidades creativas.",
-        "foto": "/img/blog/vtech/produccion.png"
+        "foto": "/img/blog/vtech/produccion.png",
+        "pie": "IA integrada en la producción audiovisual"
       }
     ]
   },
@@ -170,17 +188,20 @@
       {
         "subtitulo": "Una nueva generación de creación visual",
         "texto": "Google presenta Nano Banana Pro, basado en Gemini 3 Pro Image, con nuevas capacidades de razonamiento y generación visual que buscan mejorar la precisión y utilidad de las imágenes creadas mediante inteligencia artificial.",
-        "foto": "/img/blog/nano-banana-pro/nano-banana.png"
+        "foto": "/img/blog/nano-banana-pro/nano-banana.png",
+        "pie": "Nano Banana Pro, sobre Gemini 3 Pro Image"
       },
       {
         "subtitulo": "Imágenes que entienden información",
         "texto": "El modelo permite crear infografías, diagramas, prototipos y explicaciones visuales utilizando información proporcionada por el usuario y datos actualizados.",
-        "foto": "/img/blog/nano-banana-pro/infografia.png"
+        "foto": "/img/blog/nano-banana-pro/infografia.png",
+        "pie": "Infografías y diagramas generados con datos"
       },
       {
         "subtitulo": "Texto integrado y mayor control creativo",
         "texto": "Nano Banana Pro incorpora una mayor capacidad para representar texto dentro de las imágenes y ofrece controles avanzados sobre iluminación, cámara, enfoque, color y composición.",
-        "foto": "/img/blog/nano-banana-pro/creatividad.png"
+        "foto": "/img/blog/nano-banana-pro/creatividad.png",
+        "pie": "Control de luz, cámara, enfoque y composición"
       }
     ]
   },
@@ -193,17 +214,20 @@
       {
         "subtitulo": "Interfaces que se adaptan al usuario",
         "texto": "La Generative UI plantea una nueva forma de construir interfaces en la que la inteligencia artificial puede generar y adaptar elementos visuales en función del contexto y las necesidades de cada usuario.",
-        "foto": "/img/blog/generative-ui/interface.png"
+        "foto": "/img/blog/generative-ui/interface.png",
+        "pie": "Interfaces que se construyen según el contexto"
       },
       {
         "subtitulo": "Del diseño estático a experiencias dinámicas",
         "texto": "Las interfaces dejan de ser completamente predefinidas y pueden evolucionar en tiempo real. Esto abre nuevas posibilidades para crear experiencias digitales personalizadas y más flexibles.",
-        "foto": "/img/blog/generative-ui/dynamic.png"
+        "foto": "/img/blog/generative-ui/dynamic.png",
+        "pie": "Del diseño predefinido a la experiencia dinámica"
       },
       {
         "subtitulo": "La IA como nuevo motor de interacción",
         "texto": "La inteligencia artificial puede convertirse en una capa capaz de interpretar las necesidades del usuario y construir la experiencia más adecuada en cada momento.",
-        "foto": "/img/blog/generative-ui/ai-interface.png"
+        "foto": "/img/blog/generative-ui/ai-interface.png",
+        "pie": "La IA como capa de interacción"
       }
     ]
   }

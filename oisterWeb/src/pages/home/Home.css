@@ -1621,6 +1621,79 @@
     z-index: 0;
   }
 
+  /* ---- EL VELO DETRÁS DEL TEXTO ----
+     Mismo recurso que la cabecera de /resources: una capa oscura
+     entre el fondo y la tinta, para que las letras claras dejen de
+     depender de por dónde ande el degradado.
+
+     Hacía falta porque el fondo GIRA: por debajo del texto pasa
+     el índigo y también el rosa claro, y medido en la fase clara
+     el párrafo se quedaba en 4,14:1 —por debajo del 4,5 mínimo—.
+     Con el velo al 28% sube a 5,72:1 y el titular a 9,01:1.
+
+     ---- POR QUÉ 28 Y NO MÁS ----
+     Porque más no arregla lo que falta. El peor punto del párrafo
+     no es el fondo medio: son las trazas luminosas de la red, casi
+     del mismo claro que su propia tinta (rgb 224,216,235 contra
+     205,193,226). Ahí el velo no puede ganar —de hecho al 15%
+     EMPEORA, porque el fondo cruza la luminancia de la letra—, y
+     subirlo hasta que ganara apagaría el hero entero. De eso se
+     siguen encargando las dos sombras de --h-sombra-*, que le
+     fabrican a la letra su propio fondo justo debajo.
+
+     El velo arregla el promedio; la sombra, los puntos. Son dos
+     piezas distintas para dos problemas distintos.
+
+     ---- Y VA CONCENTRADO, NO REPARTIDO ----
+     El primer intento fue un degradado vertical parejo al 28%.
+     Medía bien —el párrafo subía de 4,14 a 5,72— y aun así no se
+     notaba: un oscurecido uniforme y suave el ojo lo lee como
+     "esta foto es un poco más oscura", no como "el texto resalta".
+     Lo que hace resaltar es el CONTRASTE ENTRE ZONAS, no el nivel
+     absoluto.
+
+     Así que son dos capas. Una elipse centrada en el bloque de
+     texto —donde de verdad hace falta— y por debajo un velo suave
+     que asienta el resto. La elipse cae a transparente antes del
+     borde, así que el hero conserva su color vivo arriba y abajo y
+     la diferencia entre las dos zonas es la que empuja el texto
+     hacia delante.
+
+     Va a sangre —100vw centrado— porque el contenedor mide el 92%
+     y un velo con los bordes dentro se vería como una banda. */
+  .hero__container::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+
+    background:
+      /* el charco: sobre el titular, el párrafo y el botón */
+      radial-gradient(
+        ellipse 118% 42% at 42% 52%,
+        rgb(20 11 34 / 0.62) 0%,
+        rgb(20 11 34 / 0.52) 45%,
+        rgb(20 11 34 / 0.22) 72%,
+        rgb(20 11 34 / 0) 100%
+      ),
+      /* y la base, que evita que el charco se recorte contra un
+         fondo demasiado claro y se note el filo de la elipse */
+      linear-gradient(
+        180deg,
+        rgb(20 11 34 / 0) 0%,
+        rgb(20 11 34 / 0.16) 22%,
+        rgb(20 11 34 / 0.2) 50%,
+        rgb(20 11 34 / 0.12) 84%,
+        rgb(20 11 34 / 0) 100%
+      );
+
+    pointer-events: none;
+    z-index: -1;
+  }
+
   .hero__container::before {
     content: "";
     position: absolute;

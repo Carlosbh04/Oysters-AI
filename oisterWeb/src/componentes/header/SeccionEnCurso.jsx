@@ -35,9 +35,72 @@ import { nombreDeRutaEnMano } from "./rutasNombres";
    bloques que se despliegan).
    ============================================================ */
 
-/* los dos rótulos que usa el sitio: el componente <Rotulo> y el
-   del bloque de inteligencia, que tiene el suyo propio */
-const ROTULOS = ".rotulo, .iia__rotulo-centro";
+/* los rótulos que usa el sitio: el componente <Rotulo>, el del
+   bloque de inteligencia —que tiene el suyo propio— y el TITULAR
+   de un artículo del blog.
+
+   El titular entra aquí porque en una ficha de blog no hay
+   rótulos: la píldora se quedaba diciendo "Blog" de arriba abajo,
+   que es cierto y no sirve de nada — ya sabes que estás en el
+   blog, lo que se pierde de vista al bajar es EN QUÉ ARTÍCULO.
+
+   Con esto, en cuanto el titular grande sale por arriba, su texto
+   pasa a la píldora. El titular no se pierde: cambia de sitio.
+   Ver el encogido que lo acompaña en BlogDetailPage.css. */
+const ROTULOS = ".rotulo, .iia__rotulo-centro, .bd-titulo";
+
+/* ============================================================
+   EL TITULAR NO CABE ENTERO — Y NO DEBE
+
+   La barra deja unos 280px para el título. "La inteligencia
+   artificial explicada para todos" son 46 caracteres: recortado
+   por letra queda "La inteligencia arti…", que no dice nada y se
+   lee como un fallo.
+
+   Se cogen las PRIMERAS PALABRAS enteras que quepan en el
+   presupuesto. Cortar por palabra y no por letra es lo que hace
+   que el trozo siga significando algo.
+   ============================================================ */
+const PRESUPUESTO = 38;
+const MIN_PALABRAS = 2;
+const MAX_PALABRAS = 6;
+
+/* Palabras que NO pueden quedar las últimas: solas dejan la frase
+   colgando. Sin esto salían cosas como "Cada empanada, una…" o
+   "VTech lanza en…". */
+const VACIAS = new Set([
+  "de", "del", "la", "el", "los", "las", "un", "una", "unos", "unas",
+  "y", "o", "en", "a", "al", "que", "con", "por", "para", "su", "sus", "lo",
+]);
+
+function primerasPalabras(texto = "") {
+  const palabras = texto.trim().split(/\s+/);
+  const trozo = [];
+
+  for (const palabra of palabras) {
+    if (trozo.length >= MAX_PALABRAS) break;
+    if (
+      [...trozo, palabra].join(" ").length > PRESUPUESTO &&
+      trozo.length >= MIN_PALABRAS
+    ) {
+      break;
+    }
+    trozo.push(palabra);
+  }
+
+  while (
+    trozo.length > 1 &&
+    VACIAS.has(trozo[trozo.length - 1].toLowerCase().replace(/[^\p{L}]/gu, ""))
+  ) {
+    trozo.pop();
+  }
+
+  /* y sin arrastrar la puntuación por donde se cortó: "IA para
+     marcas:…" y "Esta Navidad..,…" se leían como un error */
+  const corto = trozo.join(" ").replace(/[\s.,;:–—-]+$/u, "");
+
+  return corto + (trozo.length < palabras.length ? "…" : "");
+}
 
 /* ============================================================
    EL NOMBRE DE LA PÁGINA — NO SE ESCRIBE AQUÍ
@@ -58,10 +121,15 @@ function SeccionEnCurso() {
   const { pathname } = useLocation();
   const [nombre, setNombre] = useState(null);
 
+  /* si lo que se está enseñando es el TITULAR de un artículo, la
+     barra pone además de qué sección viene: «Blog │ titular» */
+  const [esTitular, setEsTitular] = useState(false);
+
   useEffect(() => {
     let vivo = true;
     let textos = [];
     let topes = [];
+    let esTitulo = [];
     let pedido = false;
 
     /* el nombre de partida: nada en la portada, el de la ruta en
@@ -72,8 +140,41 @@ function SeccionEnCurso() {
     const medir = () => {
       base = nombreDeRutaEnMano(pathname);
       const rotulos = Array.from(document.querySelectorAll(ROTULOS));
-      textos = rotulos.map((r) => r.textContent.trim().replace(/\s+/g, " "));
-      topes = rotulos.map((r) => window.scrollY + r.getBoundingClientRect().top);
+      esTitulo = rotulos.map((r) => r.classList.contains("bd-titulo"));
+      textos = rotulos.map((r) => {
+        const t = r.textContent.trim().replace(/\s+/g, " ");
+        /* solo el titular se recorta: los rótulos de sección ya son
+           cortos por definición */
+        return r.classList.contains("bd-titulo") ? primerasPalabras(t) : t;
+      });
+
+      /* ---- EL TITULAR DE UN ARTÍCULO CRUZA MÁS TARDE ----
+         Un rótulo de sección se da por "en curso" en cuanto pasa
+         la línea del 45%, y está bien: es una etiqueta pequeña que
+         encabeza lo que viene.
+
+         Un titular de artículo no. Ese ocupa media pantalla y
+         SIGUE LEYÉNDOSE mientras cruza, así que copiarlo a la
+         píldora en ese momento lo pone dos veces a la vista — que
+         es justo lo que este relevo tenía que evitar.
+
+         Así que para el titular el tope NO sale de dónde está,
+         sino de cuándo termina de apagarse: el mismo recorrido con
+         el que se encoge (ver BlogDetailPage.jsx).
+
+         El número se despeja de la comparación que hace `mirar`,
+         que es `tope < scrollY + alto*0.45`. Poniendo
+         `tope = RECORRIDO + alto*0.45`, esa comparación se
+         convierte exactamente en `RECORRIDO < scrollY` — o sea,
+         entra en la píldora justo cuando el grande ha terminado de
+         desaparecer, ni antes ni después. */
+      const RECORRIDO_TITULAR = 110;
+
+      topes = rotulos.map((r) =>
+        r.classList.contains("bd-titulo")
+          ? RECORRIDO_TITULAR + window.innerHeight * 0.45
+          : window.scrollY + r.getBoundingClientRect().top
+      );
     };
 
     const mirar = () => {
@@ -93,11 +194,16 @@ function SeccionEnCurso() {
          tiene rótulos, se ve "Cómo lo hacemos" hasta llegar al
          primero y a partir de ahí manda la sección. */
       let actual = base;
+      let deTitular = false;
       for (let i = 0; i < topes.length; i++) {
-        if (topes[i] < linea) actual = textos[i];
+        if (topes[i] < linea) {
+          actual = textos[i];
+          deTitular = esTitulo[i];
+        }
       }
 
       setNombre((previo) => (previo === actual ? previo : actual));
+      setEsTitular((previo) => (previo === deTitular ? previo : deTitular));
     };
 
     const alMover = () => {
@@ -142,7 +248,21 @@ function SeccionEnCurso() {
   if (!nombre) return null;
 
   return (
-    <p className="header__seccion" aria-hidden="true">
+    <p
+      className="header__seccion"
+      /* el CSS de la cabecera se apoya en esto para pasar de rótulo
+         centrado a «Blog │ titular» alineado a la izquierda */
+      data-titular={esTitular ? "" : undefined}
+      aria-hidden="true"
+    >
+      {esTitular && (
+        <>
+          <span className="header__seccion-pre">
+            {nombreDeRutaEnMano(pathname)}
+          </span>
+          <span className="header__seccion-filo" />
+        </>
+      )}
       {/* key: fuerza el reinicio de la animación de entrada al
           cambiar de sección. Sin él, React reutiliza el nodo, la
           animación no vuelve a correr y el texto cambia de golpe. */}

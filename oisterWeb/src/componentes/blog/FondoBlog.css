@@ -181,3 +181,135 @@
     opacity: 0.6;
   }
 }
+
+/* ============================================================
+   EL VELO DEL BLOG
+
+   Medido sobre las páginas reales, muestreando el margen a lo
+   largo de todo el scroll: la luz de este cielo iba de 0,008 a
+   0,475 en el artículo (SALTABA ×57,5) y de 0,008 a 0,422 en el
+   listado (×54,2). No es que el contraste fallara — es que el
+   mismo texto se leía con un peso distinto según sobre qué
+   mancha del cielo cayera.
+
+   Así que no se cambia el fondo: se le baja el volumen. El cielo
+   se queda entero —el halo sigue su parallax, la nieve sigue
+   cayendo, las estrellas siguen ahí— pero detrás de un velo que
+   aplana su variación. Se siguen intuyendo, que era la gracia.
+
+   ---- POR QUÉ TAMBIÉN EN EL LISTADO ----
+   Empezó puesto solo en el artículo, con el argumento de que en
+   la portada no hay párrafos largos que leer. Cierto, pero el
+   problema que quedaba era otro: una LISTA no debe tener
+   favoritos, y con el cielo a plena luz unos titulares pesaban
+   más que otros según dónde cayeran en el scroll. Se eligió el
+   velo frente a otras nueve propuestas de fondo —papel liso,
+   cúpula, viñeta, papel claro…— justamente porque no estrena
+   nada: es lo que ya lleva el artículo, así que entrar en una
+   entrada deja de cambiar el ambiente.
+
+   ---- SOLO EN LA MANO ----
+   Que es donde se midió y donde el texto ocupa todo el ancho de
+   la pantalla. En escritorio la columna es estrecha y el cielo
+   queda a los lados, así que no compite igual. Si algún día se
+   quiere allí también, basta con sacar esta regla del @media.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .blog-detalle .fondo-blog::after,
+  .blog-list .fondo-blog::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    /* más cerrado abajo que arriba: la cabecera puede permitirse
+       más cielo porque ahí solo hay titular o el rótulo «Blog»,
+       y el cuerpo —que es donde se lee— pide el papel más
+       tranquilo */
+    background: linear-gradient(
+      180deg,
+      rgba(21, 14, 36, 0.55),
+      rgba(21, 14, 36, 0.86)
+    );
+  }
+
+  /* ---- EL LISTADO SUELTA EL VELO ANTES DEL BORDE ----
+     El velo cubre la SECCIÓN del blog, no la página entera, y
+     debajo sigue habiendo web: la banda de «¿Ponemos la IA a
+     trabajar en tu marca?» y el pie. Con el velo a 0,86 hasta el
+     último píxel, ahí quedaba un CORTE medido de 125 puntos de
+     RGB —rgb(28,18,45) arriba, rgb(71,46,99) abajo— en el ancho
+     de un píxel, justo debajo de la paginación. Y una línea recta
+     de lado a lado no se lee como fondo: se lee como que el blog
+     es un rectángulo pegado encima de otra página.
+
+     Así que el velo se apaga en los últimos 120px, que es de
+     donde acaba el último artículo hacia abajo — sobra sitio,
+     porque ahí solo queda la paginación, que son pastillas
+     gruesas y no texto para leer. Al llegar al borde el velo vale
+     cero, o sea que el fondo es el cielo desnudo: exactamente el
+     mismo color que la banda que viene después, que ya coincidía
+     antes de todo esto. Sin costura que disimular.
+
+     El DETALLE no lleva esta corrección y conserva la regla de
+     arriba tal cual se aprobó. Su fondo termina en otro sitio y
+     contra otra cosa, así que si algún día enseña la misma línea,
+     se mide allí y se decide allí. */
+  .blog-list .fondo-blog::after {
+    background: linear-gradient(
+      180deg,
+      rgba(21, 14, 36, 0.55) 0,
+      rgba(21, 14, 36, 0.86) calc(100% - 120px),
+      rgba(21, 14, 36, 0) 100%
+    );
+  }
+
+  /* ---- Y EL CONTENIDO SE PONE POR DELANTE ----
+     Sin esto el velo tapaba el TEXTO, no el fondo. No es un
+     empate de z-index que se resolviera mal: es el orden de
+     pintado de CSS. `.fondo-blog` es `position: absolute`, y los
+     cinco hijos de `.blog-list` —cabecera, filtros, lector,
+     rejilla y paginación— son todos `static`. Un elemento
+     posicionado, aunque su z-index sea `auto`, se pinta en un
+     paso POSTERIOR al del contenido en flujo. O sea que el cielo
+     siempre estuvo por delante de las palabras; lo que pasa es
+     que sus capas son tenues y no se notaba. Un velo al 86% sí.
+
+     Se arregla subiendo el contenido, no bajando el fondo: poner
+     `z-index: -1` en `.fondo-blog` lo mandaría a buscar contexto
+     de apilado hacia arriba —`.blog-page` no crea uno— y podría
+     acabar detrás de un fondo opaco cualquiera. Subir el
+     contenido es local y no depende de nada de fuera.
+
+     ---- SOLO EN LA MANO ----
+     Dentro de este @media a propósito. En escritorio los ✦ que
+     cruzan sí pasan por delante del texto, y eso es de siempre y
+     está bien: se ven cruzar. Aquí no hay ✦ (se ocultan más
+     abajo), así que adelantar el contenido no quita nada. */
+  .blog-list > :not(.fondo-blog) {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ============================================================
+   EN LA MANO, EL LISTADO SE QUEDA SIN ✦
+
+   No es que sobren en general: son la identidad del cielo del
+   blog y en el DETALLE siguen puestos. El problema es de
+   densidad — en 391px los seis que caen y los cuatro quietos
+   pasan justo por encima de la tira de filtros y de los
+   titulares, y una chispa cruzando una palabra mientras se lee
+   es ruido, no ambiente.
+
+   Se van solo del listado (`.blog-list`) y solo en este ancho.
+   El halo, el polvo y el campo de estrellas se quedan, así que
+   el fondo sigue siendo el mismo cielo, sin los objetos grandes
+   moviéndose por delante del texto.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .blog-list .fondo-blog__estrella,
+  .blog-list .fondo-blog__fijo {
+    display: none;
+  }
+}

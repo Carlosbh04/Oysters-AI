@@ -65,7 +65,7 @@ export const MODULOS = [
 export const PRECIO = {
   rotulo: "Formación grupal",
   importe: "1.750€",
-  nota: "*+IVA",
+  nota: "+ IVA",
   texto:
     "Dotar a tu equipo de habilidades prácticas para el uso de IA generativa en la estrategia de tu comunicación y generación de activos creativos, adecuado para grupos de hasta 10 personas.",
   cta: "Reserva tu sesión",

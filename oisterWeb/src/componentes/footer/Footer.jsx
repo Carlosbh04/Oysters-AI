@@ -1,4 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
+import useViajeConPersiana from "../../hooks/useViajeConPersiana";
 /* solo la flecha del CTA: los iconos de navegación se fueron con
    la fila de enlaces con icono encima. En un sitemap de columnas
    un icono por enlace es ruido — la cabecera de columna ya dice
@@ -96,6 +97,17 @@ const REDES = [
 ];
 
 function Footer({ conEscena = false }) {
+  /* ---- EL PIE SALE CON LA MISMA CORTINA QUE EL MENÚ ----
+     Los enlaces de aquí cambiaban de página de golpe mientras los
+     del menú hamburguesa pasaban por la persiana: dos caminos al
+     mismo sitio con dos transiciones distintas, y el de abajo
+     pareciendo el roto. Ver useViajeConPersiana.js.
+
+     Los de redes NO pasan por aquí: se van fuera del sitio, y
+     taparlo con una cortina propia sería prometer una navegación
+     interna que no es. */
+  const { aRuta } = useViajeConPersiana();
+
   /* ---- EL DISPARO VIVE AQUÍ, NO EN LA PÁGINA ----
      Al revés que en "Casos de uso", donde la escena y el
      contenido son componentes hermanos y hacía falta que alguien
@@ -184,7 +196,7 @@ function Footer({ conEscena = false }) {
                 ¿Ponemos la IA a trabajar en <span>tu marca</span>?
               </p>
 
-              <Link to="/contact" className="pie__cta">
+              <Link to="/contact" className="pie__cta" onClick={aRuta("/contact")}>
                 <span>Contactar</span>
                 <ArrowRight
                   className="pie__cta-flecha"
@@ -208,7 +220,12 @@ function Footer({ conEscena = false }) {
                             activo, que es lo que marca en qué apartado
                             estás. `end` en Inicio porque si no, "/"
                             coincide con cualquier ruta. */}
-                        <NavLink to={to} end={exacto} className="pie-enlace">
+                        <NavLink
+                          to={to}
+                          end={exacto}
+                          className="pie-enlace"
+                          onClick={aRuta(to)}
+                        >
                           {label}
                         </NavLink>
                       </li>
@@ -267,9 +284,13 @@ function Footer({ conEscena = false }) {
           {/* ⚠️ /privacidad y /aviso-legal todavía no existen como
               rutas: hoy caen en la página de "no encontrado". */}
           <nav className="pie__legales">
-            <Link to="/privacidad">Privacidad</Link>
+            <Link to="/privacidad" onClick={aRuta("/privacidad")}>
+              Privacidad
+            </Link>
             <span aria-hidden="true">|</span>
-            <Link to="/aviso-legal">Aviso legal</Link>
+            <Link to="/aviso-legal" onClick={aRuta("/aviso-legal")}>
+              Aviso legal
+            </Link>
           </nav>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import "./Header.css";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation} from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import HamburgerButton from "../hamburger/HamburgerButton.jsx";
 import MobileMenu from "../mobileMenu/MobileMenu.jsx";
@@ -49,11 +49,78 @@ function Header({ introDone = true, hideNav = false }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isDesktop = useIsDesktop(() => setIsMenuOpen(false));
 
+  /* ============================================================
+     EN UN ARTÍCULO, LA CABECERA SE METE DENTRO
+
+     Leyendo una entrada del blog, al bajar la píldora deja de
+     flotar: pierde márgenes, esquinas y sombra, cambia su rosa por
+     el morado de la página y se pega al borde. Se retiran el logo
+     y la hamburguesa, y en su sitio queda «Blog │ el titular» —
+     eso lo pinta SeccionEnCurso. Al subir se vuelve a montar.
+
+     Deja de leerse como algo ENCIMA de la página y pasa a ser
+     parte de ella, que es lo que le da sitio al titular.
+
+     ---- LOS DOS UMBRALES NO SON EL MISMO ----
+     Se mete a los 96px y se deshace a los 56. Con un único número,
+     un scroll parado justo encima haría PARPADEAR la cabecera
+     entre sus dos formas a cada temblor del dedo. Separándolos hay
+     que volver un trecho para deshacer el cambio.
+
+     ---- Y SOLO AQUÍ ----
+     Solo en la mano y solo en la ficha de un artículo: es el único
+     sitio donde hay un titular que merezca la barra, y el único
+     donde se lee de corrido lo bastante como para que estorbe una
+     cabecera flotando. */
+  const { pathname } = useLocation();
+
+  const enArticulo = /^\/blog\/[^/]+$/.test(pathname) &&
+    !pathname.startsWith("/blog/page/");
+
+  const [leyendo, setLeyendo] = useState(false);
+
+  useEffect(() => {
+    /* no se apaga el estado aquí con un setState: el efecto se
+       limita a escuchar, y de que la clase NO salga fuera de un
+       artículo se encarga el propio render (ver la clase abajo).
+       Tocar el estado en el cuerpo del efecto encadena renders. */
+    if (isDesktop || !enArticulo) return undefined;
+
+    const ENTRA = 96;
+    const SALE = 56;
+
+    let pedido = null;
+
+    const mirar = () => {
+      pedido = null;
+      const y = window.scrollY;
+      setLeyendo((previo) => (y > ENTRA ? true : y < SALE ? false : previo));
+    };
+
+    const alMover = () => {
+      if (pedido === null) pedido = requestAnimationFrame(mirar);
+    };
+
+    /* la primera medida también va en un fotograma: llamarla aquí
+       sería un setState síncrono dentro del efecto */
+    pedido = requestAnimationFrame(mirar);
+    window.addEventListener("scroll", alMover, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", alMover);
+      if (pedido !== null) cancelAnimationFrame(pedido);
+    };
+  }, [isDesktop, enArticulo]);
+
   return (
     <header
       className={`header ${introDone ? "header--enter" : ""} ${
         isMenuOpen ? "is-open" : ""
-      } ${hideNav ? "header--hidden" : ""}`}
+      } ${hideNav ? "header--hidden" : ""} ${
+        leyendo && enArticulo && !isDesktop && !isMenuOpen
+          ? "header--lectura"
+          : ""
+      }`}
     >
       <div className="header__container">
         {/* el resplandor de debajo: un halo difuso, no una línea

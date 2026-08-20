@@ -11,6 +11,8 @@ import {
 import PageSection from "../../componentes/layout/PageSection";
 import { CABECERA, MODULOS, OBJETIVOS, PRECIO } from "../../data/formacion";
 import "./GenAiTrainingPage.css";
+import useMediaQuery from "../../hooks/useMediaQuery";
+import { idDe } from "./idModulo";
 
 /* ============================================================
    GEN AI TRAINING — la página del curso (/resources)
@@ -94,6 +96,8 @@ function Hueco({ className = "", alto = "16 / 10", foto, alt = "" }) {
 }
 
 function GenAiTrainingPage() {
+  const esMano = useMediaQuery("(max-width: 1079px)");
+
   return (
     <PageSection center={false} className="gt">
       {/* ============ 1 · CABECERA ============
@@ -115,89 +119,121 @@ function GenAiTrainingPage() {
           <p className="gt-entradilla">{CABECERA.entradilla}</p>
         </div>
 
-        <div className="gt-cabecera__medio">
-          <Hueco
-            alto="4 / 3"
-            foto="/img/formacion/cabecera.jpg"
-            alt="Sala de formación con biblioteca y grandes ventanales"
-          />
-        </div>
+        {/* En la mano NO se monta: la foto de cabecera pasó a ser
+            el FONDO de este bloque, y dejarla además como imagen
+            la enseñaba dos veces. Se oculta con JSX y no con
+            `display: none` para que tampoco viaje por la red:
+            escondida seguía estando en el documento. */}
+        {!esMano && (
+          <div className="gt-cabecera__medio">
+            <Hueco
+              alto="4 / 3"
+              foto="/img/formacion/cabecera.jpg"
+              alt="Sala de formación con biblioteca y grandes ventanales"
+            />
+          </div>
+        )}
       </header>
 
       {/* ============ 2 · PRESENTACIÓN ============ */}
       <section className="gt-presenta">
-          <Hueco
-            className="gt-presenta__medio"
-            alto="4 / 3"
-            foto="/img/formacion/presentacion.jpg"
-            alt="Puesto de trabajo con monitores mostrando creatividades generadas con IA"
-          />
+        {/* ---- LAS DOS FOTOS SE REPARTEN, NO SE REPITEN ----
+              En la mano la cabecera pasó a llevar `presentacion.jpg`
+              de fondo —se eligió midiendo: sobre su zona de texto el
+              blanco da 13,56:1, contra 2,55 de la otra— y esta
+              sección seguía enseñando LA MISMA foto un palmo más
+              abajo. Se veía dos veces seguidas.
 
-          <div className="gt-presenta__texto">
-            <p>
-              Con el objetivo de formar y mantener equipos de marketing y
-              publicidad a la vanguardia de la IA, y <strong>optimizar</strong>{" "}
-              sus estrategias y operaciones actuales, <strong>Oysters AI</strong>{" "}
-              propone un <strong>curso intensivo en aplicativos de IA</strong>{" "}
-              relacionados con la generación de <strong>‘briefings’</strong>, la
-              estrategia creativa y la{" "}
-              <strong>generación de contenidos</strong>.
-            </p>
+              Así que en la mano esta plaza pasa a `cabecera.jpg`,
+              que se había quedado sin usar al convertirse la
+              cabecera en fondo. Cada imagen sale una vez.
 
-            <p>
-              Este curso está diseñado para integrar de manera efectiva diversas
-              herramientas de IA, tales como{" "}
-              <strong>
-                ChatGPT, Midjourney, Freepik, Nano Banana Pro, Seedance, Veo 3.1,
-                Suno, Runway, Kling, Eleven Labs, y Adobe Suite
-              </strong>{" "}
-              en los procesos de trabajo diarios.
-            </p>
+              En escritorio no cambia nada: allí la cabecera sigue
+              siendo un degradado con su foto al lado, y esta
+              sección conserva la suya. */}
+        <Hueco
+          className="gt-presenta__medio"
+          alto="4 / 3"
+          foto={
+            esMano
+              ? "/img/formacion/cabecera.jpg"
+              : "/img/formacion/presentacion.jpg"
+          }
+          alt={
+            esMano
+              ? "Sala de formación con biblioteca y grandes ventanales"
+              : "Puesto de trabajo con monitores mostrando creatividades generadas con IA"
+          }
+        />
 
-            <p className="gt-presenta__rotulo">Objetivos de la formación:</p>
+        <div className="gt-presenta__texto">
+          <p>
+            Con el objetivo de formar y mantener equipos de marketing y
+            publicidad a la vanguardia de la IA, y <strong>optimizar</strong>{" "}
+            sus estrategias y operaciones actuales, <strong>Oysters AI</strong>{" "}
+            propone un <strong>curso intensivo en aplicativos de IA</strong>{" "}
+            relacionados con la generación de <strong>‘briefings’</strong>, la
+            estrategia creativa y la <strong>generación de contenidos</strong>.
+          </p>
 
-            <ul className="gt-objetivos">
-              {OBJETIVOS.map((objetivo) => (
-                <li key={objetivo}>
-                  <CheckCircle2 aria-hidden="true" />
-                  <span>{objetivo}</span>
-                </li>
-              ))}
-            </ul>
+          <p>
+            Este curso está diseñado para integrar de manera efectiva diversas
+            herramientas de IA, tales como{" "}
+            <strong>
+              ChatGPT, Midjourney, Freepik, Nano Banana Pro, Seedance, Veo 3.1,
+              Suno, Runway, Kling, Eleven Labs, y Adobe Suite
+            </strong>{" "}
+            en los procesos de trabajo diarios.
+          </p>
 
-            <p className="gt-presenta__cierre">
-              El curso consiste en <strong>11 horas lectivas</strong> que se
-              dividen en <strong>módulos de 2/3 horas cada uno</strong>,
-              distribuidos en un periodo ajustado a la jornada laboral para
-              minimizar el impacto del día a día. Cada módulo incluye una parte
-              teórica seguida de ejercicios prácticos.
-            </p>
+          <p className="gt-presenta__rotulo">Objetivos de la formación:</p>
+
+          <ul className="gt-objetivos">
+            {OBJETIVOS.map((objetivo) => (
+              <li key={objetivo}>
+                <CheckCircle2 aria-hidden="true" />
+                <span>{objetivo}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="gt-presenta__cierre">
+            El curso consiste en <strong>11 horas lectivas</strong> que se
+            dividen en <strong>módulos de 2/3 horas cada uno</strong>,
+            distribuidos en un periodo ajustado a la jornada laboral para
+            minimizar el impacto del día a día. Cada módulo incluye una parte
+            teórica seguida de ejercicios prácticos.
+          </p>
         </div>
       </section>
 
       {/* ============ 3 · QUÉ INCLUYE ============ */}
       <section className="gt-incluye">
-          <p className="gt-eyebrow">Acerca del curso</p>
-          <h2 className="gt-incluye__titulo">
-            ¿Qué <em>incluye</em>?
-          </h2>
+        <p className="gt-eyebrow">Acerca del curso</p>
+        <h2 className="gt-incluye__titulo">
+          ¿Qué <em>incluye</em>?
+        </h2>
 
-          <ul className="gt-modulos">
-            {MODULOS.map((modulo) => {
-              const Icono = ICONOS[modulo.icono];
-              return (
-                <li key={modulo.numero} className="gt-modulo">
-                  <span className="gt-modulo__icono" aria-hidden="true">
-                    {Icono ? <Icono /> : null}
-                  </span>
+        <ul className="gt-modulos">
+          {MODULOS.map((modulo) => {
+            const Icono = ICONOS[modulo.icono];
+            return (
+              <li
+                key={modulo.numero}
+                id={`gt-modulo-${idDe(modulo.numero)}`}
+                className="gt-modulo"
+              >
+                <span className="gt-modulo__icono" aria-hidden="true">
+                  {Icono ? <Icono /> : null}
+                </span>
 
-                  <p className="gt-modulo__numero">{modulo.numero}</p>
-                  <h3 className="gt-modulo__titulo">{modulo.titulo}</h3>
-                  <p className="gt-modulo__horas">{modulo.horas}</p>
-                  <p className="gt-modulo__texto">{modulo.texto}</p>
-                </li>
-              );
-            })}
+                <p className="gt-modulo__numero">{modulo.numero}</p>
+                <h3 className="gt-modulo__titulo">{modulo.titulo}</h3>
+                <p className="gt-modulo__horas">{modulo.horas}</p>
+                <p className="gt-modulo__texto">{modulo.texto}</p>
+              </li>
+            );
+          })}
         </ul>
       </section>
 

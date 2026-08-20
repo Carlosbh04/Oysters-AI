@@ -21,11 +21,17 @@
      barra —ahí la variable vale 0 y manda el 22px. */
   bottom: max(22px, calc(14px + env(safe-area-inset-bottom)));
 
-  /* 54 y no 44: 44px es el mínimo de zona táctil cómoda, no un
-     objetivo. Una perla de 44 al lado de un titular de 21 se lee
-     como un adorno; a 54 se lee como un mando. */
-  width: 54px;
-  height: 54px;
+  /* 44, que es el mínimo de zona táctil cómoda y el suelo del que
+     no se baja: por debajo hay que apuntar con el pulgar y un
+     atajo que cuesta acertar deja de ser un atajo.
+
+     Estuvo en 54 con el argumento de que a 44 se lee como adorno y
+     a 54 como mando. Se baja igual: es un ATAJO, no un mando —
+     aparece encima del contenido y compite con él, y en una
+     pantalla estrecha 54px de perla flotante tapan bastante más de
+     lo que ayudan. */
+  width: 44px;
+  height: 44px;
 
   display: grid;
   place-items: center;
@@ -70,8 +76,10 @@
 }
 
 .perla-arriba svg {
-  width: 21px;
-  height: 21px;
+  /* proporcional al nuevo tamaño: la flecha ocupaba el 39% de la
+     perla y lo sigue ocupando */
+  width: 17px;
+  height: 17px;
 }
 
 /* el hundido del toque va en `scale` sobre el estado visible: si

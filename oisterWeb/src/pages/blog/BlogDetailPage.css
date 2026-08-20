@@ -62,10 +62,14 @@
    al escalar la ventana.
    ============================================================ */
 
+/* la FIGURA ya solo coloca: el marco vive en .bd-medio__caja, para
+   que el pie pueda quedar por debajo y fuera del recuadro */
 .bd-medio {
-  position: relative;
-
   margin: 0;
+}
+
+.bd-medio__caja {
+  position: relative;
 
   overflow: hidden;
   border: 1px solid rgba(183, 148, 255, 0.28);
@@ -87,8 +91,8 @@
     inset 0 0 60px rgba(135, 87, 245, 0.1);
 }
 
-.bd-medio--grande { aspect-ratio: 4 / 3; }
-.bd-medio--normal { aspect-ratio: 1 / 1; }
+.bd-medio--grande .bd-medio__caja { aspect-ratio: 4 / 3; }
+.bd-medio--normal .bd-medio__caja { aspect-ratio: 1 / 1; }
 
 .bd-medio img {
   position: relative;
@@ -174,23 +178,14 @@
   color: var(--color-text, #f6f0ff);
 }
 
-.bd-categoria {
-  display: inline-flex;
+/* (Aquí estaba `.bd-categoria`, la píldora del tema encima del
+   titular. Se retira entera: el tema pasa a la línea de la fecha
+   como un dato más — ver el porqué en el JSX.) */
 
-  margin-bottom: 22px;
-  padding: 7px 14px;
-
-  border: 1px solid rgba(135, 87, 245, 0.5);
-  border-radius: 999px;
-
-  background: rgba(135, 87, 245, 0.16);
-
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-
-  color: rgba(226, 208, 255, 0.95);
+/* el punto que separa tema y fecha: en el color de acento para que
+   se lea como separador y no como parte de ninguno de los dos */
+.bd-punto {
+  color: var(--color-violet, #8757f5);
 }
 
 .bd-titulo {
@@ -314,55 +309,137 @@
    SIGUIENTE ENTRADA
    ============================================================ */
 
+/* ---- LA CAPITULAR ----
+   La inicial del titular a cuatro veces su tamaño, colgando en el
+   margen como en un libro. El peso lo pone la tipografía: no hay
+   recuadro, ni degradado, ni píldora con flecha — que son
+   justamente las tres cosas que hacen que un pie parezca de
+   plantilla. Ver el porqué en el JSX. */
 .bd-siguiente {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.7rem;
+  display: block;
 
-  margin-inline: auto;
-  padding: 14px 30px;
+  margin-top: 8px;
+  padding: 26px 0 4px;
 
-  border: 1px solid rgba(183, 148, 255, 0.32);
-  border-radius: 999px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 
-  background: rgba(24, 15, 45, 0.72);
-
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   text-decoration: none;
-
-  color: rgba(226, 208, 255, 0.95);
-
-  transition:
-    border-color 0.25s ease,
-    background-color 0.25s ease,
-    color 0.25s ease;
+  color: inherit;
 }
 
-.bd-siguiente svg {
-  width: 14px;
-  height: 14px;
+.bd-siguiente__rotulo {
+  margin-bottom: 14px;
 
-  transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
+  color: rgba(196, 176, 240, 0.7);
+
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 
-.bd-siguiente__marca {
-  color: var(--color-violet, #8757f5);
+/* ---- DOS COLUMNAS, NO UN HUECO RESERVADO ----
+   Esto reservaba el sitio de la capitular con `padding-left: 68px`
+   y colocaba la letra encima en absoluto. El problema es que 68 es
+   un número fijo y las letras no miden lo mismo: medida a 390px,
+   la «I» ocupa 29px, así que el titular arrancaba en 88 y quedaban
+   CUARENTA píxeles de hueco muerto entre la letra y el texto. Todo
+   el bloque se leía corrido hacia la derecha.
+
+   Y no es un caso raro: tres de los once artículos empiezan por I,
+   que es la letra más estrecha del alfabeto.
+
+   Con flex, la letra ocupa lo que ocupa y el hueco es SIEMPRE el
+   mismo —16px— venga una «I» o una «M». Se conserva lo que la
+   solución anterior buscaba: el titular sigue siendo su propia
+   columna, así que fluye en varias líneas sin escalonarse
+   alrededor de la letra, que es lo que haría un `float`. */
+.bd-siguiente__caja {
+  /* ⚠ REJILLA Y NO FLEX. Con flex los TRES hijos —capitular,
+     titular y meta— se ponen en fila, y la fecha se iba al costado
+     del título en vez de debajo. Aquí la capitular ocupa las dos
+     filas de la primera columna y el texto se apila solo en la
+     segunda, sin envolverlos en un div de más. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: start;
 }
 
-.bd-siguiente:hover {
-  border-color: rgba(183, 148, 255, 0.65);
-  background: rgba(38, 24, 68, 0.85);
+.bd-siguiente__capital {
+  grid-row: 1 / span 2;
+}
+
+.bd-siguiente__capital {
+  /* deja de estar en absoluto: ahora es la primera columna del
+     flex y su ancho lo pone la propia letra */
+  flex-shrink: 0;
+
+  /* el -6 compensaba la posición absoluta; en flujo, lo que hay
+     que corregir es la altura de línea de una letra de 64px para
+     que su ojo alinee con la primera línea del titular */
+  margin-top: -8px;
+
+  /* ---- EN SERIF, Y NO POR CAPRICHO ----
+     A este tamaño una «I» de palo seco es UNA BARRA: no se lee
+     como letra, se lee como un filete decorativo. Y no es un caso
+     raro — tres de los once artículos empiezan por I ("Inteligencia
+     artificial…", "IA y creatividad…", "IA para marcas…"), o sea un
+     27% de las veces.
+
+     La serif tiene remates arriba y abajo, así que la I se
+     distingue siempre. Es además lo que hace cualquier libro con
+     sus capitulares, de modo que refuerza justo lo que se buscaba
+     con este diseño: que parezca compuesto y no generado.
+
+     Va con la pila del sistema y no con una fuente descargada: son
+     dos o tres letras en toda la página y no valen una petición de
+     red. */
+  font-family: Georgia, "Times New Roman", "Noto Serif", serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 0.82;
+
+  color: rgba(201, 168, 255, 0.85);
+}
+
+.bd-siguiente__titulo {
+  display: block;
+
+  font-size: 1.12rem;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+
   color: var(--color-text, #f6f0ff);
 }
 
-/* la flecha baja: es lo que dice "sigue leyendo hacia abajo",
-   que es exactamente lo que hace el enlace */
-.bd-siguiente:hover svg {
-  transform: translateY(3px);
+.bd-siguiente__meta {
+  display: block;
+
+  margin-top: 9px;
+
+  color: rgba(196, 176, 240, 0.72);
+
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+/* al pasar por encima solo se enciende la letra: es el único
+   elemento que puede reaccionar sin que se mueva la maqueta */
+.bd-siguiente:hover .bd-siguiente__capital {
+  color: var(--color-rotulo, #ff9be8);
+}
+
+.bd-siguiente__capital {
+  transition: color 0.28s ease;
+}
+
+.bd-siguiente:focus-visible {
+  outline: 2px solid var(--color-secondary, #c9a8ff);
+  outline-offset: 6px;
 }
 
 .bd-vacio {
@@ -396,12 +473,116 @@
     order: 0;
   }
 
-  .bd-medio--grande,
-  .bd-medio--normal {
+  .bd-medio--grande .bd-medio__caja,
+  .bd-medio--normal .bd-medio__caja {
     aspect-ratio: 16 / 10;
   }
 
-  .bd-siguiente {
-    width: 100%;
+  /* (aquí `.bd-siguiente` se estiraba al 100%: era una píldora.
+     Ahora es un bloque de texto y ya ocupa el ancho.) */
+}
+
+/* ---- EL PIE DE FOTO ----
+   Filete de acento a la izquierda y el texto en cuerpo pequeño,
+   como en una revista. El filete es lo que lo ata visualmente a la
+   imagen de arriba: sin él, el pie se lee como el primer renglón
+   del párrafo siguiente.
+
+   En caja: `figure` estaba pensada solo para la imagen, así que se
+   le quita el recorte para que el pie quede FUERA del marco y no
+   encima de la foto. Ver Medio() en el JSX. */
+.bd-medio:has(.bd-pie) {
+  overflow: visible;
+}
+
+.bd-pie {
+  margin-top: 0.6rem;
+  padding-left: 0.7rem;
+
+  border-left: 2px solid rgba(201, 168, 255, 0.5);
+
+  color: rgba(196, 176, 240, 0.78);
+
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+
+  /* a la izquierda siempre, aunque la imagen vaya a la derecha:
+     un pie centrado bajo una foto se lee como titular */
+  text-align: left;
+}
+
+/* ============================================================
+   EL MARCO SE APARTA (diseño "pie de foto", solo en la mano)
+
+   En escritorio la imagen va enmarcada: 22px de esquina, un filo
+   violeta y una sombra con brillo interior. Ahí funciona, porque
+   la foto comparte fila con el texto y el marco la separa de él.
+
+   En la mano la foto va sola y a lo ancho, y ese mismo marco pasa
+   a ser ruido: tres adornos alrededor de lo único que ya se
+   explica solo. Y en este diseño menos aún, porque debajo va el
+   PIE — que es quien tiene que hablar.
+
+   Así que aquí el recuadro casi desaparece: esquina corta, sin
+   filo y sin sombra. Son los valores de la maqueta que se aprobó.
+
+   El degradado de relleno SÍ se queda: es lo que se ve mientras la
+   foto carga, y sin él quedaría un hueco transparente.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .bd-medio__caja {
+    border: 0;
+    border-radius: 12px;
+
+    box-shadow: none;
+  }
+}
+
+/* ---- EL TITULAR SE ENCOGE Y CEDE EL SITIO ----
+   `--acopla` va de 0 a 1 y la escribe el scroll (ver
+   BlogDetailPage.jsx). El titular se reduce un 12% y se apaga; al
+   llegar a 1, su texto ya está en la píldora de la cabecera.
+
+   El origen es la esquina superior izquierda y no el centro: así
+   el titular se encoge HACIA su sitio en vez de irse hacia dentro,
+   y el movimiento se lee como que sube a la barra, que es lo que
+   de verdad está pasando.
+
+   Solo en la mano: en escritorio el titular comparte fila con la
+   imagen de apertura y encogerlo descuadraría la rejilla. */
+@media (max-width: 1079px) {
+  .bd-titulo {
+    transform-origin: left top;
+
+    transform: scale(calc(1 - var(--acopla, 0) * 0.12));
+    opacity: calc(1 - var(--acopla, 0));
+
+    /* el titular deja de capturar el dedo en cuanto se apaga */
+    pointer-events: none;
+  }
+}
+
+/* ---- Y EN LA PÍLDORA CABE UNA LÍNEA ----
+   Un titular de artículo es mucho más largo que "Trabajos" o
+   "Blog", que es lo que la píldora llevaba hasta ahora. Sin esto,
+   "La inteligencia artificial explicada para todos" parte en dos
+   renglones y descuadra la cabecera. */
+@media (max-width: 1079px) {
+  .header__seccion-texto {
+    display: block;
+    max-width: 100%;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  /* sin movimiento: el titular no se encoge, solo se desvanece */
+  .bd-titulo {
+    transform: none;
   }
 }

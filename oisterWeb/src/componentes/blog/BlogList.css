@@ -78,3 +78,239 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   EL LECTOR CONTINUO (solo en la mano)
+
+   Ver el porqué de cada decisión en BlogLector.jsx. Aquí solo
+   está el aspecto: filas separadas por una línea fina, el tema en
+   su color, el titular mandando y el cuerpo que se despliega.
+
+   El corte es el mismo con el que BlogPage decide enseñar el
+   filtro de categorías, así que la mano recibe las dos cosas o
+   ninguna.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .lector {
+    padding: 0 4px;
+  }
+
+  .lector__art {
+    padding: 18px 0;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .lector__meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
+
+  .lector__tema {
+    font-weight: 700;
+  }
+
+  .lector__fecha {
+    color: var(--color-text-muted, rgba(226, 214, 255, 0.62));
+  }
+
+  .lector__titulo {
+    margin-top: 6px;
+
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+
+    color: var(--color-text, #f6f0ff);
+  }
+
+  /* ---- EL DESPLIEGUE ----
+     De 0fr a 1fr: la caja mide lo que mida el texto, sin números
+     inventados. `min-height: 0` en el hijo es obligatorio — sin
+     él, el contenido impone su alto mínimo y la fila nunca llega
+     a cerrarse del todo. */
+  .lector__cuerpo {
+    display: grid;
+    grid-template-rows: 0fr;
+
+    transition: grid-template-rows 0.45s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .lector__art[data-abierto] .lector__cuerpo {
+    grid-template-rows: 1fr;
+  }
+
+  .lector__dentro {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .lector__parte {
+    padding-top: 10px;
+  }
+
+  .lector__subtitulo {
+    margin-bottom: 4px;
+
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    color: var(--color-text, #f6f0ff);
+  }
+
+  .lector__texto {
+    font-size: 0.82rem;
+    line-height: 1.62;
+
+    color: rgba(238, 231, 255, 0.88);
+  }
+
+  .lector__mas {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-top: 10px;
+    padding: 0;
+
+    border: 0;
+    background: none;
+    cursor: pointer;
+
+    color: var(--color-rotulo, #ff9be8);
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .lector__mas i {
+    font-style: normal;
+
+    transition: transform 0.35s ease;
+  }
+
+  .lector__art[data-abierto] .lector__mas i {
+    transform: rotate(90deg);
+  }
+
+  .lector__mas:focus-visible {
+    outline: 2px solid var(--color-secondary, #c9a8ff);
+    outline-offset: 4px;
+  }
+
+  /* la rejilla de tarjetas se va: en la mano manda el lector */
+  .blog-list-grid {
+    display: none;
+  }
+}
+
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  .lector__cuerpo {
+    transition: none;
+  }
+
+  .lector__mas i {
+    transition: none;
+  }
+}
+
+/* el enlace al artículo entero, dentro del desplegable: se lee por
+   encima sin salir de la lista y se entra cuando engancha (ver
+   BlogLector.jsx). Va en caja y no como texto suelto para que se
+   distinga del botón de cerrar, que está justo debajo. */
+@media (max-width: 1079px) {
+  .lector__completo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-top: 12px;
+    padding: 8px 13px;
+
+    border: 1px solid rgba(201, 168, 255, 0.4);
+    border-radius: 999px;
+
+    text-decoration: none;
+    color: var(--color-text, #f6f0ff);
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lector__completo i {
+    font-style: normal;
+    color: var(--color-rotulo, #ff9be8);
+  }
+}
+
+/* ---- EL GANCHO: LO QUE QUEDA POR LEER ----
+   Los títulos de los apartados que el anzuelo no enseña. Van con
+   un filo de acento a la izquierda —la misma señal que usa el
+   sitio para "esto continúa"— y en un tono por debajo del texto:
+   son un índice, no lectura. Ver BlogLector.jsx. */
+@media (max-width: 1079px) {
+  .lector__gancho {
+    margin-top: 12px;
+    padding: 10px 0 10px 12px;
+
+    border-left: 2px solid rgba(201, 168, 255, 0.45);
+  }
+
+  .lector__gancho-rotulo {
+    margin-bottom: 5px;
+
+    color: var(--color-rotulo, #ff9be8);
+
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .lector__gancho-lista {
+    list-style: none;
+
+    display: grid;
+    gap: 3px;
+  }
+
+  .lector__gancho-lista li {
+    color: var(--color-text-soft, #cdc1e2);
+
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  /* el punto que abre cada línea: dice "hay más" sin escribirlo */
+  .lector__gancho-lista li::before {
+    content: "+ ";
+
+    color: rgba(201, 168, 255, 0.7);
+  }
+
+  /* el enlace pasa a ser el remate del gancho, no una nota al pie:
+     fondo propio y a todo el ancho para que se vea que es la
+     salida natural de lo que se acaba de leer */
+  .lector__completo {
+    width: 100%;
+    justify-content: center;
+
+    margin-top: 12px;
+    padding: 11px 14px;
+
+    background: rgba(201, 168, 255, 0.12);
+  }
+}

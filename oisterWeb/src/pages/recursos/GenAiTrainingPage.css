@@ -671,3 +671,216 @@
     border-right: 0;
   }
 }
+
+/* ============================================================
+   EL ÍNDICE PEGAJOSO Y EL TEMARIO SIN CAJAS (solo la mano)
+
+   Dos cosas a la vez, porque son la misma decisión:
+
+   1· Los módulos dejan de ser TARJETAS BLANCAS. Iban con
+      `--gt-papel-alto`, un papel claro heredado de la maquetación
+      original, en un sitio que vive en la banda del 29-32% de
+      luminosidad. Era el mismo salto de material que tenía el
+      menú antes de repintarlo: un bloque claro en mitad de una
+      página oscura se lee como que pertenece a otra web.
+
+   2· Y en su lugar entra el ÍNDICE. Con las cajas fuera, los
+      cinco módulos se leen como las partes de un documento, y un
+      documento largo con partes numeradas pide una barra que diga
+      en cuál estás. Los 44px de la barra los paga de sobra lo que
+      se ahorra en filos y rellenos.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- EL TITULAR ----
+     Iba a 28px con peso 700, que es el mínimo de su `clamp` y por
+     debajo de los 32/800 con que abren "Casos de uso", "Trabajos"
+     y "Qué hacemos" desde esta semana. En la página que tiene un
+     precio, el titular era el más flojo del sitio.
+
+     Sube al mismo escalón que las demás y añade `text-wrap:
+     balance`: la frase mide 74 caracteres y sin equilibrar dejaba
+     un último renglón de dos palabras colgando. */
+  .gt-titulo {
+    font-size: clamp(2rem, 1.25rem + 2.35vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* ---- LOS MÓDULOS, SIN CAJA ----
+     Lo que separa uno del siguiente pasa a ser un filete, como en
+     la ficha de proyecto. El icono se va con la caja: dentro de
+     una tarjeta marcaba su bloque, pero en una columna de texto
+     cinco iconos distintos son cinco formas compitiendo. */
+  .gt-modulos {
+    gap: 0;
+  }
+
+  .gt-modulo {
+    padding: 20px 0;
+
+    border: 0;
+    border-top: 1px solid var(--gt-borde);
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+
+    /* deja sitio a la barra al saltar desde el índice: sin esto,
+       el bloque aterriza pegado a ella */
+    scroll-margin-top: 152px;
+  }
+
+  .gt-modulo:first-child {
+    border-top: 0;
+  }
+
+  .gt-modulo__icono {
+    display: none;
+  }
+}
+
+/* ============================================================
+   DOS VELOCIDADES — la cabecera se queda, el contenido pasa
+   por encima (solo la mano)
+
+   La cabecera se marchaba con el scroll y a partir de ahí la
+   página era un temario suelto: nada seguía diciendo qué es esto
+   ni cuánto dura. Aquí se queda pegada al fondo y el contenido
+   sube sobre ella en una lámina redondeada, así que el titular
+   acompaña mientras se lee y el gesto da profundidad sin animar
+   nada — `position: sticky` puro, cero JS.
+
+   ---- LA IMAGEN NO SE ELIGIÓ A OJO ----
+   Las dos que hay en la página se midieron en la zona donde cae
+   el texto:
+
+     · cabecera.jpg    — biblioteca luminosa, L=62%.
+       Blanco encima: 2,55:1. Para llegar a AA hacía falta un velo
+       del 45%, o sea taparla para poder usarla.
+     · presentacion.jpg — puesto de trabajo con creatividades en
+       pantalla, L=20%. Blanco encima: 13,56:1 DIRECTO.
+
+   Gana la segunda por 5 veces, y además es la que enseña de qué
+   va el curso: pantallas con piezas hechas con IA. El velo que
+   lleva es suave y sólo asienta el pie, no oscurece la foto.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- EL PAPEL, UN PASO MÁS OSCURO EN LA MANO ----
+     El #f7f5fc de escritorio está a un 1,08:1 del blanco puro: en
+     una pantalla de mano, contra la foto oscura del hero justo
+     encima, ese papel no se leía como papel sino como un hueco
+     blanco. Un solo escalón basta para que tenga cuerpo.
+
+     Se cambia el TOKEN, no cada regla, porque `--gt-papel` lo usan
+     dos sitios que tienen que coincidir a la fuerza: el fondo de
+     la página (con la banda que cose con el pie) y los tres
+     paneles a sangre. Tocando uno solo se abriría una costura
+     visible entre ellos.
+
+     De paso los chips de `--gt-papel-alto` (blanco puro) por fin
+     se separan de su fondo —1,08:1 → 1,46:1—, que hasta ahora solo
+     se distinguían por el borde.
+
+     El primer intento fue #ece8f5 y se seguía leyendo como blanco:
+     a 1,20:1 del blanco puro el ojo todavía no separa los dos. El
+     salto útil está más abajo, y este es el último escalón donde
+     el papel aún se lee como papel: un punto más y empieza a ser
+     un gris, que es otra cosa.
+
+     Con la tinta se queda en 11,12:1, todavía muy por encima de
+     AAA (7:1), así que el texto no pierde nada. */
+  .gt {
+    --gt-papel: #d9d2e9;
+  }
+
+  .gt-cabecera {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+
+    display: block;
+    min-height: 340px;
+
+    /* el degradado va ENCIMA de la foto, en la misma propiedad:
+       dos capas de background, no un pseudoelemento. Así la
+       cabecera sigue siendo un solo elemento pegajoso. */
+    /* ---- EL VELO, CALCULADO SOBRE EL PEOR PÍXEL ----
+       Iba del 55% arriba al 15% en el centro, y el 15 caía justo
+       donde está el titular. El promedio del fondo daba 7,9:1,
+       que parecía suficiente — pero un promedio no sirve aquí: lo
+       que manda es el punto MÁS CLARO, y la foto tiene reflejos de
+       ventana casi blancos, rgb(227 223 239). Sobre ellos la letra
+       blanca caía a 1,79:1 y desaparecía a trozos.
+
+       Medido pixel a pixel, el 55% es donde ese peor punto alcanza
+       AA: 5,17:1. Se aplica de forma pareja en toda la franja del
+       texto —del 30% al 92%— en vez de aclararse en el centro, y
+       se refuerza arriba y abajo para asentar los bordes.
+
+       La foto sigue viéndose: 55% de un ciruela muy oscuro deja
+       pasar el color y las formas de las pantallas, que es lo que
+       hace que valga la pena tenerla. */
+    background:
+      linear-gradient(
+        180deg,
+        rgb(20 11 34 / 0.72) 0%,
+        rgb(20 11 34 / 0.55) 30%,
+        rgb(20 11 34 / 0.55) 72%,
+        rgb(20 11 34 / 0.8) 100%
+      ),
+      url("/img/formacion/presentacion.jpg") center / cover no-repeat,
+      var(--gt-morado);
+  }
+
+  /* el texto arranca por debajo de la píldora de la cabecera del
+     sitio, que va fija y termina en 84px */
+  .gt-cabecera__texto {
+    justify-content: flex-end;
+    min-height: 340px;
+    padding: 96px 20px 30px;
+  }
+
+  /* (la foto de cabecera ya no se monta en este ancho: lo decide
+     el JSX, para que tampoco se descargue. Ver GenAiTrainingPage.jsx) */
+
+  /* ---- LA LÁMINA QUE PASA POR ENCIMA ----
+     Solo la primera sección necesita el canto redondeado y la
+     sombra: las siguientes continúan sobre el mismo papel, así
+     que la junta entre ellas no se ve. El z-index la sube por
+     delante de la cabecera pegajosa. */
+  /* ---- LA LÁMINA TIENE QUE TAPAR DE BORDE A BORDE ----
+     El contenedor de la página deja 20px a cada lado, así que la
+     lámina medía 351 de 390 y por esos dos canales se veía la foto
+     de la cabecera colándose por debajo — el efecto se leía como
+     un fallo, no como profundidad.
+
+     `margin-inline: calc(50% - 50vw)` la lleva a sangre —el mismo
+     recurso que usa la propia cabecera— y el relleno de 20px se
+     devuelve por dentro para que el texto conserve su margen. Sin
+     esa segunda mitad, el contenido quedaría pegado al canto. */
+  .gt-presenta,
+  .gt-incluye,
+  .gt-precio-zona {
+    position: relative;
+    z-index: 1;
+
+    margin-inline: calc(50% - 50vw);
+    padding-inline: 20px;
+
+    background: var(--gt-papel);
+  }
+
+  .gt-presenta {
+    margin-top: -20px;
+    padding-top: 24px;
+
+    /* --gt-radio, el mismo que usan las tarjetas y los huecos de
+       esta página, en vez de un 20 puesto a ojo: la escala del
+       sistema no tiene ese escalón y aquí ya había un token
+       propio para el redondeo. */
+    border-radius: var(--gt-radio) var(--gt-radio) 0 0;
+    box-shadow: 0 -12px 32px rgba(36, 26, 61, 0.22);
+  }
+}

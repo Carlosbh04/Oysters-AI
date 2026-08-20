@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import useMediaQuery from "../../hooks/useMediaQuery";
+import { subirArriba } from "../../hooks/useIrASeccion";
 import "./VolverArriba.css";
 
 /* ============================================================
@@ -83,15 +84,20 @@ function VolverArriba() {
 
   if (!esMano) return null;
 
-  const subir = () => {
-    /* `smooth` salvo que el visitante haya pedido menos
-       movimiento; entonces el salto es seco, que es lo correcto.
-       Se lee en el momento del clic y no al montar: la
-       preferencia del sistema puede cambiar con la página
-       abierta. */
-    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: quieto ? "auto" : "smooth" });
-  };
+  /* ---- EL RECORRIDO ES EL DEL SITIO, NO EL DEL NAVEGADOR ----
+     Aquí había un `scrollTo({behavior:"smooth"})` y se quedaba a
+     medio camino: el desplazamiento del navegador no se puede
+     regular ni rematar, y en un móvil lo corta cualquier cosa —el
+     dedo aún apoyado, la inercia, o el alto del documento
+     cambiando mientras sube porque las secciones que se cruzan van
+     soltando sus imágenes—.
+
+     `subirArriba` usa el mismo recorrido que ya llevan el menú y
+     "Descubre cómo": re-mide la meta en cada fotograma, así que
+     acaba SIEMPRE en 0, y se abandona al primer gesto. La
+     preferencia de menos movimiento también la respeta, saltando
+     en seco. Ver useIrASeccion.js. */
+  const subir = () => subirArriba();
 
   return (
     <button

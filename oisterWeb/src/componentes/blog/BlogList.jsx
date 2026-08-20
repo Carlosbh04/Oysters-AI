@@ -1,11 +1,31 @@
 import { useNavigate } from "react-router-dom";
 import BlogCard from "./BlogCard";
+import BlogLector from "./BlogLector";
+import useMediaQuery from "../../hooks/useMediaQuery";
 import FondoBlog from "./FondoBlog";
 import Paginacion from "../paginacion/Paginacion";
+import FiltroCategorias from "../work/FiltroCategorias";
+import { temaCorto } from "./temasCortos";
 import "./BlogList.css";
 
-function BlogList({ entradas, page = 1, totalPages = 1 }) {
+function BlogList({
+  entradas,
+  page = 1,
+  totalPages = 1,
+  categorias = null,
+  categoriaActiva,
+  onCambiarCategoria,
+}) {
   const navigate = useNavigate();
+
+  /* ---- DOS LISTADOS, NO UNO ADAPTADO ----
+     En la mano el blog se lee sin cambiar de página (ver
+     BlogLector.jsx) y en escritorio sigue siendo la rejilla de
+     tarjetas que enlaza al detalle. Son dos ÁRBOLES distintos, no
+     el mismo con otro CSS: uno lleva enlaces y el otro botones que
+     despliegan, y forzar que sean el mismo marcado dejaría a uno
+     de los dos con el rol equivocado. */
+  const esMano = useMediaQuery("(max-width: 1079px)");
 
   /* La página del blog vive en la RUTA (/blog/page/2), no en un
      query param como en /works, así que aquí cambiar de página es
@@ -31,6 +51,29 @@ function BlogList({ entradas, page = 1, totalPages = 1 }) {
         </h1>
 
       </header>
+
+      {/* ---- EL FILTRO ----
+          Solo llega con categorías cuando estamos en la mano (lo
+          decide BlogPage). Sin iconos: las categorías del blog no
+          tienen símbolo asignado y todas caerían en el de por
+          defecto — ocho chispas iguales dicen menos que ninguna.
+          El sustantivo cambia para que un lector de pantalla diga
+          "Publicidad, 3 artículos" y no "3 trabajos". */}
+      {categorias && (
+        <FiltroCategorias
+          categorias={categorias}
+          activa={categoriaActiva}
+          onCambiar={onCambiarCategoria}
+          conIconos={false}
+          /* los temas del blog son largos y la tira no cabía: nueve
+             chips sumaban 1.170px y se veían dos. Ver temasCortos.js */
+          compacto
+          nombreCorto={temaCorto}
+          sustantivo={{ uno: "artículo", varios: "artículos" }}
+        />
+      )}
+
+      {esMano && <BlogLector entradas={entradas} />}
 
       <div className="blog-list-grid">
         {entradas.map((entrada) => (

@@ -729,3 +729,238 @@
     display: none;
   }
 }
+/* ============================================================
+   LA CABECERA SE METE DENTRO (leyendo un artículo, en la mano)
+
+   Al bajar deja de flotar: pierde los márgenes de los lados, el
+   redondeo y la sombra, cambia su rosa por el morado de la página
+   y se pega al borde. Se retiran el logo y la hamburguesa, y en su
+   sitio queda «Blog │ el titular». Al subir se vuelve a montar.
+
+   Cuándo ocurre lo decide Header.jsx (con dos umbrales distintos
+   para que no parpadee); aquí solo está el aspecto.
+
+   ---- EL SUAVIZADO NO ES SOLO DURACIÓN ----
+   La primera versión cambiaba todo a la vez y se sentía un salto.
+   Aquí las tres cosas ocurren ESCALONADAS y con curvas distintas:
+
+     1. logo y hamburguesa se apagan (0,26s, sin espera)
+     2. la barra se abre y cambia de color (0,52s, tras 0,08s)
+     3. el rótulo entra (0,30s, tras 0,26s — cuando ya hay sitio)
+
+   Ese desfase es lo que convierte un corte en un movimiento: cada
+   pieza espera a que la anterior le haga hueco. Y la curva de la
+   barra es la más larga porque es la que más recorrido hace.
+   ============================================================ */
+/* ---- Y EL ENVOLTORIO TAMBIÉN SE APARTA ----
+   `.header` reserva 24px arriba y abajo para que la píldora
+   flote. Sin quitarlos, la barra se quedaba a 24px del borde con
+   el texto del artículo asomando por encima — o sea, flotando
+   igual pero con las esquinas cuadradas. Es lo contrario de
+   meterse dentro. */
+.header--lectura {
+  padding: 0;
+}
+
+.header {
+  transition: padding 0.52s cubic-bezier(0.22, 0.9, 0.3, 1) 0.08s;
+}
+
+.header--lectura .header__container {
+  /* a lo ancho y pegada arriba: los tres bordes a cero */
+  width: 100%;
+
+  /* ---- Y CON EL MISMO ALTO QUE LA PÍLDORA ----
+     Sin esto la barra se quedaba en 44px contra los 60 de la
+     píldora en reposo: al cambiar de estado parecía que la
+     cabecera había ENCOGIDO, y una barra de 44px con dos textos
+     dentro se lee como una nota al pie, no como la cabecera del
+     sitio.
+
+     El alto de la píldora no está escrito en ninguna parte: sale
+     de su contenido (el logo, más sus 6px de relleno arriba y
+     abajo). Aquí el logo está fuera del flujo —para dejarle el
+     ancho al titular— así que ese alto hay que reponerlo a mano.
+     Si algún día cambia el tamaño del logo, este número es el que
+     hay que volver a mirar. */
+  min-height: 60px;
+
+  padding-top: 0;
+  padding-bottom: 0;
+
+  border-radius: 0;
+
+  /* el morado de la página, translúcido: la barra deja de ser un
+     objeto y pasa a ser una franja del propio papel */
+  background: rgba(30, 20, 50, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+
+  box-shadow: none;
+}
+
+.header__container {
+  transition:
+    width 0.52s cubic-bezier(0.22, 0.9, 0.3, 1) 0.08s,
+    padding 0.52s cubic-bezier(0.22, 0.9, 0.3, 1) 0.08s,
+    border-radius 0.52s cubic-bezier(0.22, 0.9, 0.3, 1) 0.08s,
+    background-color 0.52s ease 0.08s,
+    box-shadow 0.4s ease;
+}
+
+/* el halo de debajo se va con la píldora: colgando de una barra
+   pegada al borde se vería como una mancha suelta */
+.header--lectura .header__resplandor {
+  opacity: 0;
+}
+
+.header__resplandor {
+  transition: opacity 0.3s ease;
+}
+
+/* ---- LO QUE SE RETIRA ----
+   Primero, y rápido: son los que tienen que dejar sitio.
+
+   ⚠️ `animation: none` no sobra. El logo y la hamburguesa entran
+   con `navItemIn ... forwards` (ver .header--enter, arriba), y una
+   animación con relleno GANA a una declaración normal por mucho
+   que se suba la especificidad: sin cancelarla, esto se escribía y
+   no surtía ningún efecto — comprobado, los dos se quedaban a
+   opacidad 1. Retirando la animación, la transición de abajo
+   vuelve a mandar. */
+.header--lectura .header__logo,
+.header--lectura .hamburger {
+  animation: none;
+
+  /* ---- Y SALEN DEL FLUJO ----
+     Apagarlos no basta: invisibles seguían ocupando su sitio en el
+     flex y al título le quedaban 153px de los 310 disponibles, así
+     que se recortaba igual. En absoluto dejan el ancho libre de
+     verdad — y como ya no se ven ni se pueden tocar, no se pierde
+     nada. De paso la barra baja de 78px de alto a lo que mide su
+     texto, que es lo que debe medir. */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) scale(0.72);
+
+  opacity: 0;
+
+  /* deja de capturar el dedo en cuanto se apaga */
+  pointer-events: none;
+}
+
+.header--lectura .header__logo {
+  left: 20px;
+}
+
+.header--lectura .hamburger {
+  right: 20px;
+}
+
+.header__logo,
+.hamburger {
+  transition:
+    opacity 0.26s ease,
+    transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1);
+}
+
+/* ---- Y EL RÓTULO, QUE ENTRA EL ÚLTIMO ---- */
+.header--lectura .header__seccion {
+  /* deja de ir centrado en absoluto y pasa a ocupar la barra */
+  position: static;
+  transform: none;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  min-width: 0;
+
+  /* el rótulo centrado llevaba `max-width: 58%` para no chocar con
+     el logo y la hamburguesa. Aquí esos dos ya no están en el
+     flujo, así que ese tope solo servía para recortar el titular:
+     con él se quedaba en 153px de los 350 que hay. */
+  max-width: none;
+
+  padding-right: 8px;
+
+  text-align: left;
+}
+
+/* el titular se queda con lo que sobre después del «Blog │» */
+.header--lectura .header__seccion-texto {
+  flex: 1 1 auto;
+}
+
+.header__seccion[data-titular] .header__seccion-pre {
+  flex-shrink: 0;
+
+  color: var(--color-rotulo, #ff9be8);
+
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.header__seccion[data-titular] .header__seccion-filo {
+  width: 1px;
+  height: 17px;
+  flex-shrink: 0;
+
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.header--lectura .header__seccion-texto {
+  min-width: 0;
+
+  color: var(--color-text, #f6f0ff);
+
+  /* la de texto, no la monoespaciada: `inherit` heredaba la mono
+     del rótulo de sección y el titular salía de máquina de
+     escribir. Un titular es texto, no un dato. */
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+
+  /* con la barra a 60px el titular puede crecer: a 13px se veía
+     pequeño para el sitio que tiene */
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  text-transform: none;
+
+  /* si aun así se pasa, corta con puntos — pero con el recorte por
+     palabras de SeccionEnCurso esto casi nunca llega a actuar */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  animation: cabeceraRotulo 0.3s ease 0.26s both;
+}
+
+@keyframes cabeceraRotulo {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header__container,
+  .header__logo,
+  .hamburger,
+  .header__resplandor {
+    transition-duration: 0.01s;
+  }
+
+  .header--lectura .header__seccion-texto {
+    animation: none;
+  }
+}

@@ -131,6 +131,26 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
 
+    /* ---- SANGRE POR FUERA, HUECO POR DENTRO ----
+       El margen negativo saca la tira hasta el borde de la
+       pantalla para que las píldoras entren y salgan por ahí en
+       vez de cortarse contra un margen; el relleno devuelve el
+       hueco por dentro, para que la primera arranque alineada con
+       el rótulo y con las entradas.
+
+       ⚠️ El relleno solo NO bastaba: el primer chip seguía pegado
+       al canto, en x=0, con el rótulo en 20. No era cosa del
+       relleno sino del SNAP — `scroll-snap-align: start` alinea
+       contra el snapport, y el snapport arranca en el canto del
+       contenedor mientras `scroll-padding` valga 0. Así que al
+       cargar, el navegador arrastraba la tira esos mismos 20px y
+       anulaba el relleno.
+
+       Los dos valores tienen que ir a la par: el relleno coloca y
+       el `scroll-padding` impide que el snap lo deshaga. Aquí solo
+       va el relleno; el `scroll-padding` se pone en la variante
+       compacta, porque en /works la tira nace 20px más adentro y
+       corregirlo aquí le movería los chips a ellos. */
     margin-inline: -1.25rem;
     padding-inline: 1.25rem;
 
@@ -153,4 +173,123 @@
     font-size: 0.85rem;
     padding: 0 0.95rem;
   }
+}
+
+/* ============================================================
+   LA VARIANTE COMPACTA (la usa el blog)
+
+   Chips más apretados, en versalitas monoespaciadas y con el
+   contador en volado en vez de suelto al lado. Junto con los
+   nombres cortos (ver temasCortos.js), la tira baja de 1.170px de
+   arrastre a poco más de la mitad y se ven cinco en vez de dos.
+
+   Las versalitas no son adorno: al ir todas las letras a la misma
+   altura, los chips quedan de alturas iguales y la tira se lee
+   como una fila y no como una escalera. Y el contador en volado
+   deja de robar un hueco horizontal por cada chip — que
+   multiplicado por nueve es lo que hacía la tira impracticable.
+   ============================================================ */
+/* ---- Y QUE EL SNAP NO SE COMA EL HUECO ----
+   Sin esto la primera píldora quedaba pegada al canto, en x=0,
+   con el rótulo «Blog» y las entradas empezando en 20. El motivo
+   está explicado arriba, en la regla de la tira: el snapport
+   arranca en el canto mientras `scroll-padding` valga 0, así que
+   al cargar el navegador arrastraba la tira los mismos 20px del
+   relleno y lo anulaba.
+
+   Va SOLO en la variante compacta: en /works la tira nace ya
+   metida y allí el chip cae donde debe sin tocar nada. */
+.work-filtro--compacto {
+  scroll-padding-inline: 1.25rem;
+}
+
+.work-filtro--compacto .work-filtro__chip {
+  gap: 0;
+
+  /* ---- 30 DE PÍLDORA, 44 DE DEDO ----
+     El chip base pide `min-height: 44px`, el mínimo táctil de las
+     guías de Apple, y por eso la tira del blog se veía el doble de
+     alta que la maqueta. Bajarlo a secas dejaría un objetivo de 30,
+     por debajo de lo que se puede tocar con seguridad en marcha.
+
+     Así que el BOTÓN conserva sus 44 y lo que encoge es lo
+     pintado: el ::before de abajo dibuja la píldora metida 7px por
+     arriba y por abajo, o sea 30 de alto. Se ve la tira fina de la
+     maqueta y el objetivo táctil no se toca.
+
+     ⚠️ El primer intento fue al revés —píldora de 30 y un ::after
+     saliéndose 7px para recuperar el área— y NO funciona: la tira
+     lleva `overflow-x` para poder arrastrarse, y un contenedor con
+     overflow recorta en los DOS ejes. Lo que sobresalía quedaba
+     recortado y, recortado, tampoco recibe el toque. Comprobado
+     pulsando 5px por encima del chip: no pasaba nada. */
+  min-height: 44px;
+  position: relative;
+
+  /* sin fondo ni borde: los pinta el ::before */
+  border-color: transparent;
+  background: none;
+
+  padding: 0 13px;
+
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* los 7px que le faltan a cada lado para llegar a 44 */
+/* la píldora pintada: 30 de alto dentro de un botón de 44 */
+.work-filtro--compacto .work-filtro__chip::before {
+  content: "";
+  position: absolute;
+  inset: 7px 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+/* la puesta se pinta también en el ::before, que es quien tiene
+   la forma; el botón que la envuelve es transparente */
+.work-filtro--compacto .work-filtro__chip--activa::before {
+  border-color: transparent;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-light),
+    var(--color-primary-light)
+  );
+  box-shadow: 0 6px 22px -8px rgba(214, 75, 190, 0.75);
+}
+
+.work-filtro--compacto .work-filtro__chip--activa {
+  box-shadow: none;
+}
+
+/* el texto, por delante de la píldora */
+.work-filtro--compacto .work-filtro__nombre,
+.work-filtro--compacto .work-filtro__cuantos {
+  position: relative;
+}
+
+.work-filtro--compacto .work-filtro__cuantos {
+  /* en volado sobre la píldora de 30, no sobre el botón de 44:
+     de ahí el margen de arriba, que lo baja a su sitio */
+  align-self: flex-start;
+  margin-top: 9px;
+
+  margin-left: 4px;
+  padding: 0;
+
+  border: 0;
+  background: none;
+
+  font-size: 8px;
+  line-height: 1.6;
 }
