@@ -86,9 +86,27 @@ function useTelonNacar(raizRef, { piezas, conFilo = "", activo = true } = {}) {
       const base = raiz.getBoundingClientRect().top;
       const marca = window.innerHeight * LINEA;
 
+      /* ---- EL TELÓN NO SE VUELVE A ECHAR ----
+         Aquí había un `else removeAttribute("data-ver")`: al subir,
+         la pieza que bajaba de la línea perdía el atributo y se
+         RE-ESCONDÍA. Y la línea está al 88%, no en el borde: entre
+         ella y el borde de abajo hay ~100px de pantalla, así que un
+         texto que se estaba leyendo desaparecía de golpe delante
+         del lector. Medido: tras bajar y subir un poco, el rótulo
+         de «Qué hacemos» quedaba a opacidad 0 con su caja en
+         pantalla.
+
+         El descubrimiento es de ida: una pieza vista queda vista.
+         Es además lo que el resto del sitio ya asume — el CSS de
+         la salida («se aleja») documenta que en reposo estas
+         piezas llevan `data-ver` puesto, y su variante para
+         piezas del telón lo EXIGE en el selector: al re-esconderse,
+         la salida dejaba de aplicarse a mitad de gesto.
+
+         La entrada se repite en cada montaje de la página, que es
+         cuando se espera verla; no en cada pasada de scroll. */
       for (let i = 0; i < lista.length; i++) {
         if (base + topes[i] < marca) lista[i].setAttribute("data-ver", "");
-        else lista[i].removeAttribute("data-ver");
       }
     };
 

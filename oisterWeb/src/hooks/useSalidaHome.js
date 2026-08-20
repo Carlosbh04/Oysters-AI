@@ -117,27 +117,86 @@ const PIEZAS = [
      entera, porque encogiendo solo su contenido quedarían cuatro
      marcos vacíos flotando mientras el texto se va. */
   ".iia__tarjeta",
+
+  /* ---- 3 · NUESTROS TRABAJOS ----
+     `.latest-projects__all` («Ver todos los proyectos») se queda
+     FUERA a propósito: lleva `lpAllPulse`, una animación infinita
+     sobre su transform, y una animación gana a una declaración
+     pase lo que pase. Añadirlo no haría nada y solo confundiría a
+     quien viniera después a mirar por qué no se mueve. */
+  "#proyectos .latest-projects__intro .rotulo",
+  ".latest-projects__title",
+  ".latest-projects__description",
+  ".lp-mano__perla",
+  ".lp-mano__turnos",
+
+  /* ---- 4 · NOSOTROS ----
+     De `.ab-gente` se animan sus DOS fichas y no el bloque: mide
+     886px, y una pieza tan alta tardaría dos pantallas en irse
+     porque el progreso se mide contra su borde de arriba. Además
+     el bloque lleva `about-copy-in`, una animación con relleno
+     que ganaría a la salida. */
+  "#nosotros .about-hero__text .rotulo",
+  ".about-hero__title",
+  ".about-hero__desc",
+  ".ab-gente__persona",
+  ".ab-valores__rotulo",
+  ".ab-valores__pieza",
+
+  /* ---- 5 · CASOS DE USO ----
+     De los cuatro `.uc__pane` se anima su CONTENEDOR: son cuatro
+     paneles apilados de los que solo uno se ve a la vez (es un
+     control por pestañas), así que marcarlos por separado sería
+     animar tres cosas invisibles y una visible. */
+  "#casos-de-uso .uc__portada .rotulo",
+  ".uc__titulo",
+  ".uc__entradilla",
+  ".uc__seg",
+  ".uc__panes",
+
+  /* `.uc__pieza` NO está, y no es un olvido: mide 250px pero
+     está vacía —sin fondo, sin pseudo-elementos y sin hijos—.
+     Animarla es animar el aire, que es el mismo fallo que hubo
+     con las mitades de «Nuestra Misión». Se comprobó midiendo,
+     no leyendo el CSS. */
 ];
 
-/* ---- QUÉ SE PARTE, Y EN QUÉ ----
-   La onda necesita que cada trozo sea su propia caja. Los
-   titulares se parten en LETRAS y los párrafos en PALABRAS: la
-   razón está en partirTexto.js, y en resumen es que un párrafo
-   de treinta palabras partido en letras son ciento sesenta cajas
-   moviéndose a la vez —a 13px eso no se lee como una ola, se lee
-   como ruido, y es lo más caro que se le puede pedir a un móvil.
+/* ---- POR QUÉ AQUÍ NO SE PARTE NINGÚN TEXTO ----
+   Hubo una versión que partía los titulares en letras y los
+   párrafos en palabras, para que la onda recorriera el texto trozo
+   a trozo como en la maqueta. Se retiró, y conviene dejar escrito
+   el motivo para que nadie lo reintente sin saberlo.
 
-   Lo que no está en ninguna de las dos listas se anima entero:
-   el vídeo, las tarjetas del método, el grupo de botones. Ahí la
-   onda va al bloque, que es lo que se enseñó en la maqueta. */
-const TITULARES = [".iia__titulo", ".iia__metodo-titulo"];
+   Partir un texto CAMBIA CÓMO SE VE, aunque las letras sean las
+   mismas:
 
-const PARRAFOS = [
-  ".hero__description",
-  ".iia__parrafo",
-  ".iia__metodo-entrada",
-  ".iia__proposito-mitad p",
-];
+     · se pierde el kerning. Dos letras dentro de un mismo texto se
+       ajustan entre sí; metidas en cajas distintas, no. Medido
+       contra la página sin partir, los titulares cambiaban entre
+       un 12% y un 52% de sus píxeles.
+
+     · se rompen los degradados. Cuatro de los cinco titulares
+       llevan un `<span>` de acento, y si ese acento pinta con un
+       degradado recortado al texto, al partirlo cada letra pasa a
+       llevar el degradado ENTERO en lugar de su porción. El color
+       cambia, y es lo que se vio.
+
+     · y las reglas de cada sección apuntan a `span`. En «Casos de
+       uso» hay `.uc__titulo span { display: block }` para que el
+       acento caiga a su línea; esa regla alcanzaba también a las
+       palabras partidas y el titular salía a palabra por línea.
+
+   Así que la onda se queda a nivel de BLOQUE: el titular entero
+   cabalga la ola en vez de desarmarse letra a letra. Se pierde
+   parte del efecto y se gana que el texto se vea exactamente como
+   estaba, que es lo que se pidió.
+
+   El partidor sigue en utils/partirTexto.js —ya sabe respetar el
+   marcado de dentro— por si algún día se quiere aplicar a un texto
+   que no tenga acento ni reglas propias. */
+const TITULARES = [];
+
+const PARRAFOS = [];
 
 /* El titular del hero ya viene partido desde el JSX con su propia
    cascada de entrada. Se le marcan las letras que ya tiene en vez
@@ -198,6 +257,29 @@ export default function useSalidaHome(activo = true) {
         const y = p.getBoundingClientRect().top;
         const f = Math.min(1, Math.max(0, (arranque - y) / recorrido));
         p.style.setProperty("--f", f.toFixed(4));
+
+        /* ---- Y SE LE RETIRA LA ENTRADA, UNA VEZ ----
+           Varias piezas llegan con su propia animación de entrada
+           y relleno `forwards` —«Nosotros» usa `about-copy-in`—, y
+           una animación con relleno gana a CUALQUIER declaración
+           de estilo, para siempre. Medido: su rótulo, su titular y
+           su texto se quedaban a opacidad 1 con la salida al 40%
+           del recorrido. No es un empate de especificidad: la
+           salida ni siquiera entra en la puja.
+
+           Se retira JUSTO cuando la pieza empieza a irse, y no
+           antes: si la pieza está saliendo, su entrada ya terminó
+           —no hay forma de que no— así que no se rompe nada.
+
+           El primer intento fue mirar `getAnimations()` al montar
+           y esperar su promesa. No valía: la animación de esa
+           sección todavía NO EXISTE al montar, porque arranca
+           cuando la sección entra en pantalla. La lista salía
+           vacía y no se programaba nada. */
+        if (f > 0 && !p.dataset.sinEntrada) {
+          p.dataset.sinEntrada = "1";
+          p.style.animation = "none";
+        }
       }
     };
 
@@ -265,6 +347,8 @@ export default function useSalidaHome(activo = true) {
       piezas.forEach((p) => {
         p.removeAttribute("data-salida");
         p.style.removeProperty("--f");
+        p.style.removeProperty("animation");
+        delete p.dataset.sinEntrada;
       });
 
       /* y los textos se vuelven a juntar: un texto partido que se

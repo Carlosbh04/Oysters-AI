@@ -48,37 +48,86 @@ const REPARTO_PALABRAS = 0.4;
 
 const paso = (n, reparto) => (reparto / Math.max(n - 1, 1)).toFixed(5);
 
+/* ---- SE PARTE EL TEXTO, NO EL MARCADO ----
+   Esta es la parte delicada. La primera versión hacía
+   `el.innerHTML = ...` a partir de `el.textContent`, y eso APLANA
+   lo que hubiera dentro. Y había cosas dentro: cuatro de los
+   cinco titulares del home llevan un `<span>` con el acento de
+   color —«pensamiento humano», «casos de uso», «Somos tu socio
+   estratégico.», «N proyectos»— y al partirlos se perdieron los
+   cuatro. El texto seguía ahí, pero plano.
+
+   Ahora se recorren solo los NODOS DE TEXTO y cada uno se
+   sustituye en su sitio. Los elementos que los contienen ni se
+   tocan, así que el acento sigue siendo el acento y lo que se
+   parte es únicamente lo que hay que animar.
+
+   Los espacios se conservan como nodos de texto de verdad, no
+   como trozos: así el navegador sigue pudiendo cortar la línea
+   por donde le toca. */
+const nodosDeTexto = (raiz) => {
+  const fuera = [];
+  const paseo = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  while (paseo.nextNode()) {
+    if (paseo.currentNode.nodeValue.trim()) fuera.push(paseo.currentNode);
+  }
+  return fuera;
+};
+
 /* ---- LETRAS (titulares) ----
-   `--j` es el número de letra y `--paso` lo que tarda en
-   arrancar la siguiente. Los espacios NO se convierten en trozo:
-   se agrupan las letras por palabra dentro de un contenedor que
-   no parte, para que un titular largo siga cortando por donde
-   debe y no deje una letra sola al final de una línea. */
+   `--j` es el número de letra y `--paso-salida` lo que tarda en
+   arrancar la siguiente. Las letras se agrupan por PALABRA dentro
+   de un contenedor que no parte, para que un titular largo siga
+   cortando por donde debe y no deje una letra suelta al final de
+   una línea. */
 export function enLetras(el) {
   if (!el || el.dataset.partido) return null;
 
-  const texto = el.textContent.trim();
-  if (!texto) return null;
+  const nodos = nodosDeTexto(el);
+  if (!nodos.length) return null;
 
   const original = el.innerHTML;
   const etiqueta = el.getAttribute("aria-label");
+  const texto = el.textContent.replace(/\s+/g, " ").trim();
 
-  const letras = [...texto.replace(/\s/g, "")].length;
+  const letras = nodos.reduce(
+    (n, t) => n + t.nodeValue.replace(/\s/g, "").length,
+    0,
+  );
   const p = paso(letras, REPARTO_LETRAS);
 
   let j = 0;
-  el.innerHTML = texto
-    .split(/\s+/)
-    .map(
-      (palabra) =>
-        `<span class="salida-pal">${[...palabra]
-          .map((c) => {
-            const i = j++;
-            return `<span class="salida-tz" aria-hidden="true" style="--j:${i};--paso-salida:${p}">${c}</span>`;
-          })
-          .join("")}</span>`,
-    )
-    .join(" ");
+  for (const nodo of nodos) {
+    const trozos = document.createDocumentFragment();
+
+    /* el separador va en el grupo capturado, así que los espacios
+       sobreviven tal cual estaban */
+    for (const parte of nodo.nodeValue.split(/(\s+)/)) {
+      if (!parte) continue;
+
+      if (!parte.trim()) {
+        trozos.appendChild(document.createTextNode(parte));
+        continue;
+      }
+
+      const palabra = document.createElement("span");
+      palabra.className = "salida-pal";
+
+      for (const caracter of parte) {
+        const letra = document.createElement("span");
+        letra.className = "salida-tz";
+        letra.setAttribute("aria-hidden", "true");
+        letra.style.setProperty("--j", j++);
+        letra.style.setProperty("--paso-salida", p);
+        letra.textContent = caracter;
+        palabra.appendChild(letra);
+      }
+
+      trozos.appendChild(palabra);
+    }
+
+    nodo.parentNode.replaceChild(trozos, nodo);
+  }
 
   el.setAttribute("aria-label", texto);
   el.dataset.partido = "letras";
@@ -97,19 +146,38 @@ export function enLetras(el) {
 export function enPalabras(el) {
   if (!el || el.dataset.partido) return null;
 
-  const texto = el.textContent.trim();
-  if (!texto) return null;
+  const nodos = nodosDeTexto(el);
+  if (!nodos.length) return null;
 
   const original = el.innerHTML;
-  const palabras = texto.split(/\s+/);
-  const p = paso(palabras.length, REPARTO_PALABRAS);
+  const cuantas = nodos.reduce(
+    (n, t) => n + t.nodeValue.trim().split(/\s+/).length,
+    0,
+  );
+  const p = paso(cuantas, REPARTO_PALABRAS);
 
-  el.innerHTML = palabras
-    .map(
-      (w, i) =>
-        `<span class="salida-pz" style="--j:${i};--paso-salida:${p}">${w}</span>`,
-    )
-    .join(" ");
+  let j = 0;
+  for (const nodo of nodos) {
+    const trozos = document.createDocumentFragment();
+
+    for (const parte of nodo.nodeValue.split(/(\s+)/)) {
+      if (!parte) continue;
+
+      if (!parte.trim()) {
+        trozos.appendChild(document.createTextNode(parte));
+        continue;
+      }
+
+      const palabra = document.createElement("span");
+      palabra.className = "salida-pz";
+      palabra.style.setProperty("--j", j++);
+      palabra.style.setProperty("--paso-salida", p);
+      palabra.textContent = parte;
+      trozos.appendChild(palabra);
+    }
+
+    nodo.parentNode.replaceChild(trozos, nodo);
+  }
 
   el.dataset.partido = "palabras";
 

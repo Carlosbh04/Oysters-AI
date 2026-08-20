@@ -86,6 +86,14 @@
     --rgb-accent-light:240 144 212;
     --rgb-magenta:232 121 249;
 
+    /* Sombra Honda en componentes: es --color-dark (#261A38) en
+       forma de canales, para poder darle alfa con `rgb(… / x)`.
+       Hizo falta al pasar el botón de volver arriba a cristal
+       esmerilado — un velo oscuro translúcido necesita el color
+       separado de su opacidad, y sin este token el componente
+       acababa inventándose su propio oscuro a ojo. */
+    --rgb-dark:38 26 56;
+
     /* ==========================
        NEUTRAL
     ========================== */

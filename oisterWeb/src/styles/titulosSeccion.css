@@ -1,0 +1,66 @@
+/* ============================================================
+   EL TITULAR DE SECCIÓN, UN SOLO TAMAÑO
+
+   Medido a 390px antes de esto, los titulares de sección del
+   sitio iban cada uno por su cuenta:
+
+       .iia__titulo ................ 32px
+       .latest-projects__title ..... 32px
+       .uc__titulo ................. 32px
+       .about-hero__title .......... 24px
+
+   Cuatro sitios distintos donde tocar lo mismo, y ninguna forma
+   de cambiarlo de una vez. Ahora el tamaño vive en una variable y
+   los cuatro la leen.
+
+   ---- POR QUÉ EL VALOR ES ESTE ----
+   Sale del titular de «Nosotros», que es el más largo del sitio:
+   dos frases, 53 caracteres. A 32px cada frase pedía 384px y solo
+   hay 311 de ancho, así que salía en tres líneas con
+   «estratégico.» sola en la última. El primer tamaño al que cada
+   frase entra en su renglón es 26px a 390 y 24px a 360 — de ahí
+   el `clamp`, que acompaña al ancho de la pantalla en vez de
+   fijar un número que solo valga en un teléfono.
+
+   El titular más largo es el que manda: si cabe el peor caso,
+   caben todos.
+
+   ---- QUÉ NO ENTRA AQUÍ ----
+   · Los titulares de PÁGINA —«Trabajos» (45px), «Blog» (44px),
+     «Crafting AI» (46px)— son otro nivel: abren una página
+     entera, no una sección dentro de ella. Y «Hablemos» de
+     contacto es de esos, aunque esté escrito como `h2`.
+
+   · `.iia__metodo-titulo` va a 18px: es un subtítulo DENTRO de
+     «Qué hacemos», no el titular de la sección. Igualarlo a los
+     demás sería borrar una jerarquía que sí existe.
+
+   ---- Y SOLO EN LA MANO ----
+   En escritorio cada uno mantiene su tamaño (52px y alrededores),
+   que es donde están hoy y no es lo que se ha pedido tocar.
+   ============================================================ */
+
+:root {
+  /* 22px a 360 · 24px a 390 · 28px de tope en tabletas */
+  --fs-titulo-seccion: clamp(1.375rem, 6.2vw, 1.75rem);
+}
+
+/* ---- POR QUÉ EL SELECTOR VA REPETIDO ----
+   Cada titular tiene su regla en la hoja de su componente, con la
+   misma especificidad que tendría aquí una clase suelta. Y en un
+   empate manda quien se cargue después: las hojas de los
+   componentes las importa cada componente, o sea que llegan
+   DESPUÉS de esta y ganaban ellas. La primera versión de este
+   fichero no cambió nada — los cuatro seguían a 32px.
+
+   Repetido tres veces (0-3-0) el token manda sin depender del
+   orden en que Vite junte las hojas, que no es algo sobre lo que
+   se pueda razonar. */
+@media (max-width: 1079px) {
+  .iia__titulo.iia__titulo.iia__titulo,
+  .latest-projects__title.latest-projects__title.latest-projects__title,
+  .about-hero__title.about-hero__title.about-hero__title,
+  .uc__titulo.uc__titulo.uc__titulo {
+    font-size: var(--fs-titulo-seccion);
+  }
+}

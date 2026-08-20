@@ -12,6 +12,7 @@ import useMediaQuery from "../../hooks/useMediaQuery";
 import { metaDe } from "../../hooks/useIrASeccion";
 import useEnPantalla from "../../hooks/useEnPantalla";
 import useSalidaHome from "../../hooks/useSalidaHome";
+import useViajeConPersiana from "../../hooks/useViajeConPersiana";
 import LatestProjects from "../../componentes/latestProjects/LatestProjects";
 import About from "../../componentes/about/About";
 import UseCases from "../../componentes/useCases/UseCases";
@@ -115,6 +116,20 @@ function HomePage({ introDone = true, introSaliendo = false }) {
      píldora, midiéndola de verdad. Copiar ese número aquí sería
      dejarlo viejo en cuanto cambie, y solo en uno de los dos
      sitios. */
+  /* ---- EL CTA DE LA MANO VIAJA, NO BAJA ----
+     «Descubre cómo» gastaba el botón principal en hacer scroll —
+     el único gesto que el visitante iba a hacer de todas formas, y
+     que además ya cubre la perla de «haz scroll». Y prometía
+     «cómo» aterrizando en «Qué hacemos». En la mano pasa a ser
+     «Hablemos» y lleva a /contact con la persiana, como cualquier
+     viaje del menú: el píxel más valioso de la página puesto en la
+     acción de negocio.
+
+     En escritorio NO cambia: allí sigue «Descubre cómo» bajando a
+     la sección, porque escritorio se queda exactamente como está
+     (la regla de siempre de este proyecto). */
+  const { aRuta } = useViajeConPersiana();
+
   const scrollToNext = () => {
     const next = heroRef.current?.nextElementSibling;
     if (!next) return;
@@ -127,13 +142,99 @@ function HomePage({ introDone = true, introSaliendo = false }) {
     });
   };
 
-  /* el scroll-cue solo tiene sentido con la página virgen: al
-     primer scroll se retira (y no vuelve — ya cumplió) */
-  const [hasScrolled, setHasScrolled] = useState(false);
+  /* ---- EL CUE VIVE MIENTRAS SE ESTÁ ARRIBA ----
+     Esto era un disparo único: al primer scroll se retiraba y no
+     volvía («ya cumplió»). Valía para el hilo de escritorio, que
+     es un susurro; con la perla de la mano no: el hero a pantalla
+     completa deja el cierre VACÍO si la perla no está, así que
+     quien vuelve arriba se encontraba un hueco donde antes había
+     una señal — la misma pantalla, otra vez con dos estados.
+
+     Ahora la regla es de estado, no de historia: arriba, se ve;
+     bajando, se va. El umbral es corto porque en cuanto el gesto
+     empieza la señal ya sobra, y con margen para que el rebote
+     del scroll en 0 no la haga parpadear. */
+  const [enCima, setEnCima] = useState(true);
+
+  /* ---- LA VUELTA NO SE RE-ESTRENA ----
+     La primera aparición llega con la coreografía del hero: una
+     animación con su retardo. Si al volver arriba solo se quitara
+     `is-hidden`, esa animación se reproduciría OTRA VEZ desde el
+     retardo — medido, el botón volvía a existir pero se quedaba
+     invisible los primeros segundos, esperando un estreno que ya
+     pasó. La marca `ya-visto` apaga la animación a partir de la
+     primera retirada, y las siguientes apariciones van solo con la
+     transición de opacidad. */
+  const [yaVisto, setYaVisto] = useState(false);
+
+  /* ---- EN LA MANO, LA DESPEDIDA VA ATADA AL SCROLL ----
+     El interruptor de arriba (enCima) apaga y enciende; para la
+     perla eso es poco: la seña debe IRSE CON EL GESTO, como el
+     resto del hero — que ya se aleja y ondula con la salida.
+
+     `--cue-f` es el progreso de la despedida: 0 arriba del todo,
+     1 con el primer cuarto de pantalla recorrido. El CSS de la
+     mano lo traduce a movimiento en DOS capas a velocidades
+     distintas —la perla cae más deprisa que la palabra— y de esa
+     diferencia sale el parallax: profundidad, no un fundido.
+
+     Atado al scroll significa además que VUELVE con el dedo,
+     deshaciéndose por el mismo camino, sin estados que casen mal.
+     El mismo principio que la salida del home (useSalidaHome). */
+  const cueRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setHasScrolled(true);
-    window.addEventListener("scroll", onScroll, { once: true, passive: true });
+    const cue = cueRef.current;
+    if (!cue) return undefined;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+
+    /* el primer cuarto de pantalla: acompasado con la salida de
+       las piezas del hero, que arranca en la misma zona */
+    const RECORRIDO = () => window.innerHeight * 0.25;
+
+    let pedidoF = false;
+    const pintarF = () => {
+      pedidoF = false;
+      const f = Math.min(1, window.scrollY / RECORRIDO());
+      cue.style.setProperty("--cue-f", f.toFixed(4));
+      /* ida del todo: que tampoco capture el dedo */
+      if (f >= 1) cue.setAttribute("data-ido", "");
+      else cue.removeAttribute("data-ido");
+    };
+
+    const alRodarF = () => {
+      if (pedidoF) return;
+      pedidoF = true;
+      requestAnimationFrame(pintarF);
+    };
+
+    pintarF();
+    window.addEventListener("scroll", alRodarF, { passive: true });
+    return () => window.removeEventListener("scroll", alRodarF);
+  }, []);
+
+  useEffect(() => {
+    let pedido = false;
+
+    const mirar = () => {
+      pedido = false;
+      setEnCima((previo) => {
+        const ahora = window.scrollY < 24;
+        if (!ahora) setYaVisto(true);
+        return previo === ahora ? previo : ahora;
+      });
+    };
+
+    const onScroll = () => {
+      if (pedido) return;
+      pedido = true;
+      requestAnimationFrame(mirar);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -282,12 +383,14 @@ function HomePage({ introDone = true, introSaliendo = false }) {
                   type="button"
                   ref={gotaRef}
                   className="btn btn--primary btn--drop"
-                  onClick={scrollToNext}
+                  onClick={isDesktop ? scrollToNext : aRuta("/contact")}
                 >
                   {/* capa de agua del hover: nivel + oleaje
                       (estilos en Home.css, .btn__water) */}
                   <span className="btn__water" aria-hidden="true" />
-                  <span className="btn__label">Descubre cómo</span>
+                  <span className="btn__label">
+                    {isDesktop ? "Descubre cómo" : "Hablemos"}
+                  </span>
                   <span className="btn__arrow" aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                       <path
@@ -324,11 +427,32 @@ function HomePage({ introDone = true, introSaliendo = false }) {
             primer scroll se desvanece y suelta los pointer-events */}
         <button
           type="button"
-          className={`hero__scroll-cue ${hasScrolled ? "is-hidden" : ""}`}
+          ref={cueRef}
+          /* is-hidden solo gobierna en escritorio: en la mano la
+             despedida la lleva --cue-f, gradual y reversible, y el
+             interruptor la cortaría en seco a los 24px */
+          className={`hero__scroll-cue ${
+            isDesktop && !enCima ? "is-hidden" : ""
+          } ${yaVisto ? "ya-visto" : ""}`}
           onClick={scrollToNext}
           aria-label="Bajar a la siguiente sección"
         >
+          {/* dos vestidos para el mismo botón: en escritorio el
+              hilo con su gota; en la mano, la perla de la marca
+              (el CSS enciende uno y apaga el otro — el
+              comportamiento no cambia entre anchos).
+
+              La palabra es «Haz scroll» y no «Descubre»: hubo un
+              «Descubre» y duplicaba al CTA de arriba —«Descubre
+              cómo→»— en vocabulario y en función. «Haz scroll»
+              nombra el GESTO, no el contenido, así que ya no
+              compiten: el botón dice qué hay, la perla dice cómo
+              llegar. */}
           <span className="hero__scroll-line" aria-hidden="true" />
+          <span className="hero__scroll-perla" aria-hidden="true" />
+          <span className="hero__scroll-palabra" aria-hidden="true">
+            Haz scroll
+          </span>
         </button>
 
         {/* ---- onda de cierre del hero ----

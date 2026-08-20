@@ -1,0 +1,83 @@
+/* ============================================================
+   LOS FONDOS DEL HOME, DETRÁS DE UN VELO
+
+   El fondo que comparten las secciones del home —el degradado
+   que gira (`.fn`) y el polvo de luz (`.light-dust`)— se baja de
+   tinta y se desenfoca, para que quede claramente DETRÁS de lo
+   que hay que leer.
+
+   No se cambia el fondo: se le baja el volumen. Sigue estando
+   entero y sigue moviéndose, solo que sin competir.
+
+   ---- POR QUÉ ESTÁ AQUÍ Y NO EN CADA SECCIÓN ----
+   Empezó en HowWeWork.css, para «Qué hacemos». Al pedirlo también
+   «Nuestros trabajos» y «Nosotros» tocaba copiarlo a otras dos
+   hojas, y ese es justo el momento de sacarlo: en cuanto un fondo
+   se copia a una segunda sección, las dos copias empiezan a
+   separarse sin que nadie se dé cuenta. Aquí hay un número y una
+   lista de a quién se le aplica.
+
+   ---- QUÉ SECCIÓN LLEVA VELO Y CUÁL NO ----
+   La lista es explícita a propósito, en vez de caer sobre todo
+   `.fn` que haya en la página. El mismo componente lo usa el
+   hero, y el hero NO lleva velo: allí el fondo es el
+   protagonista, no el acompañamiento.
+
+   `#casos-de-uso` tampoco está, porque no se pidió. Si algún día
+   se ve desacompasado con sus vecinas, se añade a la lista y ya.
+   ============================================================ */
+
+/* ---- POR QUÉ ESTA HOJA SE CARGA DESDE main.jsx ----
+   Empezó importada desde Home.jsx, que era donde vivían todas las
+   secciones de la lista. Con el pie dentro ya no vale: el pie
+   pinta fondo propio en DOS rutas —`/` y `/services`, ver
+   `pieConEscena` en App.jsx— y Vite solo mete esta hoja en el
+   paquete de quien la importa. Entrando por /services, el paquete
+   del home no se carga y el pie se habría quedado sin velo: el
+   mismo pie con dos aspectos según por dónde entres.
+
+   (En /blog, /works y las demás no hay nada que velar: allí el
+   pie va transparente y no monta su fondo siquiera.)
+
+   Desde main.jsx va siempre. Las reglas de las secciones del home
+   no molestan en las demás páginas: si no existe `#proyectos`, su
+   selector simplemente no encuentra a nadie. */
+
+/* Solo en la mano. Es donde se está trabajando, y el desenfoque
+   es además lo más caro que se le puede pedir a un móvil: 6px es
+   donde se nota el efecto sin obligar al navegador a un radio
+   grande sobre capas de más de 2.000px de alto. */
+@media (max-width: 1079px) {
+  #que-hacemos > .fn,
+  #proyectos > .fn,
+  #nosotros > .fn,
+  #casos-de-uso > .fn,
+  .pie > .fn {
+    opacity: 0.5;
+
+    /* ---- LOS BORDES SE MUERDEN, Y SE DEJA QUE SE MUERDAN ----
+       Un `blur()` toma muestras de fuera del elemento, que están
+       vacías, así que el borde sale medio transparente. El
+       arreglo habitual es agrandar la capa para que la mordida
+       caiga fuera de la vista, pero aquí sale más caro que el
+       problema: estas secciones no recortan su desbordamiento, o
+       sea que una capa mayor se saldría por los lados, y ponerle
+       `overflow` a una sección tiene su propio riesgo con los
+       `position: sticky` que llevan dentro.
+
+       Sin agrandar, el borde difuminado se funde con el degradado
+       plano de respaldo de cada sección, que es del mismo color.
+       No hay nada que disimular. */
+    filter: blur(6px);
+  }
+
+  /* el polvo ya venía por debajo de 1; detrás del velo pide menos
+     todavía, o sus puntos se leen por delante del texto en vez de
+     detrás de él */
+  #que-hacemos > .light-dust,
+  #proyectos > .light-dust,
+  #nosotros > .light-dust {
+    opacity: 0.18;
+    filter: blur(2px);
+  }
+}

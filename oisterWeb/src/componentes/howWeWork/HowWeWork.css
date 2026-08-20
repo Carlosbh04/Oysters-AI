@@ -292,3 +292,8 @@
     --fn-rgb-rosa: 86 44 72;
   }
 }
+
+/* El velo del fondo de esta sección (opacidad + desenfoque) ya no
+   vive aquí: se pidió también para «Nuestros trabajos» y
+   «Nosotros», así que se sacó a src/styles/fondoVelado.css, donde
+   está el número una sola vez y la lista de a quién se aplica. */

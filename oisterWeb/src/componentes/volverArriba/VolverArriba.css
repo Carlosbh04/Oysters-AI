@@ -19,7 +19,21 @@
      para cerrar la app. `env(safe-area-inset-bottom)` devuelve
      ese alto real, y el `max()` cubre los aparatos que no tienen
      barra —ahí la variable vale 0 y manda el 22px. */
-  bottom: max(22px, calc(14px + env(safe-area-inset-bottom)));
+  /* `--flotante-sube` lo escribe useApartarDelPie: al llegar al
+     pie, la perla se aparta de la fila legal en vez de quedarse a
+     su altura. Vale 0 el resto del recorrido. */
+  bottom: calc(
+    max(22px, calc(14px + env(safe-area-inset-bottom))) +
+      var(--flotante-sube, 0px)
+  );
+
+  /* la subida sí lleva transición —a diferencia de la salida del
+     home— porque no la conduce el dedo: es un reacomodo, y sin
+     ella el botón daría un salto seco al entrar el pie */
+  transition:
+    opacity 0.42s cubic-bezier(0.22, 0.8, 0.36, 1),
+    transform 0.42s cubic-bezier(0.22, 0.8, 0.36, 1),
+    bottom 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
 
   /* 44, que es el mínimo de zona táctil cómoda y el suelo del que
      no se baja: por debajo hay que apuntar con el pulgar y un
@@ -42,31 +56,51 @@
 
   cursor: pointer;
 
-  /* la MISMA perla que los nodos de la cadena (ver
-     InteligenciaIA.css). El brillo descentrado es lo que la hace
-     esfera y no círculo. */
-  background: radial-gradient(
-    circle at 34% 30%,
-    var(--perla-clara, #ffc0ef),
-    var(--perla, #f5a1ec) 52%,
-    var(--perla-honda, #e78bf0)
-  );
+  /* ---- YA NO ES UNA PERLA MACIZA, Y ES A PROPÓSITO ----
+     Esto era la MISMA perla de nácar que los nodos de la cadena.
+     Funcionaba mientras era el único botón flotante; dejó de
+     hacerlo cuando /contact estrenó el suyo en la esquina
+     contraria: medidos, eran gemelos exactos —44px los dos, el
+     mismo `radial-gradient(circle at 34% 30%, …)`, la misma
+     sombra— y solo se distinguían por el glifo de dentro. Dos
+     perlas iguales en las dos esquinas se leen como un mismo
+     control duplicado.
 
-  /* tinta oscura dentro: 9,0:1 contra el nácar. La flecha en
-     blanco daría 1,9:1 y sería ilegible sobre un rosa tan claro. */
-  color: #23143d;
+     No se resuelve escondiendo uno: el de contacto es la ACCIÓN,
+     y este es una utilidad. Lo que corresponde es que cada uno
+     tenga el peso de su papel. Así que la perla maciza se queda
+     con la acción y esta baja a cristal: mismo tamaño y misma
+     zona táctil, pero sin relleno rosa — se ve que es del mismo
+     sitio y se ve que no es lo mismo.
+
+     El nácar no desaparece del todo: vive en el filo y en el
+     halo, que es lo que la ata a la marca sin competir. */
+  /* Sombra Honda, el oscuro documentado (--color-dark, #261A38),
+     al 55%. Aquí puse un `rgb(20 12 34)` inventado a ojo: no hacía
+     falta, el sistema ya tiene su tinta oscura y la diferencia
+     medida es de un punto de contraste (12,45 contra 11,46 con la
+     flecha) — o sea, ninguna razón para estrenar un color. */
+  background: rgb(var(--rgb-dark, 38 26 56) / 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgb(245 161 236 / 0.5);
+
+  /* ---- Y LA FLECHA, CLARA ----
+     Sobre el cristal oscuro la tinta #23143d daría 1,2:1. El
+     nácar claro da 8,6:1 contra este fondo — el mismo cambio de
+     tinta que hubo que hacer, al revés, en las lengüetas de
+     contacto. */
+  color: var(--perla-clara, #ffc0ef);
 
   box-shadow:
-    0 0 0 6px rgb(var(--rgb-magenta, 232 121 249) / 0.1),
-    0 8px 22px rgb(14 6 26 / 0.55);
+    0 0 0 5px rgb(var(--rgb-magenta, 232 121 249) / 0.07),
+    0 8px 22px rgb(14 6 26 / 0.5);
 
   opacity: 0;
   transform: translateY(14px) scale(0.86);
   pointer-events: none;
 
-  transition:
-    opacity 0.42s cubic-bezier(0.22, 0.8, 0.36, 1),
-    transform 0.42s cubic-bezier(0.22, 0.8, 0.36, 1);
 }
 
 .perla-arriba[data-ver] {

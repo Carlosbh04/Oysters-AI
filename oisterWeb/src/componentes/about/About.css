@@ -1221,3 +1221,17 @@
     transform: none;
   }
 }
+
+/* El tamaño de este titular ya no se decide aquí: lo pone
+   `--fs-titulo-seccion` (ver src/styles/titulosSeccion.css), que
+   lo comparte con los titulares de sección del resto del sitio.
+   Lo que sí se queda aquí es DÓNDE corta, que es cosa suya. */
+@media (max-width: 1079px) {
+  /* el corte se fija en vez de confiarlo a `text-wrap: balance`,
+     que reparte a su criterio: con el acento en bloque, la
+     separación cae siempre entre las dos frases y cada línea es
+     una idea entera */
+  .about-hero__title span {
+    display: block;
+  }
+}

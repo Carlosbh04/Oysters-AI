@@ -97,9 +97,20 @@
    sección, que es justo la falta de acuerdo que se quería evitar.
    ============================================================ */
 @media (max-width: 1079px) {
-  /* las palabras no parten: un titular partido letra a letra
-     podría dejar una letra suelta al final de una línea */
-  .salida-pal {
+  /* ---- LAS PALABRAS, EN LÍNEA ----
+     Triplicado por lo mismo que todo lo demás. `.salida-pal` a
+     secas vale 0-1-0, y las secciones tienen reglas propias que
+     apuntan a los `span` de dentro de sus titulares: en «Casos de
+     uso» hay `.uc__titulo span { display: block }` (0-1-1) para
+     que el acento caiga a su propia línea. Esa regla alcanzaba
+     también a mis palabras y las convertía en bloques, así que el
+     titular salía a palabra por línea — seis líneas donde había
+     dos.
+
+     Con 0-3-0 las palabras siguen siendo palabras y la regla de
+     la sección sigue mandando sobre SU span, que es a quien
+     apuntaba. */
+  .salida-pal.salida-pal.salida-pal {
     display: inline-block;
     white-space: nowrap;
   }
@@ -140,6 +151,25 @@
   [data-partido][data-salida][data-salida][data-salida],
   [data-telon-pieza][data-ver][data-partido][data-salida][data-salida] {
     opacity: 1;
+  }
+
+  /* ---- LA SALIDA NO PUEDE IR CON RETARDO ----
+     Las piezas del telón llevan `transition: transform .75s,
+     opacity .1s`, que es lo que le da suavidad a la cortina al
+     destapar. Pero una vez destapada, esa transición sigue
+     armada — y entonces cada valor que escribe el scroll tarda
+     tres cuartos de segundo en llegar. Medido: dando un salto de
+     260px, la pieza seguía moviéndose 0,9s DESPUÉS de soltar el
+     scroll. La salida iba por detrás del dedo, que es justo lo
+     contrario de «atada al scroll».
+
+     Se apaga solo para `transform` y `opacity`, que son las dos
+     que conduce la salida, y se deja viva la de `clip-path`: esa
+     es la cortina en sí —el corte que sube— y es la parte que de
+     verdad se ve al destapar. Así la cortina sigue siendo suave y
+     la salida responde en el acto. */
+  [data-salida][data-salida][data-salida] {
+    transition-property: clip-path;
   }
 
   /* ---- Y SI EL TEXTO NO ES PIEZA, SOLO ONDULA ----

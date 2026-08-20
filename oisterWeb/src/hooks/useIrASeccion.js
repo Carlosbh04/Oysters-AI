@@ -66,8 +66,13 @@ function margenDeCabecera() {
       que esquivar, y se mide donde está — la píldora va fija en
       este ancho, así que el número no cambia con el scroll.
 
-   Resultado: el rótulo queda 22px por debajo de la píldora. Un
-   poco de aire y a leer.
+   Resultado: el rótulo queda a un paso por debajo de la píldora.
+
+   ---- CUÁNTO AIRE ----
+   Estuvo en 22px y se veía apretado: la píldora lleva sombra y
+   halo por debajo, así que su borde VISUAL acaba más abajo que su
+   rect — los 22 reales parecían 10. A 40 el rótulo respira sin
+   perder la referencia de "justo debajo de la cabecera".
 
    ---- Y EN ESCRITORIO NO SE TOCA NADA ----
    Allí la cabecera no va fija: se marcha con la página, así que
@@ -76,7 +81,7 @@ function margenDeCabecera() {
    siempre, intacto. El corte es el mismo que usa la cabecera para
    decidir si se queda fija (ver Header.css).
    ============================================================ */
-const AIRE_BAJO_LA_PILDORA = 22;
+const AIRE_BAJO_LA_PILDORA = 40;
 
 /* mismos rótulos que lee la cabecera para decir en qué sección
    estás (ver SeccionEnCurso.jsx) */

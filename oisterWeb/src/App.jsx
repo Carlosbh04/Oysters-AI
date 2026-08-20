@@ -13,6 +13,7 @@ import Persiana from "./componentes/persiana/Persiana";
 import { registrarPrecarga } from "./utils/precargaRuta";
 import { hayViaje } from "./componentes/persiana/persianaEstado";
 import useMediaQuery from "./hooks/useMediaQuery";
+import useApartarDelPie from "./hooks/useApartarDelPie";
 import DefaultSkeleton from "./componentes/skeleton/DefaultSkeleton";
 import WorkDetailSkeleton from "./componentes/skeleton/work-detail/WorkDetailSkeleton";
 import WorksSkeleton from "./componentes/skeleton/work-list/WorksSkeleton";
@@ -397,6 +398,10 @@ function App() {
      resta, y es también el más raro.
      ============================================================ */
   const esMano = useMediaQuery(CORTE_MANO);
+  
+  /* los botones flotantes se apartan de la fila legal del pie
+     (ver useApartarDelPie.js) */
+  useApartarDelPie();
 
   const [skeletonVisible, setSkeletonVisible] = useState(
     () =>

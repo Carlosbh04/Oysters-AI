@@ -604,9 +604,24 @@ function InteligenciaIA({ sobreFondo = false, pista = null, nivelTitulo: NivelTi
          propósito, no dos umbrales sin coordinar. */
       const marca = window.innerHeight * 0.88;
 
+      /* ---- EL TELÓN NO SE VUELVE A ECHAR ----
+         Aquí había un `else removeAttribute("data-ver")`: al
+         subir, la pieza que bajaba de la línea del 88% se
+         RE-ESCONDÍA — y entre esa línea y el borde de abajo hay
+         ~100px de pantalla, así que un texto que se estaba
+         leyendo desaparecía de golpe delante del lector. Medido:
+         bajar hasta el método, subir un poco, y el rótulo de
+         «Qué hacemos» quedaba a opacidad 0 con su caja en
+         pantalla.
+
+         El descubrimiento es de ida. Es además lo que la salida
+         («se aleja», salidaHome.css) ya asume: su selector para
+         piezas del telón EXIGE `data-ver`, así que al
+         re-esconderse también se rompía la salida a mitad de
+         gesto. Mismo arreglo que en useTelonNacar.js — son las
+         dos copias del mismo telón. */
       for (let i = 0; i < piezas.length; i++) {
         if (base + topes[i] < marca) piezas[i].setAttribute("data-ver", "");
-        else piezas[i].removeAttribute("data-ver");
       }
     };
 

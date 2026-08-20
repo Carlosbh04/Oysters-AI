@@ -3,6 +3,8 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./index.css";
 import "./styles/globales.css";
+import "./styles/fondoVelado.css";
+import "./styles/titulosSeccion.css";
 import "./styles/variables.css";
 
 import App from "./App.jsx";

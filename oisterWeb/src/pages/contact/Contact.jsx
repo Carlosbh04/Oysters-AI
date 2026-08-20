@@ -111,6 +111,35 @@ function ContactSection({ introDone = true }) {
      cuál (antes eran cinco booleanos, uno por campo) */
   const [campoActivo, setCampoActivo] = useState(null);
 
+  /* ---- LOS CANALES DIRECTOS, EN UN DESPLEGABLE ----
+     Correo y teléfono estaban como dos lengüetas fijas a media
+     altura del borde derecho. Pasan a UN solo botón abajo a la
+     izquierda que los despliega hacia arriba.
+
+     ---- POR QUÉ A LA IZQUIERDA ----
+     Porque la esquina de abajo a la derecha ya está ocupada: allí
+     vive la perla de volver arriba (medido en /contact con la
+     página bajada: 18px del borde derecho, 22 del inferior, 44 de
+     lado). Dos botones flotantes redondos en la misma esquina se
+     tocarían el uno al otro. Repartidos, cada esquina tiene un
+     trabajo: izquierda para hablar, derecha para volver.
+
+     El estado vive aquí y no en el CSS porque hay que poder
+     cerrarlo con Escape y sacar los canales del orden de
+     tabulación mientras están guardados. */
+  const [canalesAbiertos, setCanalesAbiertos] = useState(false);
+
+  useEffect(() => {
+    if (!canalesAbiertos) return undefined;
+
+    const alPulsarTecla = (e) => {
+      if (e.key === "Escape") setCanalesAbiertos(false);
+    };
+
+    window.addEventListener("keydown", alPulsarTecla);
+    return () => window.removeEventListener("keydown", alPulsarTecla);
+  }, [canalesAbiertos]);
+
   /* ---- EL RECORRIDO POR PREGUNTAS ---- */
   const esMano = useMediaQuery("(max-width: 1079px)");
   const [paso, setPaso] = useState(0);
@@ -377,16 +406,54 @@ function ContactSection({ introDone = true }) {
         </form>
 
         {/* PIE: datos de contacto + síguenos */}
-        <div className="contact-info">
-          <a href="mailto:correo@empresa.com" className="contact-item">
-            <FaEnvelope />
-            <span>correo@empresa.com</span>
-          </a>
+        <div className="contact-info" data-abierto={canalesAbiertos || undefined}>
+          {/* ---- EL DISPARADOR, SOLO EN LA MANO ----
+              En escritorio no se monta: allí correo y teléfono son
+              dos filas legibles dentro del flujo y no hay nada que
+              desplegar. */}
+          {esMano && (
+            <button
+              type="button"
+              className="contact-fab"
+              aria-expanded={canalesAbiertos}
+              aria-controls="contact-canales"
+              aria-label={
+                canalesAbiertos
+                  ? "Cerrar formas de contacto"
+                  : "Abrir formas de contacto"
+              }
+              onClick={() => setCanalesAbiertos((abierto) => !abierto)}
+            >
+              {/* la cruz gira 45° al abrir y se convierte en aspa:
+                  una sola forma para los dos estados */}
+              <span className="contact-fab__cruz" aria-hidden="true" />
+            </button>
+          )}
 
-          <a href="tel:+34600000000" className="contact-item">
-            <FaPhone />
-            <span>+34 600 000 000</span>
-          </a>
+          {/* ---- Y LOS CANALES ----
+              `inert` mientras están guardados: `opacity: 0` los
+              esconde a la vista pero NO al tabulador, y se podía
+              llegar a ciegas a un enlace que no está en pantalla.
+              Es el mismo recurso que usa el lector del blog. */}
+          <div
+            className="contact-canales"
+            id="contact-canales"
+            /* booleano y no cadena vacía: con `inert=""` React no
+               pone el atributo y los enlaces guardados seguían
+               siendo alcanzables con el tabulador — comprobado
+               sobre la página, el atributo no llegaba al DOM */
+            inert={esMano && !canalesAbiertos}
+          >
+            <a href="mailto:correo@empresa.com" className="contact-item">
+              <FaEnvelope />
+              <span>correo@empresa.com</span>
+            </a>
+
+            <a href="tel:+34600000000" className="contact-item">
+              <FaPhone />
+              <span>+34 600 000 000</span>
+            </a>
+          </div>
 
           <div className="contact-divider">
             <span className="divider-line"></span>

@@ -1468,94 +1468,239 @@
     --trace-from: 304deg;
   }
 
-  /* ---- SOLO MÓVIL: dock de pestañas talladas ----
-     correo y teléfono como lengüetas semicirculares a
-     ras del borde derecho — parte del marco, no botones
-     flotando. El social-section sigue en el flujo normal
-     al fondo (display:contents emancipa a los hijos) */
+  /* ============================================================
+     SOLO MÓVIL: UN BOTÓN QUE DESPLIEGA LOS CANALES
+
+     Correo y teléfono eran dos lengüetas fijas a media altura del
+     borde derecho. Ahora hay UNA pieza abajo a la izquierda que
+     los despliega hacia arriba: un elemento en reposo en vez de
+     dos, el lateral queda limpio, y si mañana entra un tercer
+     canal —WhatsApp— cabe sin recargar nada.
+
+     Va abajo a la IZQUIERDA porque la esquina derecha ya tiene
+     dueño: la perla de volver arriba (ver VolverArriba.css). El
+     porqué, con las medidas, en Contact.jsx.
+
+     `display: contents` en el contenedor: sus hijos se emancipan
+     y el bloque de redes sigue en el flujo normal al fondo de la
+     página, como estaba. */
   .contact-info {
+    display: contents;
+  }
+
+  /* ---- EL DISPARADOR ----
+     44 de zona táctil, que es el mínimo, con la perla PINTADA a
+     40 dentro. Se separan las dos medidas por lo mismo que en los
+     chips del blog: lo que se ve puede encoger, lo que se toca
+     no. */
+  .contact-fab {
+    position: fixed;
+    left: 18px;
+    /* se aparta de la fila legal del pie igual que la perla de la
+       otra esquina: la misma variable para las dos, así no pueden
+       descoordinarse (ver useApartarDelPie.js) */
+    bottom: calc(
+      max(22px, calc(14px + env(safe-area-inset-bottom))) +
+        var(--flotante-sube, 0px)
+    );
+    z-index: 55;
+
+    transition: bottom 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
+
+    width: 44px;
+    height: 44px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+
+    cursor: pointer;
+  }
+
+  /* la perla pintada, 40 dentro de los 44 */
+  .contact-fab::before {
+    content: "";
+
+    position: absolute;
+    inset: 2px;
+
+    border-radius: 50%;
+
+    background: radial-gradient(
+      circle at 34% 30%,
+      var(--perla-clara, #ffc0ef),
+      var(--perla, #f5a1ec) 52%,
+      var(--perla-honda, #e78bf0)
+    );
+
+    box-shadow:
+      0 0 0 5px rgb(var(--rgb-magenta, 232 121 249) / 0.12),
+      0 8px 22px rgb(14 6 26 / 0.5);
+  }
+
+  /* ---- LA CRUZ, HECHA CON DOS BARRAS ----
+     Un solo elemento con su ::before y su ::after; al abrir, el
+     conjunto gira 135° y la cruz se lee como aspa. Sin cambiar de
+     icono: es la misma forma girando, que es lo que hace que el
+     gesto se entienda como «lo mismo, al revés». */
+  .contact-fab__cruz {
+    position: relative;
+    z-index: 1;
+
+    width: 15px;
+    height: 15px;
+
+    transition: rotate 0.4s cubic-bezier(0.22, 0.8, 0.36, 1);
+  }
+
+  .contact-fab__cruz::before,
+  .contact-fab__cruz::after {
+    content: "";
+
+    position: absolute;
+    top: 50%;
+    left: 0;
+
+    width: 100%;
+    height: 2px;
+    margin-top: -1px;
+
+    border-radius: 2px;
+
+    /* la tinta oscura del sitio: sobre el nácar claro es lo único
+       que se lee (el rosa daba 1,10:1 — ver el historial de las
+       lengüetas, más abajo) */
+    background: var(--color-dark, #23143d);
+  }
+
+  .contact-fab__cruz::after {
+    rotate: 90deg;
+  }
+
+  [data-abierto] .contact-fab__cruz {
+    rotate: 135deg;
+  }
+
+  /* ---- LOS CANALES ----
+     Guardados detrás del disparador y desplegándose hacia arriba,
+     escalonados: el segundo sale un pelo después que el primero,
+     lo justo para que se lea como una secuencia y no como un
+     bloque que aparece. */
+  .contact-canales {
     display: contents;
   }
 
   .contact-item {
     position: fixed;
+    left: 18px;
+    bottom: calc(
+      max(22px, calc(14px + env(safe-area-inset-bottom))) +
+        var(--flotante-sube, 0px)
+    );
 
-    right: 0; /* a ras del borde: la curva derecha muere en el filo */
+    z-index: 54;
 
-    z-index: 50;
+    width: 44px;
+    height: 44px;
+
+    display: grid;
+    place-items: center;
+
+    opacity: 0;
+    translate: 0 0;
+    pointer-events: none;
 
     transition:
-      transform 0.3s cubic-bezier(0.22, 0.8, 0.36, 1),
-      opacity 0.3s ease;
+      opacity 0.28s ease,
+      translate 0.42s cubic-bezier(0.22, 0.8, 0.36, 1),
+      bottom 0.32s cubic-bezier(0.22, 0.8, 0.36, 1);
   }
 
-  /* las pestañas esperan al intro: invisibles hasta que
-     App pone contact--enter (mismo patrón que hero--enter) */
-  .contact:not(.contact--enter) .contact-item {
+  [data-abierto] .contact-item {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 52 y 104: el alto del botón (44) más 8 de aire, apilados */
+  [data-abierto] .contact-item:first-of-type {
+    translate: 0 -52px;
+  }
+
+  [data-abierto] .contact-item + .contact-item {
+    translate: 0 -104px;
+
+    transition-delay: 0.06s;
+  }
+
+  /* el disparador espera al intro, como el resto del hero */
+  .contact:not(.contact--enter) .contact-fab {
     opacity: 0;
   }
 
-  .contact--enter .contact-item {
-    animation: tabSlideIn 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) backwards;
+  .contact--enter .contact-fab {
+    animation: tabSlideIn 0.6s cubic-bezier(0.22, 0.8, 0.36, 1) 0.5s backwards;
   }
 
-  .contact-item:first-of-type {
-    top: 45svh; /* svh: no salta cuando la barra del
-                   navegador aparece/desaparece */
+  /* se hunde al tocar: el mismo gesto que la perla de subir */
+  .contact-fab:active::before {
+    scale: 0.94;
   }
 
-  .contact--enter .contact-item:first-of-type {
-    animation-delay: 0.5s;
+  .contact-fab:focus-visible {
+    outline: 2px solid var(--color-secondary, #c9a8ff);
+    outline-offset: 4px;
   }
 
-  .contact-item + .contact-item {
-    top: calc(45svh + 46px);
-
-    margin-top: 0;
-  }
-
-  .contact--enter .contact-item + .contact-item {
-    animation-delay: 0.62s;
-  }
-
-  /* se hunde hacia dentro al tocar: feedback físico */
-  .contact-item:active {
-    transform: translateX(-6px);
-  }
-
-  /* solo la pestaña: el texto se oculta */
+  /* la burbuja no lleva texto: el dato va en el aria-label del
+     enlace, que un lector de pantalla sí anuncia */
   .contact-item span {
     display: none;
   }
 
   .contact-item svg {
-    width: 38px;
+    /* ---- 40 PINTADO DENTRO DE 44 DE TOQUE ----
+       La burbuja se ve un poco más pequeña que el disparador —así
+       se lee como hija suya y no como su igual— pero el enlace que
+       la envuelve conserva los 44 del mínimo táctil. */
+    width: 40px;
 
-    height: 38px;
+    height: 40px;
 
-    padding: 10px 12px 10px 8px; /* icono ópticamente centrado
-                                    en la forma semicircular */
+    padding: 11px;
 
-    border-radius: 50% 0 0 50%; /* curva solo a la izquierda */
+    border-radius: 50%;
 
-    border-right: none; /* el borde muere en el filo de pantalla */
+    /* ---- LA TINTA, OSCURA: EL ICONO NO SE VEÍA ----
+       El icono heredaba el rosa de la marca (#F7B8EB) y la
+       lengüeta es casi blanca. Medido sobre la página, con la
+       pastilla ya compuesta contra el fondo —rgb(216,211,219)—,
+       ese rosa daba **1,10:1**. No es "poco contraste": es un
+       icono invisible, y por eso las pestañas parecían dos
+       pastillas vacías cortadas por el borde.
 
-    background: rgba(251, 248, 248, 0.82);
+       Con la tinta oscura del sitio sube a 11,51:1. Es la misma
+       que llevan dentro la perla de volver arriba y el CTA sobre
+       rosa claro, por la misma razón: sobre una superficie clara
+       de esta familia, lo único que se lee es tinta oscura.
 
-    /* la sombra proyecta hacia DENTRO de la pantalla */
-    box-shadow:
-      -6px 4px 18px -6px rgba(120, 70, 220, 0.3),
-      -2px 2px 6px rgb(var(--rgb-accent) / 0.12);
+       (El rosa no se pierde: sigue siendo el color de la propia
+       pastilla en el sitio, y el halo de debajo es suyo.) */
+    color: var(--color-dark, #23143d);
+
+    background: rgba(251, 248, 248, 0.92);
+
+    box-shadow: 0 6px 18px rgb(14 6 26 / 0.45);
   }
 
-  /* pulso sutil en la pestaña del teléfono: espera a que
-     la entrada termine (delay 3s > 0.62s + 0.6s) */
-  .contact--enter .contact-item + .contact-item svg {
-    animation: tabPulse 5s ease-in-out 3s infinite;
-  }
-
-  /* el dock se aparta al escribir: con un campo en foco
-     (teclado abierto) las pestañas se desvanecen */
+  /* ---- SE APARTA AL ESCRIBIR ----
+     Con un campo en foco el teclado ocupa media pantalla y este
+     botón queda justo encima de él. Se retira entero —disparador
+     y canales— mientras se escribe. */
+  .contact:has(.contact-form :focus) .contact-fab,
   .contact:has(.contact-form :focus) .contact-item {
     opacity: 0;
 
@@ -1828,12 +1973,22 @@
   }
 
   .cf-mando .cf-atras {
-    /* secundario: mismo alto y misma forma, sin el degradado, para
-       que no compita con el que lleva adelante.
+    /* ---- SECUNDARIO DE VERDAD ----
+       Ponía `1 1 34%` con la idea de que no compitiera con el que
+       lleva adelante, y hacía justo lo contrario: medido en la
+       página, «Atrás» salía a 190px y «Siguiente» a 113. El botón
+       de retroceder era el grande.
 
-       `1 1 34%` y no `0 0 34%`: con la base fija no encogía, que
-       es la mitad del problema de arriba. */
-    flex: 1 1 34%;
+       La causa es que los dos crecen igual (`flex-grow: 1`), así
+       que el sobrante se reparte a partes iguales — pero «Atrás»
+       arrancaba además con un 34% de base. Sumaba las dos cosas.
+
+       Con `0 1 auto` se planta en su contenido y deja el resto
+       para el principal. El `1` de encoger sigue ahí, que era la
+       preocupación legítima del comentario anterior: en versalitas
+       espaciadas los dos rótulos juntos pueden pedir más que la
+       pantalla, y así ceden en vez de desbordar. */
+    flex: 0 1 auto;
 
     border: 1px solid var(--filo-claro, rgb(255 255 255 / 0.14));
     background: rgb(255 255 255 / 0.05);
@@ -1863,5 +2018,77 @@
 @media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
   .contact-form--preguntas .cf-paso {
     animation: none;
+  }
+}
+
+/* ============================================================
+   EL CAMPO DE CORREO, CON SITIO PARA UN CORREO
+
+   `carlosehernandezb04@gmail.com` son 29 caracteres. Medido en la
+   página a 390px: el hueco útil del campo eran 253px y el texto
+   248 — cinco píxeles de margen. A 360px, que es un móvil de los
+   normales, se sale por 25.
+
+   El culpable es el sangrado de la izquierda: 44px reservados
+   para el icono, que en realidad ocupa de 16 a 32. Se recortan a
+   38 y el cierre de la derecha de 16 a 12, que devuelve 10px sin
+   que el icono llegue a rozar el texto.
+
+   ---- Y SI AUN ASÍ NO CABE ----
+   Diez píxeles no arreglan un correo largo en un móvil estrecho,
+   y bajar el cuerpo tampoco es opción: por debajo de 16px, iOS
+   hace zoom solo al enfocar el campo, y eso es peor que un texto
+   apretado. Así que se le añade el recorte con puntos suspensivos
+   para cuando el campo no tiene el foco: en vez de una letra
+   cortada a la mitad —que se lee como un fallo— se ve que ahí
+   sigue habiendo texto. Con el foco puesto el campo se desplaza
+   solo, como cualquier campo del sistema.
+
+   El textarea NO entra: su sangrado de 44 lo comparte con el
+   contador de caracteres, y ahí no hay problema de sitio.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .input-group input {
+    padding-left: 38px;
+    padding-right: 12px;
+
+    text-overflow: ellipsis;
+  }
+
+  /* la etiqueta flotante iba clavada al sangrado viejo: si no se
+     mueve con él, en reposo queda seis píxeles por delante del
+     texto que va a sustituir */
+  .input-group:not(:has(textarea)) label {
+    left: 38px;
+  }
+}
+
+/* ============================================================
+   DOS CAMPOS SEGUIDOS NECESITAN UN HUECO
+
+   En «¿Cómo te llamas?» van Nombre y Apellidos uno debajo del
+   otro, y medido sobre la página estaban a CERO píxeles: el borde
+   de abajo del primero acababa justo donde empezaba el segundo.
+   `.cf-paso` es `display: block` sin `gap`, y las cajas de campo
+   no traen margen propio, así que nadie ponía la separación.
+
+   Se resuelve entre campos CONTIGUOS y no con un `gap` en el
+   padre a propósito: dentro de `.cf-paso` también vive el
+   enunciado de la pregunta, que ya tiene su propio aire (16px de
+   margen inferior). Un `gap` general se sumaría a ese margen y
+   habría que recalcularlo; así el enunciado se queda como estaba
+   y solo aparece hueco donde de verdad faltaba.
+
+   Sirve para cualquier paso que llegue a tener más de un campo,
+   sin volver aquí.
+   ============================================================ */
+@media (max-width: 1079px) {
+  .cf-paso .input-group + .input-group {
+    /* 16px y no 12: es el mismo aire que ya deja el enunciado de
+       la pregunta debajo de sí (`.cf-pregunta`, margen inferior de
+       16px), así que el bloque entero respira con UN solo ritmo en
+       vez de con dos parecidos. Doce se veía corto sin llegar a
+       ser un número distinto. */
+    margin-top: 16px;
   }
 }
