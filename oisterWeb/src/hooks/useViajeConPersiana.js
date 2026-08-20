@@ -115,6 +115,34 @@ const sinMovimiento = () =>
    primero. */
 let viajando = false;
 
+/* ---- Y SE SUELTA PASE LO QUE PASE ----
+   Antes se ponía a false en la última línea de la secuencia, y esa
+   línea solo se alcanza si NADA falla por el camino. Cualquier
+   excepción entre medias —`navigate` sobre una ruta que revienta,
+   un fallo montando la página nueva, lo que sea— dejaba dos cosas
+   rotas a la vez y de forma permanente:
+
+     · el cerrojo en true, así que TODOS los enlaces del menú
+       dejaban de responder a partir de ese momento, y
+     · la fase en "cubrir", o sea la cortina tapando la pantalla
+       para siempre.
+
+   De ahí no se sale sin recargar. Envuelto así, si algo revienta
+   la pantalla se descubre y el menú sigue vivo: se pierde la
+   transición, que es lo de menos, y no la aplicación.
+
+   El error se deja subir en vez de tragárselo — que la consola lo
+   cuente— pero la limpieza ya está hecha. */
+async function conCerrojo(secuencia) {
+  viajando = true;
+  try {
+    await secuencia();
+  } finally {
+    ponerFase(null);
+    viajando = false;
+  }
+}
+
 export default function useViajeConPersiana() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -140,31 +168,28 @@ export default function useViajeConPersiana() {
         return;
       }
 
-      viajando = true;
+      await conCerrojo(async () => {
+        /* la descarga arranca YA, no después de cubrir: así el
+           chunk viaja mientras las columnas suben en vez de empezar
+           a bajar cuando ya están arriba */
+        precargarRuta(destino);
 
-      /* la descarga arranca YA, no después de cubrir: así el chunk
-         viaja mientras las columnas suben en vez de empezar a
-         bajar cuando ya están arriba */
-      precargarRuta(destino);
+        ponerFase("cubrir");
+        await esperar(CUBRIR_MS);
 
-      ponerFase("cubrir");
-      await esperar(CUBRIR_MS);
+        /* Con la pantalla tapada: el menú se retira y la ruta
+           cambia. El orden importa —cerrar primero— para que el
+           panel no siga ahí si algo tarda en la navegación. */
+        cerrarMenu?.();
+        navigate(destino);
 
-      /* Con la pantalla tapada: el menú se retira y la ruta
-         cambia. El orden importa —cerrar primero— para que el
-         panel no siga ahí si algo tarda en la navegación. */
-      cerrarMenu?.();
-      navigate(destino);
+        await dosFotogramas();
+        await esperarALaPagina();
+        await esperar(ASENTARSE_MS);
 
-      await dosFotogramas();
-      await esperarALaPagina();
-      await esperar(ASENTARSE_MS);
-
-      ponerFase("revelar");
-      await esperar(REVELAR_MS);
-
-      ponerFase(null);
-      viajando = false;
+        ponerFase("revelar");
+        await esperar(REVELAR_MS);
+      });
     },
     [navigate, pathname]
   );
@@ -184,31 +209,28 @@ export default function useViajeConPersiana() {
         return;
       }
 
-      viajando = true;
+      await conCerrojo(async () => {
+        if (fuera) precargarRuta("/");
 
-      if (fuera) precargarRuta("/");
+        ponerFase("cubrir");
+        await esperar(CUBRIR_MS);
 
-      ponerFase("cubrir");
-      await esperar(CUBRIR_MS);
+        cerrarMenu?.();
 
-      cerrarMenu?.();
+        if (fuera) {
+          navigate("/");
+          await dosFotogramas();
+          await esperarALaPagina();
+        }
 
-      if (fuera) {
-        navigate("/");
+        await colocarseEn(id);
+
         await dosFotogramas();
-        await esperarALaPagina();
-      }
+        await esperar(ASENTARSE_MS);
 
-      await colocarseEn(id);
-
-      await dosFotogramas();
-      await esperar(ASENTARSE_MS);
-
-      ponerFase("revelar");
-      await esperar(REVELAR_MS);
-
-      ponerFase(null);
-      viajando = false;
+        ponerFase("revelar");
+        await esperar(REVELAR_MS);
+      });
 
       /* ---- LA CASCADA, DESPUÉS DE LA CORTINA ----
          Marcar la llegada antes habría gastado la composición

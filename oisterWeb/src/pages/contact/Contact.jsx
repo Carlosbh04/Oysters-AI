@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Contact.css";
 import {
   FaInstagram,
@@ -19,8 +19,38 @@ import { PiSparkleFill } from "react-icons/pi";
    impide pasarse; el contador solo lo cuenta. */
 const TOPE_MENSAJE = 500;
 
+/* ============================================================
+   UNA PREGUNTA POR PANTALLA (SOLO EN LA MANO)
+
+   El formulario mide 564px con sus cinco campos, así que en un
+   móvil no cabe entero: se rellena a ciegas, desplazando, y el
+   botón de enviar hay que ir a buscarlo. Partido en preguntas,
+   cada pantalla pide UNA cosa, el teclado no tapa nada y siempre
+   se ve qué falta.
+
+   ---- UNA PREGUNTA, NO UN CAMPO ----
+   Los pasos no son cinco (uno por campo) sino cuatro: «¿cómo te
+   llamas?» se lleva nombre y apellidos juntos, porque son la
+   misma pregunta y separarlos daría una pantalla entera para
+   pedir un apellido. La regla es una pregunta por pantalla, no un
+   control por pantalla.
+
+   ---- Y EN ESCRITORIO NO SE MONTA ----
+   Allí los cinco campos se ven de una vez en una columna ancha:
+   partirlos sería añadir tres toques para resolver un problema
+   que no existe. Es el mismo criterio que el índice del temario o
+   el lector del blog — dos árboles, no uno con otro CSS.
+   ============================================================ */
+const PASOS = [
+  { pregunta: "¿Cómo te llamas?", campos: ["nombre", "apellidos"] },
+  { pregunta: "¿A qué correo te respondemos?", campos: ["email"] },
+  { pregunta: "¿Y un teléfono?", campos: ["telefono"] },
+  { pregunta: "¿De qué quieres hablar?", campos: ["comentarios"] },
+];
+
 import { sendContact } from "../../services/contactService.js";
 import PageSection from "../../componentes/layout/PageSection.jsx";
+import useMediaQuery from "../../hooks/useMediaQuery.js";
 import EscenaSynthwave from "../../componentes/escenaSynthwave/EscenaSynthwave.jsx";
 import Escaneo from "../../componentes/escaneo/Escaneo.jsx";
 
@@ -81,6 +111,55 @@ function ContactSection({ introDone = true }) {
      cuál (antes eran cinco booleanos, uno por campo) */
   const [campoActivo, setCampoActivo] = useState(null);
 
+  /* ---- EL RECORRIDO POR PREGUNTAS ---- */
+  const esMano = useMediaQuery("(max-width: 1079px)");
+  const [paso, setPaso] = useState(0);
+  const formRef = useRef(null);
+
+  /* Al cambiar de pregunta, el foco va al primer campo de la
+     nueva. No es un adorno: sin esto hay que tocar el campo a
+     mano en cada paso —cuatro toques de más— y quien navega con
+     teclado o lector de pantalla se queda en el botón que acaba
+     de pulsar, sin enterarse de que la pregunta ha cambiado. */
+  useEffect(() => {
+    if (!esMano) return;
+
+    const form = formRef.current;
+    if (!form) return;
+
+    const primero = PASOS[paso].campos[0];
+    const control = form.elements[primero];
+
+    /* en el primer render no se roba el foco: la página acaba de
+       abrirse y abrir el teclado sin que nadie lo haya pedido es
+       de las cosas que más molestan en un móvil */
+    if (paso > 0) control?.focus();
+  }, [paso, esMano]);
+
+  /* ---- NO SE AVANZA CON LA PREGUNTA A MEDIAS ----
+     Se validan SOLO los campos de la pregunta visible, y con la
+     validación del navegador: así el aviso sale en el idioma del
+     sistema y con el formato que esa persona ya conoce, en vez de
+     uno inventado aquí.
+
+     Tiene que ser campo a campo y no `form.reportValidity()`,
+     porque eso validaría también los de las preguntas ocultas —y
+     un control invisible NO se puede enfocar, así que el
+     navegador se planta y no avisa de nada. Ese es exactamente el
+     fallo silencioso que se explica abajo, en el envío. */
+  const siguiente = () => {
+    const form = formRef.current;
+
+    for (const nombre of PASOS[paso].campos) {
+      const control = form.elements[nombre];
+      if (control && !control.reportValidity()) return;
+    }
+
+    setPaso((n) => Math.min(n + 1, PASOS.length - 1));
+  };
+
+  const atras = () => setPaso((n) => Math.max(n - 1, 0));
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -102,6 +181,32 @@ function ContactSection({ introDone = true }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    /* ---- SI ALGO QUEDÓ INVÁLIDO, VOLVER A SU PREGUNTA ----
+       No debería pasar —cada paso se valida antes de dejar
+       avanzar— pero si pasara, el fallo sería MUDO y de los
+       peores: el navegador se niega a enviar por un campo que no
+       puede enfocar (está en una pregunta oculta), no enseña
+       ningún aviso, y desde fuera parece que el botón no hace
+       nada. Aquí se busca el primer campo inválido, se salta a su
+       pregunta y se avisa allí, donde sí se ve. */
+    if (esMano) {
+      const form = formRef.current;
+
+      for (let i = 0; i < PASOS.length; i++) {
+        for (const nombre of PASOS[i].campos) {
+          const control = form.elements[nombre];
+
+          if (control && !control.checkValidity()) {
+            setPaso(i);
+            /* tras pintar la pregunta: un control oculto no puede
+               recibir el aviso */
+            requestAnimationFrame(() => control.reportValidity());
+            return;
+          }
+        }
+      }
+    }
 
     try {
       const data = await sendContact(formData);
@@ -148,63 +253,127 @@ function ContactSection({ introDone = true }) {
           </p>
         </div>
 
-        {/* FORMULARIO */}
-        <form className="contact-form" onSubmit={handleSubmit}>
-          <Campo
+        {/* FORMULARIO
+            En la mano se recorre por preguntas (ver PASOS arriba).
+            Los cinco campos siguen MONTADOS siempre —solo se
+            oculta con CSS la pregunta que no toca— por dos
+            razones: el estado de React no se pierde al ir y
+            venir, y el envío nativo del navegador sigue viendo el
+            formulario entero. Desmontarlos habría obligado a
+            reconstruir las dos cosas a mano. */}
+        <form
+          ref={formRef}
+          className={`contact-form${esMano ? " contact-form--preguntas" : ""}`}
+          data-paso={esMano ? paso : undefined}
+          onSubmit={handleSubmit}
+        >
+          {esMano && (
+            <div className="cf-guia">
+              <div className="cf-puntos" aria-hidden="true">
+                {PASOS.map((p, i) => (
+                  <i key={p.pregunta} data-hecho={i <= paso || undefined} />
+                ))}
+              </div>
+
+              {/* el rótulo lo lee un lector de pantalla al cambiar
+                  de paso; los puntos de arriba solo lo dicen a
+                  quien ve */}
+              <p className="cf-cuenta" aria-live="polite">
+                Pregunta {paso + 1} de {PASOS.length}
+              </p>
+            </div>
+          )}
+
+          <div className="cf-paso" data-paso="0">
+            {esMano && <p className="cf-pregunta">{PASOS[0].pregunta}</p>}
+
+            <Campo
             etiqueta="Nombre"
             icono={<FaUser />}
             autoComplete="given-name"
             {...propsCampo("nombre")}
           />
 
-          <Campo
-            etiqueta="Apellidos"
-            icono={<FaUserFriends />}
-            autoComplete="family-name"
-            {...propsCampo("apellidos")}
-          />
+            <Campo
+              etiqueta="Apellidos"
+              icono={<FaUserFriends />}
+              autoComplete="family-name"
+              {...propsCampo("apellidos")}
+            />
+          </div>
 
-          <Campo
-            etiqueta="Teléfono"
-            icono={<FaPhone />}
-            type="tel"
-            autoComplete="tel"
-            {...propsCampo("telefono")}
-          />
+          <div className="cf-paso" data-paso="1">
+            {esMano && <p className="cf-pregunta">{PASOS[1].pregunta}</p>}
 
-          <Campo
-            etiqueta="Correo electrónico"
-            icono={<FaEnvelope />}
-            type="email"
-            autoComplete="email"
-            {...propsCampo("email")}
-          />
+            <Campo
+              etiqueta="Correo electrónico"
+              icono={<FaEnvelope />}
+              type="email"
+              autoComplete="email"
+              {...propsCampo("email")}
+            />
+          </div>
 
-          <Campo
-            etiqueta="Cuéntanos tu proyecto"
-            icono={<FaCommentDots />}
-            multilinea
-            rows={6}
-            maxLength={TOPE_MENSAJE}
-            {...propsCampo("comentarios")}
-          >
+          <div className="cf-paso" data-paso="2">
+            {esMano && <p className="cf-pregunta">{PASOS[2].pregunta}</p>}
+
+            <Campo
+              etiqueta="Teléfono"
+              icono={<FaPhone />}
+              type="tel"
+              autoComplete="tel"
+              {...propsCampo("telefono")}
+            />
+          </div>
+
+          <div className="cf-paso" data-paso="3">
+            {esMano && <p className="cf-pregunta">{PASOS[3].pregunta}</p>}
+
+            <Campo
+              etiqueta="Cuéntanos tu proyecto"
+              icono={<FaCommentDots />}
+              multilinea
+              rows={6}
+              maxLength={TOPE_MENSAJE}
+              {...propsCampo("comentarios")}
+            >
             {/* Contador. `aria-live="polite"` para que un lector de
                 pantalla avise al acercarse al tope en vez de dejar
                 que el campo deje de aceptar letras sin explicación,
                 pero SIN interrumpir en cada tecla. */}
-            <span
-              className={`input-group__contador ${
-                formData.comentarios.length >= TOPE_MENSAJE * 0.9
-                  ? "input-group__contador--cerca"
-                  : ""
-              }`}
-              aria-live="polite"
-            >
-              {formData.comentarios.length} / {TOPE_MENSAJE}
-            </span>
-          </Campo>
+              <span
+                className={`input-group__contador ${
+                  formData.comentarios.length >= TOPE_MENSAJE * 0.9
+                    ? "input-group__contador--cerca"
+                    : ""
+                }`}
+                aria-live="polite"
+              >
+                {formData.comentarios.length} / {TOPE_MENSAJE}
+              </span>
+            </Campo>
+          </div>
 
-          <button type="submit">Enviar</button>
+          {/* ---- LOS BOTONES ----
+              «Siguiente» es `type="button"`: si fuera submit, el
+              navegador intentaría enviar el formulario en cada
+              pregunta. Y «Enviar» solo se monta en la última, para
+              que no se pueda mandar a medias. */}
+          <div className="cf-mando">
+            {esMano && paso > 0 && (
+              <button type="button" className="cf-atras" onClick={atras}>
+                Atrás
+              </button>
+            )}
+
+            {esMano && paso < PASOS.length - 1 ? (
+              <button type="button" onClick={siguiente}>
+                Siguiente
+              </button>
+            ) : (
+              <button type="submit">Enviar</button>
+            )}
+          </div>
         </form>
 
         {/* PIE: datos de contacto + síguenos */}

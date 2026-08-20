@@ -26,9 +26,31 @@
      misma paleta que la web en vez de un color propio */
   background: linear-gradient(180deg, var(--sec-deep), var(--color-dark));
 
-  /* SUBEN: crecen desde abajo */
+  /* ---- EL ORIGEN EN REPOSO ES EL MISMO QUE AL RETIRARSE ----
+     Parece al revés —suben desde abajo, así que lo natural sería
+     poner aquí `bottom`— y es justo lo que provocaba un fallo
+     intermitente al final del viaje.
+
+     La secuencia quita `data-fase` con un temporizador fijo de
+     640ms, mientras que la última columna acaba de encogerse a los
+     620. Son 20ms de margen sobre el papel y unos 50 medidos en
+     una máquina ociosa; en un móvil montando la página nueva ese
+     margen se lo come cualquier cosa. Y si la fase se retiraba con
+     una columna aún en vuelo, el origen saltaba de `top` a
+     `bottom` a mitad de la transición: la columna se DESPLAZABA de
+     golpe hacia abajo y terminaba de encogerse desde otro sitio.
+     Un tirón corto, no siempre, justo al levantarse la cortina.
+
+     Con `top` aquí, el estado de reposo es idéntico al final de
+     "revelar" —misma escala 0, mismo origen— así que quitar la
+     fase no cambia una sola propiedad y una transición sin
+     terminar simplemente termina. El problema no se hace más
+     improbable: deja de existir.
+
+     Lo de subir desde abajo lo pone ahora la propia fase
+     "cubrir", que es a quien le hace falta. */
   transform: scaleY(0);
-  transform-origin: bottom;
+  transform-origin: top;
 
   transition: transform 0.42s cubic-bezier(0.76, 0, 0.24, 1);
   transition-delay: calc(var(--c, 0) * 0.05s);
@@ -45,6 +67,9 @@
 }
 
 .persiana[data-fase="cubrir"] i {
+  /* aquí sí: crecen desde abajo. El cambio de origen ocurre con la
+     columna a escala 0, o sea sin nada que se pueda ver moverse. */
+  transform-origin: bottom;
   transform: scaleY(1);
 }
 

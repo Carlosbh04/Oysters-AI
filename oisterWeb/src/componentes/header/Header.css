@@ -816,6 +816,39 @@
   opacity: 0;
 }
 
+/* ---- Y LAS DOS CAPAS DE LA PÍLDORA, TAMBIÉN ----
+   Son de la píldora, no de la cabecera, y al pasar a barra cada
+   una fallaba a su manera:
+
+     · el ::before es el filo de nácar, un contorno de 1px con
+       `border-radius: inherit`. En la barra el radio vale 0, así
+       que ese filo se convertía en un RECTÁNGULO de esquinas
+       duras rodeando la cabecera entera. Ese era el recuadro.
+
+     · el ::after es el brillo de arriba, y lleva su radio escrito
+       a mano (23px 23px 40% 40%) en vez de heredarlo. No se
+       enteraba del cambio: se quedaba como una forma redondeada
+       suelta dentro de una barra recta.
+
+   No hace falta reescribirles la forma, porque en la barra no
+   pintan nada: lo que separa una franja pegada al borde de la
+   página es su filete de abajo —el `border-bottom` que ya tiene—
+   y no un contorno cerrado. Un objeto con marco propio es
+   justamente lo que la barra NO quiere parecer.
+
+   Se apagan con transición y no de golpe, al mismo tiempo que la
+   píldora se estira, para que el cambio se lea como una sola
+   cosa. */
+.header__container::before,
+.header__container::after {
+  transition: opacity 0.34s ease 0.06s;
+}
+
+.header--lectura .header__container::before,
+.header--lectura .header__container::after {
+  opacity: 0;
+}
+
 .header__resplandor {
   transition: opacity 0.3s ease;
 }

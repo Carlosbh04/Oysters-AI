@@ -650,6 +650,23 @@
     top: 0.55rem;
     left: 4vw;
 
+    /* ---- Y TAMBIÉN `right`, QUE ANTES NO HACÍA FALTA ----
+       Con el filete delante, al rótulo le bastaba con arrancar en
+       el sitio: medía lo que midiera su texto y ya. Ahora el
+       filete va DETRÁS y se estira hasta el final de la línea (ver
+       Rotulo.css), así que lo que mide la caja decide hasta dónde
+       llega la raya.
+
+       Al ir en absoluto, esta es la única de las cinco aperturas a
+       la que no le sirve el `align-self: stretch` del componente:
+       un elemento fuera de flujo no lo obedece. Medido, se
+       quedaba en 159px de una columna de 359 y la línea salía de
+       20px en vez de 250.
+
+       El 4vw es el mismo de `left`, así que la caja queda
+       exactamente sobre el ancho del titular. */
+    right: 4vw;
+
     margin: 0;
   }
 

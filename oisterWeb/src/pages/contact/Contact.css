@@ -1706,3 +1706,162 @@
 }
 
 
+
+
+/* ============================================================
+   UNA PREGUNTA POR PANTALLA — la forma
+   (el porqué del reparto en preguntas, en Contact.jsx)
+
+   Solo por debajo de 1080. En escritorio el formulario no lleva
+   la clase `--preguntas` siquiera, así que nada de esto se
+   aplica: allí siguen los cinco campos en columna, como estaban.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- SOLO SE VE LA PREGUNTA EN CURSO ----
+     `display: none` y no `visibility` ni una altura a cero: lo
+     que se oculta tiene que salir del flujo Y del orden de
+     tabulación. Con los campos de las otras preguntas todavía
+     tabulables, se podía llegar a ciegas a un campo que no está
+     en pantalla. */
+  .contact-form--preguntas .cf-paso {
+    display: none;
+  }
+
+  .contact-form--preguntas[data-paso="0"] .cf-paso[data-paso="0"],
+  .contact-form--preguntas[data-paso="1"] .cf-paso[data-paso="1"],
+  .contact-form--preguntas[data-paso="2"] .cf-paso[data-paso="2"],
+  .contact-form--preguntas[data-paso="3"] .cf-paso[data-paso="3"] {
+    display: block;
+    animation: cfEntra 0.34s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  }
+
+  /* ---- LA GUÍA ---- */
+  .cf-guia {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 22px;
+  }
+
+  .cf-puntos {
+    display: flex;
+    gap: 5px;
+  }
+
+  .cf-puntos i {
+    width: 22px;
+    height: 3px;
+    border-radius: 2px;
+
+    background: rgb(255 255 255 / 0.14);
+
+    transition: background 0.3s ease;
+  }
+
+  .cf-puntos i[data-hecho] {
+    background: var(--color-accent-light, #f7b8eb);
+  }
+
+  .cf-cuenta {
+    margin: 0;
+
+    font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+
+    color: var(--color-text-light, #cdc1e2);
+  }
+
+  /* ---- LA PREGUNTA ----
+     Es la voz de la página en este ancho, así que va al cuerpo de
+     un titular de sección y no al de una etiqueta. Debajo, el
+     campo se lee como la respuesta. */
+  .cf-pregunta {
+    margin: 0 0 16px;
+
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    text-wrap: balance;
+
+    color: var(--color-text, #f6f0ff);
+  }
+
+  /* ---- EL MANDO ----
+     «Atrás» solo aparece a partir de la segunda pregunta, así que
+     la fila pasa de un botón a dos. `flex` reparte el ancho sin
+     que haya que declarar dos anchos distintos. */
+  /* ---- Y EL FORMULARIO NO PUEDE PASARSE DE SU REJILLA ----
+     `.contact` es una rejilla y el formulario, uno de sus
+     elementos. Un elemento de rejilla trae `min-width: auto`, o
+     sea que se niega a encoger por debajo de lo que mide su
+     contenido — y en cuanto aparece el segundo botón, ese mínimo
+     sube. Medido: el formulario pasaba de 351 a 428px y se salía
+     por la derecha arrastrando toda la página, con los párrafos
+     de la cabecera cortados. El `min-width: 0` es lo que le
+     devuelve el permiso de encoger. */
+  .contact-form--preguntas {
+    min-width: 0;
+  }
+
+  .cf-mando {
+    display: flex;
+    gap: 10px;
+
+    margin-top: 4px;
+  }
+
+  .cf-mando button {
+    flex: 1;
+
+    /* lo mismo, un nivel más abajo: los botones son elementos
+       flex y también se plantan en su contenido. Sin esto,
+       «ATRÁS» y «SIGUIENTE» en versalitas espaciadas suman más
+       que el ancho de la pantalla y son ellos los que empujan. */
+    min-width: 0;
+
+    /* el alto lo hereda del botón de siempre (ver .contact-form
+       button, arriba): aquí solo se reparte el ancho */
+  }
+
+  .cf-mando .cf-atras {
+    /* secundario: mismo alto y misma forma, sin el degradado, para
+       que no compita con el que lleva adelante.
+
+       `1 1 34%` y no `0 0 34%`: con la base fija no encogía, que
+       es la mitad del problema de arriba. */
+    flex: 1 1 34%;
+
+    border: 1px solid var(--filo-claro, rgb(255 255 255 / 0.14));
+    background: rgb(255 255 255 / 0.05);
+
+    color: var(--color-text-light, #cdc1e2);
+    box-shadow: none;
+  }
+
+  /* la entrada de cada pregunta: un desplazamiento corto, del
+     tamaño de una línea, para que se lea como que la anterior se
+     ha ido y no como que la página ha saltado */
+  @keyframes cfEntra {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* quien pide menos movimiento cambia de pregunta en seco: la
+   información —qué pregunta es y cuántas quedan— la dan los
+   puntos y el contador, no la animación */
+@media (max-width: 1079px) and (prefers-reduced-motion: reduce) {
+  .contact-form--preguntas .cf-paso {
+    animation: none;
+  }
+}

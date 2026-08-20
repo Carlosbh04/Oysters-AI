@@ -1902,7 +1902,25 @@
 
 @media (max-width: 768px) {
   .hero {
-    min-height: 100svh;
+    /* ---- dvh Y NO svh ----
+       `svh` es la pantalla CON la barra de direcciones puesta —la
+       más pequeña de las tres—. Y ahí estaba el fallo del botón
+       de volver arriba: bajas del todo (Chrome esconde la barra),
+       pulsas la flecha, y Chrome la deja escondida. La pantalla
+       pasa a ser la grande, el hero sigue midiendo la pequeña, y
+       por abajo asoma un trozo de «Qué hacemos». Parecía que el
+       scroll se quedaba a medias, pero llegaba a 0 perfectamente:
+       lo que faltaba era hero, y el hueco medía justo lo que mide
+       la barra.
+
+       `dvh` es la pantalla que hay AHORA, con barra o sin ella,
+       así que el hero la llena en los dos casos. Y no arriesga a
+       cortar nada: esto es `min-height` con `height: auto`, o sea
+       que si el contenido pide más, el hero crece.
+
+       Además es lo que ya usan las otras tres reglas del hero en
+       esta misma hoja — la de 768px era la única suelta. */
+    min-height: 100dvh;
     height: auto;
 
     display: flex;

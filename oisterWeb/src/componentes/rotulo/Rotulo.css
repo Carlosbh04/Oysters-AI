@@ -154,6 +154,80 @@
   }
 }
 
+/* ============================================================
+   EN LA MANO, EL FILETE VA DETRÁS — "versalitas partidas"
+
+   El filete pasa de abrir el rótulo a cerrarlo, y en vez de medir
+   30px fijos se estira hasta el final de la línea.
+
+   No es un capricho de colocación. Delante, la raya era un adorno
+   que había que saltarse para llegar al texto; detrás, hace dos
+   trabajos de verdad: SUBRAYA el rótulo —empujando la lectura
+   hacia el titular que viene debajo— y da ANCHURA al bloque, que
+   en 390px es justo lo que faltaba. La línea llega al margen, así
+   que la apertura ocupa el ancho de la columna en vez de quedarse
+   en una etiqueta corta arriba a la izquierda.
+
+   Se hace con `order` y no moviendo el <i> en el JSX porque el
+   marcado no tiene por qué enterarse: en escritorio la raya sigue
+   delante, y un solo elemento sirviendo a las dos colocaciones es
+   preferible a dos ramas en el componente.
+
+   Va hasta 1079 y no hasta 600 —donde están los demás ajustes de
+   móvil de este archivo— porque el corte de escritorio del sitio
+   es 1080: entre 601 y 1079 la apertura seguía con el filete
+   delante y habría quedado una tercera versión que nadie pidió.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* ---- Y EL RÓTULO TIENE QUE OCUPAR LA COLUMNA ----
+     Con el filete detrás, lo que mide el rótulo decide hasta
+     dónde llega la línea. Y no todas las secciones se lo daban:
+     medido, «Nuestros trabajos» ocupaba 212px y «Casos de uso»
+     159 de una columna de 350, porque sus contenedores los
+     encogen al contenido. La línea se quedaba en el mínimo de 20
+     y el gesto no se veía; «Sobre nosotros», que sí ocupa el
+     ancho, lucía una de 191. Tres secciones, tres largos.
+
+     `:has(i)` acota esto a la variante con filete. El PIE usa el
+     mismo componente con un icono en lugar del filete, y allí
+     estirar las cabeceras de columna no tiene ningún sentido: sin
+     el `:has` habrían crecido también. */
+  .rotulo:has(i) {
+    /* `align-self` y NO `width: 100%`. Lo que encogía el rótulo
+       era el `align-items` de sus contenedores flex, y estirarlo
+       es la respuesta exacta a eso. El 100% parecía equivalente y
+       no lo es: se mide contra la caja de contenido del padre, y
+       en «Casos de uso» ese padre es más ancho que la pantalla —
+       el rótulo empezaba en 16 y la línea se salía 16px por la
+       derecha. Medido. */
+    align-self: stretch;
+  }
+
+  .rotulo i {
+    /* detrás del texto, y ocupando lo que sobre */
+    order: 2;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 20px;
+
+    /* de 4px a 2: a lo ancho de la columna, el grosor del guion
+       corto se leía como una barra. Lo que hace falta aquí es un
+       filo, no un bloque. */
+    height: 2px;
+
+    /* y se apaga hacia FUERA. Antes moría hacia la derecha porque
+       nacía pegado al texto; ahora nace pegado al texto por la
+       izquierda, así que la dirección se invierte o el degradado
+       quedaría del revés: fuerte en el margen y apagado junto a
+       la palabra. */
+    background: linear-gradient(
+      to right,
+      rgb(var(--rgb-magenta) / 0.55),
+      rgb(var(--rgb-magenta) / 0)
+    );
+  }
+}
+
 /* ---- MISMA APERTURA EN TODAS LAS SECCIONES (MÓVIL) ----
    Las secciones del home abren igual: este rótulo y, debajo, su
    titular. En la mano cada una dejaba un aire distinto y se

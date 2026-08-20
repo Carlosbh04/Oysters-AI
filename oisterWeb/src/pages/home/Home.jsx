@@ -1,4 +1,5 @@
 import "./Home.css";
+import "../../styles/salidaHome.css";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -10,6 +11,7 @@ import HowWeWork from "../../componentes/howWeWork/HowWeWork";
 import useMediaQuery from "../../hooks/useMediaQuery";
 import { metaDe } from "../../hooks/useIrASeccion";
 import useEnPantalla from "../../hooks/useEnPantalla";
+import useSalidaHome from "../../hooks/useSalidaHome";
 import LatestProjects from "../../componentes/latestProjects/LatestProjects";
 import About from "../../componentes/about/About";
 import UseCases from "../../componentes/useCases/UseCases";
@@ -36,6 +38,16 @@ function HomePage({ introDone = true, introSaliendo = false }) {
      descarga (son varios MB que en móvil se pagan caros y no
      se llegarían a ver). */
   const isDesktop = useMediaQuery("(min-width: 1101px)");
+
+  /* La salida «se aleja»: cada pieza del home se suelta hacia
+     atrás al irse por arriba (ver useSalidaHome.js).
+
+     Se engancha a `introDone` porque las piezas del hero llevan
+     su propia entrada con `animation`, y una animación gana a una
+     declaración de estilo pase lo que pase — mientras corre la
+     intro, el `transform` de la salida no pintaría. Esperando a
+     que la intro acabe, cada cosa manda en su turno. */
+  useSalidaHome(introDone);
 
   /* La escena ya NO se monta durante la intro (antes lo hacía a
      los ~2.6s con useDeferredMount, para precargar el vídeo en la

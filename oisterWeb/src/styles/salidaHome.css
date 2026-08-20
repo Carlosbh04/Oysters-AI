@@ -1,0 +1,193 @@
+/* ============================================================
+   LA SALIDA DEL HOME — «se aleja»
+
+   El movimiento en sí. Quién se mueve y cuánto lleva recorrido
+   lo decide useSalidaHome.js, que marca las piezas con
+   `data-salida` y les va escribiendo `--f`: 0 = en su sitio,
+   1 = ida del todo.
+
+   Aquí solo se traduce ese número a movimiento, y por eso no hay
+   ninguna transición ni animación declarada: el valor ya llega
+   interpolado desde el scroll. Poner encima un `transition`
+   añadiría un retardo entre el dedo y la pieza — se sentiría
+   blanda, que es justo lo contrario de lo que se buscaba.
+
+   ---- LOS TRES NÚMEROS ----
+   Suben 72px, encogen hasta el 62% y se apagan del todo. Salen
+   de la maqueta que se eligió (galería «Salidas del home»,
+   diseño 01). El encogido es lo que hace que se lea como
+   ALEJARSE y no como subir: sin él, la pieza parece que se va
+   hacia arriba; con él, parece que se va hacia el fondo.
+   ============================================================ */
+
+/* ---- POR QUÉ EL SELECTOR VA REPETIDO TRES VECES ----
+   No es una errata. `[data-salida]` a secas vale 0-1-0, y las
+   entradas del home se escriben con dos clases: la primera
+   versión de esto movía y encogía el titular del hero pero NO lo
+   apagaba, porque `.hero--enter .hero__title { opacity: 1 }`
+   (0-2-0) le ganaba a la opacidad. El desplazamiento sí pintaba
+   —esa regla no declara `transform`—, así que el fallo salía a
+   medias y era fácil no verlo.
+
+   Repetido tres veces vale 0-3-0 y gana a cualquier `.a .b` sin
+   tener que ir persiguiendo rule por rule qué declara qué en
+   cada sección. Mismo recurso que ya se usó en `.iia__marco--
+   grande.iia__marco--grande`. No cambia a QUÉ se aplica: sigue
+   siendo exactamente el mismo elemento. */
+/* ---- Y POR QUÉ HAY DOS SELECTORES ----
+   Porque en «Qué hacemos» las piezas ya tienen dueño: el TELÓN.
+   Su hoja (globales.css) declara
+
+       [data-telon] [data-telon-pieza][data-ver] {
+         transform: none; opacity: 1;
+       }
+
+   para dejar la pieza destapada, y eso vale 0-3-0 — exactamente
+   lo mismo que el selector triple de aquí. En un empate manda el
+   que se cargue después, o sea que quién gana dependería del
+   orden en que Vite junte las hojas. Eso no es una regla: es una
+   moneda al aire.
+
+   Se parte en dos, y cada mitad dice a las claras a quién se
+   aplica: la pieza suelta que no sabe nada del telón, y la pieza
+   del telón que este YA ha destapado. La segunda pide `data-ver`
+   a propósito: mientras la cortina está pasando manda la
+   cortina, y la salida no se mete por medio.
+
+   (En reposo todas las piezas de esta sección llevan `data-ver`
+   puesto, comprobado sobre la página: la cortina corre al entrar
+   y luego se queda descorrida.) */
+@media (max-width: 1079px) {
+  [data-salida][data-salida][data-salida]:not([data-telon-pieza]),
+  [data-telon-pieza][data-ver][data-salida][data-salida][data-salida] {
+    /* el origen arriba y no en el centro: encogiendo desde el
+       centro, la pieza también se despega por abajo y se separa
+       de lo que tiene debajo. Anclada arriba, el bloque se
+       comporta como una sola cosa que retrocede. */
+    transform-origin: 50% 0;
+
+    transform: translateY(calc(var(--f, 0) * -72px))
+      scale(calc(1 - var(--f, 0) * 0.38));
+
+    opacity: calc(1 - var(--f, 0));
+  }
+}
+
+/* ============================================================
+   LA ONDA
+
+   Encima de «se aleja» va la salida 10 de la segunda galería:
+   una ola que recorre el texto y lo desarma. Está hecha con
+   `sin()` de CSS —matemática de verdad, no una lista de retardos
+   escritos a mano—, así que la ola es continua y las piezas van
+   todas sobre la MISMA onda.
+
+   ---- CADA COSA MANDA EN SU NIVEL ----
+   El BLOQUE se aleja (arriba) y sus TROZOS hacen la onda (aquí).
+   No es una manía de orden: `transform` es UNA propiedad, y dos
+   reglas que la declaran sobre el mismo elemento no se suman —la
+   segunda borra a la primera—. En niveles distintos se componen
+   solas, porque el trozo hereda la caja ya transformada de su
+   bloque.
+
+   ---- Y EL BLOQUE PARTIDO NO SE APAGA ----
+   Se apagan sus trozos. Si se apagaran los dos, las opacidades
+   se MULTIPLICARÍAN (0,5 del bloque × 0,5 de la letra = 0,25) y
+   el texto se iría al doble de velocidad que el resto de la
+   sección, que es justo la falta de acuerdo que se quería evitar.
+   ============================================================ */
+@media (max-width: 1079px) {
+  /* las palabras no parten: un titular partido letra a letra
+     podría dejar una letra suelta al final de una línea */
+  .salida-pal {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  /* triple, por lo mismo que el bloque: la entrada del hero
+     declara `.hero--enter .hero__title-letra { transform:
+     translateY(0) }`, que vale 0-2-0 y dejaba la onda plana en el
+     único titular que ya venía partido de fábrica. */
+  .salida-tz.salida-tz.salida-tz,
+  .salida-pz.salida-pz.salida-pz {
+    display: inline-block;
+
+    /* el desfase por trozo (`--j`) es lo que convierte un
+       balanceo en una OLA: sin él todas las letras subirían y
+       bajarían a la vez, que es un temblor, no una onda */
+    --onda: sin(var(--j, 0) * 0.7rad + var(--f, 0) * 7rad);
+
+    transform: translateY(calc(var(--onda) * var(--f, 0) * var(--alto, 44px)))
+      rotate(calc(var(--onda) * var(--f, 0) * var(--giro, 22deg)));
+
+    /* el apagado sí lleva cascada, repartida por `--paso` según
+       cuántos trozos haya (ver partirTexto.js): en un titular
+       largo, apagarlas todas a la vez desperdicia la ola */
+    opacity: clamp(
+      0,
+      calc((1 - (var(--f, 0) - var(--j, 0) * var(--paso-salida, 0.04)) * 1.6)),
+      1
+    );
+  }
+
+  /* el párrafo se mueve menos y gira menos que el titular: a 13px
+     una letra girada 22° deja de ser una letra */
+  .salida-pz.salida-pz.salida-pz {
+    --alto: 24px;
+    --giro: 10deg;
+  }
+
+  [data-partido][data-salida][data-salida][data-salida],
+  [data-telon-pieza][data-ver][data-partido][data-salida][data-salida] {
+    opacity: 1;
+  }
+
+  /* ---- Y SI EL TEXTO NO ES PIEZA, SOLO ONDULA ----
+     El párrafo de «Nuestra Misión» se parte en palabras, pero la
+     pieza que se anima es la CAJA que lo contiene, no él. Si sus
+     palabras se apagaran también, las dos opacidades se
+     multiplicarían y el texto se iría al doble de velocidad que
+     su propia caja.
+
+     Así que quien no lleva `data-salida` encima solo pone la
+     onda, y el apagado lo lleva entero el bloque de arriba. */
+  [data-partido]:not([data-salida]) .salida-tz.salida-tz,
+  [data-partido]:not([data-salida]) .salida-pz.salida-pz {
+    opacity: 1;
+  }
+
+  /* ---- LO QUE NO SE PARTE, CABALGA LA OLA ENTERO ----
+     El vídeo, las tarjetas del método y el grupo de botones no
+     son texto, así que no hay trozos que desfasar. Van sobre la
+     misma onda pero como un solo cuerpo — y aquí sí hay que
+     escribir el «se aleja» otra vez dentro del mismo `transform`,
+     por lo dicho arriba de que no se suman. */
+  [data-salida][data-salida][data-salida]:not([data-partido]):not(
+      [data-telon-pieza]
+    ),
+  [data-telon-pieza][data-ver][data-salida][data-salida]:not([data-partido]) {
+    --onda: sin(var(--f, 0) * 7rad);
+
+    transform: translateY(
+        calc(var(--f, 0) * -72px + var(--onda) * var(--f, 0) * 22px)
+      )
+      rotate(calc(var(--onda) * var(--f, 0) * 4deg))
+      scale(calc(1 - var(--f, 0) * 0.38));
+  }
+}
+
+/* ---- CON MOVIMIENTO REDUCIDO NO HAY SALIDA ----
+   El hook ni siquiera se monta, así que `--f` nunca se escribe y
+   la regla de arriba ya daría el estado neutro. Esto es el
+   cinturón: si una pieza se quedó marcada de antes (por ejemplo
+   porque el ajuste del sistema cambió con la página abierta), se
+   la devuelve entera en vez de dejarla a medio desvanecer. */
+@media (prefers-reduced-motion: reduce) {
+  [data-salida][data-salida][data-salida],
+  [data-telon-pieza][data-ver][data-salida][data-salida][data-salida],
+  .salida-tz.salida-tz.salida-tz,
+  .salida-pz.salida-pz.salida-pz {
+    transform: none;
+    opacity: 1;
+  }
+}

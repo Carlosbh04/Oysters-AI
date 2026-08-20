@@ -1815,15 +1815,42 @@
     letter-spacing: 0.16em;
   }
 
-  /* la guía de la derecha y los dos galones sobran: sin centrado
-     no cierran nada, solo hacen ruido a un lado del texto */
-  .iia__rotulo-centro::after,
+  /* los dos galones sobran: sin centrado no cierran nada */
   .iia__rotulo-flecha {
     display: none;
   }
 
+  /* ---- Y LA GUÍA CAMBIA DE LADO ----
+     Este rótulo no usa el componente compartido —lleva sus
+     flechas y sus dos guías— pero en la mano tiene que abrir
+     IGUAL que las otras tres secciones, que es de lo que iba
+     todo esto. Así que se aplica aquí el mismo gesto: la guía de
+     la izquierda se retira y la de la derecha se estira hasta el
+     final de la línea.
+
+     El porqué de la colocación está escrito una sola vez, en
+     Rotulo.css, junto al filete del componente. Aquí solo se
+     replica. */
   .iia__rotulo-centro::before {
-    width: 26px;
+    display: none;
+  }
+
+  .iia--sobre-fondo .iia__rotulo-centro::after,
+  .iia__rotulo-centro::after {
+    display: block;
+
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 20px;
+    height: 2px;
+
+    /* el magenta del componente, no el lila de este bloque: las
+       cinco aperturas del home tienen que ser la misma pieza */
+    background: linear-gradient(
+      to right,
+      rgb(var(--rgb-magenta) / 0.55),
+      rgb(var(--rgb-magenta) / 0)
+    );
   }
 
   /* ---- EL SEGUNDO PÁRRAFO ASCIENDE A CITA ----
