@@ -1566,7 +1566,10 @@
 
   .hero {
     height: auto;
-    min-height: 100dvh;
+    /* svh y no dvh: dvh crece a mitad de scroll al recogerse la
+       barra del navegador y el hero se estiraba en vivo. El
+       porqué completo, en el bloque de 768px. */
+    min-height: 100svh;
 
     /* arriba: header + aire · abajo: aire de cierre
        (la onda es absolute: el padding le deja hueco) */
@@ -1950,11 +1953,30 @@
        perla del cue (ver .hero__scroll-cue en el mismo bloque),
        que es un elemento entero, no un texto a medio revelar.
 
-       Sigue en `dvh` y no en `svh`: es la pantalla que hay AHORA,
-       con barra de direcciones o sin ella, así que el hero la
-       llena en los dos casos (la historia completa, unas líneas
-       más arriba). */
-    min-height: 100dvh;
+       ---- SVH, Y NO DVH: EL HERO NO PUEDE CRECER EN VIVO ----
+       Aquí decía `dvh` con el argumento de que es «la pantalla que
+       hay AHORA, con barra o sin ella». Ese argumento se volvió en
+       contra al pasar el hero a pantalla completa: dvh cambia A
+       MITAD DE SCROLL — en cuanto el gesto recoge la barra del
+       navegador, la pantalla gana ~60px y el hero SE ESTIRA en
+       vivo, recolocando todo lo que hay dentro delante del dedo.
+       Con 86dvh el estirón era de 50px y pasaba desapercibido; a
+       pantalla completa es de 60 y se ve como una avería.
+
+       `svh` es la pantalla más pequeña —la de barra puesta— y es
+       la ÚNICA de las tres unidades que no cambia durante el
+       scroll: el hero mide lo mismo del primer fotograma al
+       último.
+
+       Lo que se acepta a cambio, y conviene dejarlo escrito: con
+       la barra ya recogida y el scroll de vuelta en 0, el hero
+       mide una barra menos que la pantalla y asoma el arranque de
+       «Qué hacemos» por abajo. Es el caso raro (los navegadores
+       re-enseñan la barra al llegar arriba) y es un fotograma
+       quieto — mientras que el estirón del dvh pasaba en TODOS los
+       scrolls, en movimiento y a mitad del gesto. De los dos
+       defectos, este es el menor. */
+    min-height: 100svh;
     height: auto;
 
     display: flex;
@@ -2254,7 +2276,8 @@
     /* FIX: el header sigue ahí — sin este padding el título
        quedaba debajo de la píldora en móvil girado */
     height: auto;
-    min-height: 100dvh;
+    /* svh por lo mismo que en vertical: que no crezca en vivo */
+    min-height: 100svh;
     padding: calc(var(--nav-height) + 0.25rem) 0 3rem;
   }
 

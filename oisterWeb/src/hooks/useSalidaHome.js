@@ -127,8 +127,25 @@ const PIEZAS = [
   "#proyectos .latest-projects__intro .rotulo",
   ".latest-projects__title",
   ".latest-projects__description",
-  ".lp-mano__perla",
-  ".lp-mano__turnos",
+
+  /* ---- LA VITRINA SALE ENTERA, AUNQUE ENTRE POR PIEZAS ----
+     Aquí ponían `.lp-mano__perla` y `.lp-mano__turnos` sueltas —
+     los mismos selectores del telón, según la regla de una sola
+     lista. Para SALIR estaba mal: la perla mide ~360px y la tira
+     de turnos ~95, así que la perla se apagaba con su recorrido y
+     la tira, cuyo borde aún no había cruzado la línea, se quedaba
+     SOLA y a plena luz con un vacío encima — tres circulitos
+     huérfanos en mitad del morado (medido: perla a 0,78 bajando y
+     turnos a f=0, opacidad 1).
+
+     La entrada y la salida no tienen por qué compartir grano: el
+     telón descubre pieza a pieza porque eso es lo que se quiere
+     al LLEGAR —cada cosa a su ritmo—, pero al irse son UNA
+     vitrina: el destacado y su índice. Animando el contenedor, la
+     tira se va con su perla, y con el recorrido que ya cuenta el
+     alto de la pieza (ver pintar), el bloque entero sigue visible
+     mientras ocupe pantalla. */
+  ".lp-mano",
 
   /* ---- 4 · NOSOTROS ----
      De `.ab-gente` se animan sus DOS fichas y no el bloque: mide
@@ -255,7 +272,32 @@ export default function useSalidaHome(activo = true) {
 
       for (const p of cerca) {
         const y = p.getBoundingClientRect().top;
-        const f = Math.min(1, Math.max(0, (arranque - y) / recorrido));
+
+        /* ---- EL RECORRIDO CUENTA EL ALTO DE LA PIEZA ----
+           El progreso se mide desde el borde de ARRIBA, y con el
+           recorrido fijo eso condenaba a las piezas altas: la caja
+           de Misión/Visión mide ~400px, y cuando su borde superior
+           completaba el recorrido, la caja entera estaba apagada
+           con la mitad aún en mitad de la pantalla. Medido: 398px
+           de pantalla ocupados por un bloque al 73% yendo a 0 — el
+           hueco muerto que se veía entre «Qué hacemos» y «¿Cómo lo
+           hacemos?».
+
+           Sumando el alto de la pieza al recorrido, apagarse del
+           todo exige que también su borde de ABAJO haya salido:
+           una pieza no puede quedar invisible mientras siga
+           ocupando pantalla. Para las piezas de una línea el
+           sumando es ~0 y nada cambia — la coreografía aprobada se
+           conserva tal cual donde se aprobó.
+
+           `offsetHeight` y no el alto del rect: el rect encoge con
+           el scale de la propia salida, y metería el resultado en
+           la fórmula que lo produce — una realimentación que
+           acelera el final. El alto de maquetación es estable. */
+        const f = Math.min(
+          1,
+          Math.max(0, (arranque - y) / (recorrido + p.offsetHeight))
+        );
         p.style.setProperty("--f", f.toFixed(4));
 
         /* ---- Y SE LE RETIRA LA ENTRADA, UNA VEZ ----

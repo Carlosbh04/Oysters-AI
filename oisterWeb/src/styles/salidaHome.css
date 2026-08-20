@@ -58,8 +58,28 @@
    puesto, comprobado sobre la página: la cortina corre al entrar
    y luego se queda descorrida.) */
 @media (max-width: 1079px) {
-  [data-salida][data-salida][data-salida]:not([data-telon-pieza]),
-  [data-telon-pieza][data-ver][data-salida][data-salida][data-salida] {
+  /* ---- UNA PIEZA QUE SE HA IDO DE LA PÁGINA NO SE ANIMA ----
+     `:not([data-fuera-de-flujo])` no es defensivo, corrige un
+     fallo medido. El vídeo de «Cómo lo hacemos» al abrirse pasa a
+     `position: fixed` y ocupa la pantalla — pero seguía llevando
+     `data-salida` encima y el scroll seguía escribiéndole `--f`.
+     Resultado: el vídeo A PANTALLA COMPLETA salía encogido al
+     82,9%, subido 32px y al 55% de opacidad, o sea translúcido,
+     dejando ver la página por debajo. La matriz medida coincidía
+     al segundo decimal con lo que da esta regla para `--f: 0.45`.
+
+     El principio: la salida existe para acompañar a las piezas que
+     se van POR ARRIBA con el scroll. Una pieza que se ha salido
+     del flujo para ocupar la pantalla ya no está haciendo eso, y
+     el scroll de debajo no debe moverla. Quien escape del flujo se
+     marca con el atributo y queda fuera de las cuatro reglas de
+     esta hoja que declaran transform u opacidad. */
+  [data-salida][data-salida][data-salida]:not([data-telon-pieza]):not(
+      [data-fuera-de-flujo]
+    ),
+  [data-telon-pieza][data-ver][data-salida][data-salida][data-salida]:not(
+      [data-fuera-de-flujo]
+    ) {
     /* el origen arriba y no en el centro: encogiendo desde el
        centro, la pieza también se despega por abajo y se separa
        de lo que tiene debajo. Anclada arriba, el bloque se
@@ -194,8 +214,10 @@
      por lo dicho arriba de que no se suman. */
   [data-salida][data-salida][data-salida]:not([data-partido]):not(
       [data-telon-pieza]
-    ),
-  [data-telon-pieza][data-ver][data-salida][data-salida]:not([data-partido]) {
+    ):not([data-fuera-de-flujo]),
+  [data-telon-pieza][data-ver][data-salida][data-salida]:not(
+      [data-partido]
+    ):not([data-fuera-de-flujo]) {
     --onda: sin(var(--f, 0) * 7rad);
 
     transform: translateY(

@@ -384,6 +384,14 @@ function VideoMarco() {
   return (
     <div
       className={`iia__marco ${grande ? "iia__marco--grande" : ""}`}
+      /* ---- ABIERTO, SE SALE DEL FLUJO ----
+         Al ocupar la pantalla esto pasa a `position: fixed`, así
+         que deja de ser una pieza de la página que sube con el
+         scroll. La salida del home tiene que soltarlo: seguía
+         escribiéndole su progreso y el vídeo salía encogido al
+         82,9% y translúcido, dejando ver la página por debajo.
+         Ver el porqué completo en salidaHome.css. */
+      data-fuera-de-flujo={grande || undefined}
       ref={cajaRef}
       onPointerDown={alPulsar}
       onPointerMove={alMover}
